@@ -9,3 +9,50 @@ datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
 }
+
+model User {
+  Id        Int    @id @default(autoincrement())
+  Email     String @unique @db.VarChar(256)
+  Password  String @db.VarChar(256)
+  FirstName String @db.VarChar(100)
+  LastName  String @db.VarChar(100)
+}
+
+model Event {
+  Id          Int         @id @default(autoincrement())
+  Title       String      @unique @db.VarChar(50)
+  Description String      @unique @db.VarChar(250)
+  DateOfEvent DateTime    @default(now())
+  Paragraphs  Paragraph[]
+  customTags  CustomTag[]
+  Tags        Tag[]
+}
+
+model Paragraph {
+  Id      Int    @id @default(autoincrement())
+  Title   String @unique @db.VarChar(50)
+  Text    String @db.VarChar(5000)
+  Event   Event  @relation(fields: [eventId], references: [Id])
+  eventId Int
+}
+
+model CustomTag {
+  Id      Int    @id @default(autoincrement())
+  Subject String @db.VarChar(50)
+  Event   Event  @relation(fields: [eventId], references: [Id])
+  eventId Int
+}
+
+model Tag {
+  Id      Int     @id @default(autoincrement())
+  Subject String  @db.VarChar(50)
+  Events  Event[]
+}
+
+model Multimedia {
+  Id          Int    @id @default(autoincrement())
+  Multimedia  Bytes
+  Description String @db.VarChar(1000)
+  Transcript  String @db.VarChar(10000)
+  Alt         String @db.VarChar(100)
+}

@@ -11,55 +11,55 @@ datasource db {
 }
 
 model User {
-  Id        Int     @id @default(autoincrement())
-  Email     String  @unique @db.VarChar(256)
-  Password  String  @db.VarChar(256)
-  FirstName String  @db.VarChar(100)
-  LastName  String  @db.VarChar(100)
-  Events    Event[]
+  id        Int     @id @default(autoincrement())
+  email     String  @unique @db.VarChar(256)
+  password  String  @db.VarChar(256)
+  firstName String  @db.VarChar(100)
+  lastName  String  @db.VarChar(100)
+  events    Event[]
   role      String  @db.VarChar(5)
 }
 
 model Event {
-  Id              Int          @id @default(autoincrement())
-  Title           String       @unique @db.VarChar(100)
-  Description     String       @db.VarChar(250)
-  DateOfEvent     DateTime     @default(now())
-  Paragraphs      Paragraph[]
+  id              Int          @id @default(autoincrement())
+  title           String       @unique @db.VarChar(100)
+  description     String       @db.VarChar(250)
+  dateOfEvent     DateTime     @default(now())
+  paragraphs      Paragraph[]
   customTags      CustomTag[]
-  Tags            Tag[]
-  MultimediaItems Multimedia[]
-  User            User?        @relation(fields: [userId], references: [Id], onDelete: SetNull, onUpdate: Cascade)
+  tags            Tag[]
+  multimediaItems Multimedia[]
+  user            User?        @relation(fields: [userId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   userId          Int?
 }
 
 model Paragraph {
-  Id      Int     @id @default(autoincrement())
-  Title   String? @db.VarChar(50)
-  Text    String  @db.VarChar(5000)
-  Event   Event   @relation(fields: [eventId], references: [Id], onDelete: Cascade, onUpdate: Cascade)
+  id      Int     @id @default(autoincrement())
+  title   String? @db.VarChar(50)
+  text    String  @db.VarChar(5000)
+  event   Event   @relation(fields: [eventId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   eventId Int
 }
 
 model CustomTag {
-  Id      Int     @id @default(autoincrement())
-  Subject String  @db.VarChar(50)
-  Event   Event[]
+  id      Int     @id @default(autoincrement())
+  subject String  @db.VarChar(50)
+  event   Event[]
   eventId Int
 }
 
 model Tag {
-  Id      Int     @id @default(autoincrement())
-  Subject String  @db.VarChar(50)
+  id      Int     @id @default(autoincrement())
+  subject String  @db.VarChar(50)
   Events  Event[]
 }
 
 model Multimedia {
-  Id          Int     @id @default(autoincrement())
-  Event       Event   @relation(fields: [eventId], references: [Id], onDelete: Cascade, onUpdate: Cascade)
+  id          Int     @id @default(autoincrement())
+  event       Event   @relation(fields: [eventId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   eventId     Int
-  Multimedia  Bytes
-  Description String? @db.VarChar(1000)
-  Transcript  String? @db.VarChar(10000)
-  Alt         String? @db.VarChar(100)
+  multimedia  Bytes
+  description String? @db.VarChar(1000)
+  transcript  String? @db.VarChar(10000)
+  alt         String? @db.VarChar(100)
 }

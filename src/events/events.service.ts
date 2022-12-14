@@ -1,4 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Event, Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prismaClient/prisma.service';
 
@@ -6,34 +12,53 @@ import { PrismaService } from 'src/prismaClient/prisma.service';
 export class EventsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  create(data: Prisma.EventCreateInput): Promise<Event> {
-    return this.prisma.event.create({ data });
+  async create(data: Prisma.EventCreateInput): Promise<Event> {
+    try {
+      return await this.prisma.event.create({ data });
+    } catch (error) {
+      throw new BadRequestException();
+    }
   }
 
-  findOne(
+  async findOne(
     eventUniqueInput: Prisma.EventWhereUniqueInput,
   ): Promise<Event | null> {
-    return this.prisma.event.findUnique({ where: eventUniqueInput });
+    try {
+      return await this.prisma.event.findUnique({ where: eventUniqueInput });
+    } catch (error) {
+      if (error.code == 'P2025') throw new NotFoundException();
+      else throw new BadRequestException();
+    }
   }
 
   async findAll(): Promise<Event[]> {
-    return this.prisma.event.findMany();
+    return await this.prisma.event.findMany();
   }
 
-  update(params: {
+  async update(params: {
     where: Prisma.EventWhereUniqueInput;
     data: Prisma.EventUpdateInput;
   }): Promise<Event> {
-    const { where, data } = params;
-    return this.prisma.event.update({
-      data,
-      where,
-    });
+    try {
+      const { where, data } = params;
+      return await this.prisma.event.update({
+        data,
+        where,
+      });
+    } catch (error) {
+      if (error.code == 'P2025') throw new NotFoundException();
+      else throw new BadRequestException();
+    }
   }
 
-  remove(where: Prisma.EventWhereUniqueInput): Promise<Event> {
-    return this.prisma.event.delete({
-      where,
-    });
+  async remove(where: Prisma.EventWhereUniqueInput): Promise<Event> {
+    try {
+      return await this.prisma.event.delete({
+        where,
+      });
+    } catch (error) {
+      if (error.code == 'P2025') throw new NotFoundException();
+      else throw new BadRequestException();
+    }
   }
 }

@@ -17,11 +17,12 @@ model User {
   FirstName String  @db.VarChar(100)
   LastName  String  @db.VarChar(100)
   Events    Event[]
+  role      String  @db.VarChar(5)
 }
 
 model Event {
   Id              Int          @id @default(autoincrement())
-  Title           String       @unique @db.VarChar(50)
+  Title           String       @unique @db.VarChar(100)
   Description     String       @db.VarChar(250)
   DateOfEvent     DateTime     @default(now())
   Paragraphs      Paragraph[]

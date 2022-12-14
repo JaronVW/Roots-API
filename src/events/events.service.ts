@@ -5,8 +5,9 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Event, Prisma } from '@prisma/client';
+import { Event, prisma, Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prismaClient/prisma.service';
+import { EventQueryParamsDto } from './EventQueryParamsDto';
 
 @Injectable()
 export class EventsService {
@@ -31,8 +32,12 @@ export class EventsService {
     }
   }
 
-  async findAll(): Promise<Event[]> {
-    return await this.prisma.event.findMany();
+  async findAll(queryDto: EventQueryParamsDto): Promise<Event[]> {
+    return await this.prisma.event.findMany({
+      orderBy: { dateOfEvent: queryDto.order } as any,
+      skip: Number(queryDto.min),
+      take: Number(queryDto.max),
+    });
   }
 
   async update(params: {

@@ -1,6 +1,18 @@
 // eslint-disable-next-line prettier/prettier
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
 import { Event } from '@prisma/client';
+import { EventQueryParamsDto } from './EventQueryParamsDto';
 import { EventsService } from './events.service';
 
 @Controller('events')
@@ -13,25 +25,26 @@ export class EventsController {
   }
 
   @Get()
-  async findAll() {
-    return this.eventsService.findAll();
+  @UsePipes(new ValidationPipe({ transform: true }))
+  async findAll(@Query() queryDto: EventQueryParamsDto) {
+    return this.eventsService.findAll(queryDto);
   }
 
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<Event | null> {
-    return this.eventsService.findOne({ Id: Number(id) });
+    return this.eventsService.findOne({ id: Number(id) });
   }
 
   @Patch(':id')
   async update(@Param('id') id: string, @Body() event: Event) {
     return this.eventsService.update({
-      where: { Id: Number(id) },
+      where: { id: Number(id) },
       data: event,
     });
   }
 
   @Delete(':id')
   async remove(@Param('id') id: string): Promise<Event> {
-    return this.eventsService.remove({ Id: Number(id) });
+    return this.eventsService.remove({ id: Number(id) });
   }
 }

@@ -1,11 +1,9 @@
 import {
   BadRequestException,
-  HttpException,
-  HttpStatus,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Event, prisma, Prisma } from '@prisma/client';
+import { Event, Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prismaClient/prisma.service';
 import { EventQueryParamsDto } from './EventQueryParamsDto';
 
@@ -25,7 +23,15 @@ export class EventsService {
     eventUniqueInput: Prisma.EventWhereUniqueInput,
   ): Promise<Event | null> {
     try {
-      return await this.prisma.event.findUnique({ where: eventUniqueInput });
+      return await this.prisma.event.findUnique({
+        where: eventUniqueInput,
+        include: {
+          paragraphs: true,
+          multimediaItems: true,
+          tags: true,
+          customTags: true,
+        },
+      });
     } catch (error) {
       if (error.code == 'P2025') throw new NotFoundException();
       else throw new BadRequestException();
@@ -37,6 +43,10 @@ export class EventsService {
       orderBy: { dateOfEvent: queryDto.order } as any,
       skip: Number(queryDto.min),
       take: Number(queryDto.max),
+      include: {
+        tags: true,
+        customTags: true,
+      },
     });
   }
 

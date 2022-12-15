@@ -10,8 +10,12 @@ import {
   Query,
   UsePipes,
   ValidationPipe,
+  UseInterceptors,
+  UploadedFile,
+  UploadedFiles,
 } from '@nestjs/common';
-import { Event } from '@prisma/client';
+import {  FilesInterceptor } from '@nestjs/platform-express';
+import { Event, Multimedia } from '@prisma/client';
 import { EventQueryParamsDto } from './events.query.params.dto';
 import { EventsService } from './events.service';
 
@@ -20,7 +24,11 @@ export class EventsController {
   constructor(private readonly eventsService: EventsService) {}
 
   @Post()
-  async create(@Body() event: Event) {
+  @UseInterceptors(FilesInterceptor('files'))
+  async create(
+    @Body() event: Event,
+    @UploadedFiles() files: Array<Express.Multer.File>,
+  ) {
     return this.eventsService.create(event);
   }
 

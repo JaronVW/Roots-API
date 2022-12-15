@@ -58,7 +58,7 @@ model Multimedia {
   id          Int     @id @default(autoincrement())
   event       Event   @relation(fields: [eventId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   eventId     Int
-  multimedia  Bytes
+  multimedia  String?
   description String? @db.VarChar(1000)
   transcript  String? @db.VarChar(10000)
   alt         String? @db.VarChar(100)

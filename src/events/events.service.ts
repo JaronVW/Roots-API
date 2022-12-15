@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  HttpException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -13,9 +14,13 @@ export class EventsService {
 
   async create(data: Prisma.EventCreateInput): Promise<Event> {
     try {
-      return await this.prisma.event.create({ data });
+      const object = await this.prisma.event.create({ data });
+      return object;
     } catch (error) {
-      throw new BadRequestException();
+      console.log(error);
+      throw new HttpException(error, 400, {
+        cause: new Error('Some Error'),
+      });
     }
   }
 

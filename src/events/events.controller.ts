@@ -14,7 +14,7 @@ import {
   UploadedFile,
   UploadedFiles,
 } from '@nestjs/common';
-import {  FilesInterceptor } from '@nestjs/platform-express';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { Event, Multimedia } from '@prisma/client';
 import { EventQueryParamsDto } from './events.query.params.dto';
 import { EventsService } from './events.service';

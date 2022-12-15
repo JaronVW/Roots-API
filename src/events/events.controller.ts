@@ -12,7 +12,7 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { Event } from '@prisma/client';
-import { EventQueryParamsDto } from './EventQueryParamsDto';
+import { EventQueryParamsDto } from './events.query.params.dto';
 import { EventsService } from './events.service';
 
 @Controller('events')

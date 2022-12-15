@@ -1,21 +1,26 @@
 import {
   BadRequestException,
+  HttpException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { Event, Prisma } from '@prisma/client';
-import { PrismaService } from 'src/prismaClient/prisma.service';
-import { EventQueryParamsDto } from './EventQueryParamsDto';
+import { PrismaClientService } from 'src/prisma-client/prisma-client.service';
+import { EventQueryParamsDto } from './events.query.params.dto';
 
 @Injectable()
 export class EventsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaClientService) {}
 
   async create(data: Prisma.EventCreateInput): Promise<Event> {
     try {
-      return await this.prisma.event.create({ data });
+      const object = await this.prisma.event.create({ data });
+      return object;
     } catch (error) {
-      throw new BadRequestException();
+      console.log(error);
+      throw new HttpException(error, 400, {
+        cause: new Error('Some Error'),
+      });
     }
   }
 

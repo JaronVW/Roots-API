@@ -7,27 +7,22 @@ async function main() {
 
   // Tags
   const tag1 = {
-    // id: 1,
     subject: 'Finances',
   };
 
   const tag2 = {
-    // id: 2,
     subject: 'Work culture',
   };
 
   const tag3 = {
-    // id: 3,
     subject: 'Adminstration',
   };
 
   const tag4 = {
-    // id: 4,
     subject: 'Infrastructure',
   };
 
   const tag5 = {
-    // id: 5,
     subject: 'Relocation',
   };
 

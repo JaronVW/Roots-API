@@ -1,4 +1,3 @@
-// eslint-disable-next-line prettier/prettier
 import {
   Controller,
   Get,
@@ -25,10 +24,7 @@ export class EventsController {
 
   @Post()
   @UseInterceptors(FilesInterceptor('files'))
-  async create(
-    @Body() event: Event,
-    @UploadedFiles() files: Array<Express.Multer.File>,
-  ) {
+  async create(@Body() event: Event, @UploadedFiles() files: Array<Express.Multer.File>) {
     return this.eventsService.create(event);
   }
 

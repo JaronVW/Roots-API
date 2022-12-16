@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { EventsController } from './events.controller';
-import { EventQueryParamsDto } from './events.query.params.dto';
+import { EventQueryParamsDto } from './dto/events.query.params.dto';
 import { EventsService } from './events.service';
 
 describe('EventsController', () => {

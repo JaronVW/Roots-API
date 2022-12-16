@@ -16,7 +16,7 @@ import {
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { Event, Multimedia } from '@prisma/client';
-import { eventsCreateDto } from './dto/events.create.dto';
+import { eventsCreateDto } from './dto/events.dto';
 import { EventQueryParamsDto } from './dto/events.query.params.dto';
 import { EventsService } from './events.service';
 
@@ -25,6 +25,7 @@ export class EventsController {
   constructor(private readonly eventsService: EventsService) {}
 
   @Post()
+  @UsePipes(new ValidationPipe({ transform: true }))
   async create(@Body() event: eventsCreateDto) {
     return this.eventsService.create(event);
   }
@@ -41,10 +42,11 @@ export class EventsController {
   }
 
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() event: Event) {
+  @UsePipes(new ValidationPipe({ transform: true }))
+  async update(@Param('id') id: string, @Body() event: eventsCreateDto) {
     return this.eventsService.update({
       where: { id: Number(id) },
-      data: event,
+      event: event,
     });
   }
 

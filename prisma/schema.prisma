@@ -45,7 +45,6 @@ model CustomTag {
   id      Int     @id @default(autoincrement())
   subject String @unique @db.VarChar(50)
   event   Event[]
-  eventId Int
 }
 
 model Tag {

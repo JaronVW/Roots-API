@@ -1,10 +1,20 @@
 import { CustomTag, Multimedia, Paragraph, Tag } from '@prisma/client';
-import { IsDate, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+  IsDate,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { multimediaItemsDto } from './multimedia.items.create.dto';
 import { paragraphCreateDto } from './paragraph.create.dto';
 import { tagCreateDto } from './tag.create.dto';
 
 export class eventsCreateDto {
+  @IsOptional()
+  @IsNumber()
+  userId: number;
+
   @IsNotEmpty()
   @IsString()
   title: string;
@@ -18,17 +28,14 @@ export class eventsCreateDto {
   dateOfEvent: Date;
 
   @IsOptional()
-  userId: number | null;
+  multimediaItems: multimediaItemsDto[] = [];
 
   @IsOptional()
-  multimediaItems: multimediaItemsDto[];
+  tags: tagCreateDto[] = [];
 
   @IsOptional()
-  tags: tagCreateDto[];
+  customTags: tagCreateDto[] = [];
 
   @IsOptional()
-  customTags: tagCreateDto[];
-
-  @IsOptional()
-  paragraphs: paragraphCreateDto[];
+  paragraphs: paragraphCreateDto[] = [];
 }

@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { Event, Prisma } from '@prisma/client';
 import { PrismaClientService } from 'src/prisma-client/prisma-client.service';
-import { eventsCreateDto } from './dto/events.create.dto';
+import { eventsCreateDto } from './dto/events.dto';
 import { EventQueryParamsDto } from './dto/events.query.params.dto';
 
 @Injectable()
@@ -20,11 +20,17 @@ export class EventsService {
           ...event,
           paragraphs: { createMany: { data: event.paragraphs } },
           tags: { connect: event.tags },
+
           customTags: {
-            connectOrCreate: {
-              
-            },
+            connectOrCreate: event.customTags.map((tag) => ({
+              where: { subject: tag.subject },
+              create: { subject: tag.subject },
+            })),
           },
+          multimediaItems: {
+            createMany: { data: event.multimediaItems, skipDuplicates: false },
+          },
+          userId: event.userId,
         },
       });
     } catch (error) {
@@ -67,15 +73,31 @@ export class EventsService {
 
   async update(params: {
     where: Prisma.EventWhereUniqueInput;
-    data: Prisma.EventUpdateInput;
+    event: eventsCreateDto;
   }): Promise<Event> {
     try {
-      const { where, data } = params;
+      const { where, event } = params;
       return await this.prisma.event.update({
-        data,
+        data: {
+          ...event,
+          paragraphs: { createMany: { data: event.paragraphs } },
+          tags: { connect: event.tags },
+
+          customTags: {
+            connectOrCreate: event.customTags.map((tag) => ({
+              where: { subject: tag.subject },
+              create: { subject: tag.subject },
+            })),
+          },
+          multimediaItems: {
+            createMany: { data: event.multimediaItems, skipDuplicates: false },
+          },
+          userId: event.userId,
+        },
         where,
       });
     } catch (error) {
+      console.log(error);
       if (error.code == 'P2025') throw new NotFoundException();
       else throw new BadRequestException();
     }

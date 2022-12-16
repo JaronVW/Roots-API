@@ -53,23 +53,11 @@ async function main() {
               create: [
                 {
                   title: 'Splitting of teams',
-                  text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla congue molestie ultrices. Curabitur bibendum, \
-                  magna quis varius pharetra, urna sapien tincidunt metus, sit amet malesuada velit velit et erat. Mauris mollis nunc \
-                  id turpis viverra facilisis. Etiam dapibus consectetur gravida. Duis tincidunt neque consectetur gravida porttitor. \
-                  Praesent eu dolor vehicula, aliquam diam viverra, viverra turpis. Praesent nulla turpis, tempus non lectus sit \
-                  amet, aliquam sagittis dolor. Integer feugiat, libero ac rhoncus aliquet, tellus urna varius nisi, quis lobortis \
-                  ligula lectus pharetra eros. Suspendisse ultrices porta leo vitae ultrices. Aliquam ut pellentesque nisl.',
+                  text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla congue molestie ultrices. Curabitur bibendum, magna quis varius pharetra, urna sapien tincidunt metus, sit amet malesuada velit velit et erat. Mauris mollis nunc id turpis viverra facilisis. Etiam dapibus consectetur gravida. Duis tincidunt neque consectetur gravida porttitor. Praesent eu dolor vehicula, aliquam diam viverra, viverra turpis. Praesent nulla turpis, tempus non lectus sit amet, aliquam sagittis dolor. Integer feugiat, libero ac rhoncus aliquet, tellus urna varius nisi, quis lobortis ligula lectus pharetra eros. Suspendisse ultrices porta leo vitae ultrices. Aliquam ut pellentesque nisl.',
                 },
                 {
                   title: 'New teams',
-                  text: 'Vivamus tortor quam, hendrerit vitae neque id, sagittis luctus purus. Phasellus aliquam, erat quis tempor \
-                  luctus, justo libero vestibulum est, eu elementum dolor lacus id enim. Nulla molestie pellentesque quam ut dapibus. \
-                  Etiam neque turpis, bibendum sit amet tincidunt sit amet, interdum vel tellus. Fusce ac libero gravida, accumsan dui \
-                  sed, pharetra ante. Fusce convallis, ex et elementum dapibus, ex odio dignissim lectus, non egestas nisl nisi ac \
-                  tellus. Nunc rhoncus, dolor blandit porttitor finibus, leo arcu tincidunt augue, sit amet imperdiet lorem elit sit \
-                  amet lorem. Sed tincidunt accumsan sem, sed commodo mauris varius eget. Etiam bibendum lacus ut varius varius. Sed \
-                  magna dolor, euismod eget elementum semper, commodo non augue. Vestibulum sapien justo, mattis ut arcu eget, semper \
-                  bibendum lorem. Ut eu tempor risus.',
+                  text: 'Vivamus tortor quam, hendrerit vitae neque id, sagittis luctus purus. Phasellus aliquam, erat quis tempor luctus, justo libero vestibulum est, eu elementum dolor lacus id enim. Nulla molestie pellentesque quam ut dapibus. Etiam neque turpis, bibendum sit amet tincidunt sit amet, interdum vel tellus. Fusce ac libero gravida, accumsan dui sed, pharetra ante. Fusce convallis, ex et elementum dapibus, ex odio dignissim lectus, non egestas nisl nisi ac tellus. Nunc rhoncus, dolor blandit porttitor finibus, leo arcu tincidunt augue, sit amet imperdiet lorem elit sit amet lorem. Sed tincidunt accumsan sem, sed commodo mauris varius eget. Etiam bibendum lacus ut varius varius. Sed magna dolor, euismod eget elementum semper, commodo non augue. Vestibulum sapien justo, mattis ut arcu eget, semper bibendum lorem. Ut eu tempor risus.',
                 },
               ],
             },
@@ -99,12 +87,7 @@ async function main() {
               create: [
                 {
                   title: 'Moving',
-                  text: 'Phasellus volutpat, sem ac vestibulum lobortis, erat nisl molestie urna, vel tempus nunc magna sed est. \
-                  Donec ut pulvinar mauris. Donec hendrerit, ex non rhoncus sodales, quam odio semper dolor, vitae euismod ex turpis \
-                  ut massa. Interdum et malesuada fames ac ante ipsum primis in faucibus. Pellentesque massa lacus, eleifend quis est \
-                  ut, dignissim pharetra augue. Sed felis leo, lacinia et felis vel, tristique tempor nulla. Ut ut gravida ipsum, ut \
-                  porta nibh. Quisque lobortis augue eget tristique viverra. Vestibulum et tellus at nulla posuere convallis. Etiam \
-                  posuere ac nunc sed vehicula. Suspendisse et erat varius, finibus magna quis, placerat nisl.',
+                  text: 'Phasellus volutpat, sem ac vestibulum lobortis, erat nisl molestie urna, vel tempus nunc magna sed est. Donec ut pulvinar mauris. Donec hendrerit, ex non rhoncus sodales, quam odio semper dolor, vitae euismod ex turpis ut massa. Interdum et malesuada fames ac ante ipsum primis in faucibus. Pellentesque massa lacus, eleifend quis est ut, dignissim pharetra augue. Sed felis leo, lacinia et felis vel, tristique tempor nulla. Ut ut gravida ipsum, ut porta nibh. Quisque lobortis augue eget tristique viverra. Vestibulum et tellus at nulla posuere convallis. Etiam posuere ac nunc sed vehicula. Suspendisse et erat varius, finibus magna quis, placerat nisl.',
                 },
               ],
             },
@@ -147,17 +130,15 @@ async function main() {
               create: [
                 {
                   title: 'Limiting',
-                  text: 'In nec vehicula orci, ac efficitur est. Quisque dui mi, mollis ac ex et, tempor vestibulum lectus. Vestibulum \
-                  at nibh neque. Fusce ullamcorper egestas lectus, a condimentum nibh suscipit eu. In vitae bibendum nunc, nec mattis \
-                  tellus. Nam aliquam congue sem sollicitudin mattis. Maecenas ullamcorper turpis vitae nulla tincidunt iaculis. \
-                  Vivamus vulputate et arcu id mattis.',
+                  text: 'In nec vehicula orci, ac efficitur est. Quisque dui mi, mollis ac ex et, tempor vestibulum lectus. Vestibulum at nibh neque. Fusce ullamcorper egestas lectus, a condimentum nibh suscipit eu. In vitae bibendum nunc, nec mattis tellus. Nam aliquam congue sem sollicitudin mattis. Maecenas ullamcorper turpis vitae nulla tincidunt iaculis. Vivamus vulputate et arcu id mattis.',
                 },
               ],
             },
             customTags: {
-              create: [
+              connectOrCreate: [
                 {
-                  subject: 'Changing team sizes',
+                  where: { subject: 'Changing team sizes' },
+                  create: { subject: 'Changing team sizes' },
                 },
               ],
             },

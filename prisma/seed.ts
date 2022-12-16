@@ -160,9 +160,10 @@ async function main() {
               ],
             },
             customTags: {
-              create: [
+              connectOrCreate: [
                 {
-                  subject: 'Changing team sizes',
+                  where: { subject: 'Changing team sizes' },
+                  create: { subject: 'Changing team sizes' },
                 },
               ],
             },

@@ -1,16 +1,4 @@
-// eslint-disable-next-line prettier/prettier
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  Query,
-  UsePipes,
-  ValidationPipe,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UsePipes, ValidationPipe } from '@nestjs/common';
 import { Event } from '@prisma/client';
 import { EventQueryParamsDto } from './EventQueryParamsDto';
 import { EventsService } from './events.service';

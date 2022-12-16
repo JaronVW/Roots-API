@@ -22,8 +22,7 @@ export class EventsService {
           tags: { connect: event.tags },
           customTags: {
             connectOrCreate: {
-              where: event.customTags,
-              create: event.customTags,
+              
             },
           },
         },

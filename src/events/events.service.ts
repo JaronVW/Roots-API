@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException, HttpException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Event, Prisma } from '@prisma/client';
 import { PrismaClientService } from 'src/prisma-client/prisma-client.service';
 import { eventsCreateDto, eventsUpdateDto } from './dto/events.dto';
@@ -28,9 +32,8 @@ export class EventsService {
           userId: event.userId,
         },
       });
-    } catch (error) {
-      console.log(error);
-      throw new BadRequestException();
+    } catch (e) {
+      throw new HttpException(e.message, 400);
     }
   }
 
@@ -46,8 +49,7 @@ export class EventsService {
         },
       });
     } catch (error) {
-      if (error.code == 'P2025') throw new NotFoundException();
-      else throw new BadRequestException();
+       throw new HttpException(error.message, 400);
     }
   }
 
@@ -93,9 +95,7 @@ export class EventsService {
         },
       });
     } catch (error) {
-      console.log(error);
-      if (error.code == 'P2025') throw new NotFoundException();
-      else throw new BadRequestException();
+      throw new HttpException(error.message, 400);
     }
   }
 
@@ -105,8 +105,7 @@ export class EventsService {
         where,
       });
     } catch (error) {
-      if (error.code == 'P2025') throw new NotFoundException();
-      else throw new BadRequestException();
+      throw new HttpException(error.message, 400);
     }
   }
 }

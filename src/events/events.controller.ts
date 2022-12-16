@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UsePipes, ValidationPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  UsePipes,
+  ValidationPipe, HttpException,
+} from '@nestjs/common';
 import { Event } from '@prisma/client';
 import { eventsCreateDto, eventsUpdateDto } from './dto/events.dto';
 import { EventQueryParamsDto } from './dto/events.query.params.dto';
@@ -11,13 +22,22 @@ export class EventsController {
   @Post()
   @UsePipes(new ValidationPipe({ transform: true }))
   async create(@Body() event: eventsCreateDto) {
-    return this.eventsService.create(event);
+    try {
+      return this.eventsService.create(event);
+    }
+    catch (e) {
+        throw new HttpException(e, 400);
+    }
   }
 
   @Get()
   @UsePipes(new ValidationPipe({ transform: true }))
   async findAll(@Query() queryDto: EventQueryParamsDto) {
-    return this.eventsService.findAll(queryDto);
+    try {
+      return this.eventsService.findAll(queryDto);
+    } catch (e) {
+      throw new HttpException(e, 400);
+    }
   }
 
   @Get(':id')

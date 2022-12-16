@@ -1,5 +1,4 @@
 import { PartialType } from '@nestjs/mapped-types';
-import { CustomTag, Multimedia, Paragraph, Tag } from '@prisma/client';
 import { IsDate, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 import { multimediaItemsDto } from './multimedia.items.create.dto';
 import { paragraphCreateDto } from './paragraph.create.dto';

@@ -1,20 +1,5 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  Query,
-  UsePipes,
-  ValidationPipe,
-  UseInterceptors,
-  UploadedFile,
-  UploadedFiles,
-} from '@nestjs/common';
-import { FilesInterceptor } from '@nestjs/platform-express';
-import { Event, Multimedia } from '@prisma/client';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Event } from '@prisma/client';
 import { eventsCreateDto, eventsUpdateDto } from './dto/events.dto';
 import { EventQueryParamsDto } from './dto/events.query.params.dto';
 import { EventsService } from './events.service';
@@ -45,7 +30,7 @@ export class EventsController {
   async update(@Param('id') id: string, @Body() event: eventsUpdateDto) {
     return this.eventsService.update({
       where: { id: Number(id) },
-      event: event,
+      event,
     });
   }
 

@@ -6,21 +6,30 @@ import {
 } from '@nestjs/common';
 import { Event, Prisma } from '@prisma/client';
 import { PrismaClientService } from 'src/prisma-client/prisma-client.service';
-import { EventQueryParamsDto } from './events.query.params.dto';
+import { eventsCreateDto } from './dto/events.create.dto';
+import { EventQueryParamsDto } from './dto/events.query.params.dto';
 
 @Injectable()
 export class EventsService {
   constructor(private readonly prisma: PrismaClientService) {}
 
-  async create(data: Prisma.EventCreateInput): Promise<Event> {
+  async create(event: eventsCreateDto): Promise<Event> {
     try {
-      const object = await this.prisma.event.create({ data });
-      return object;
+      return await this.prisma.event.create({
+        data: {
+          ...event,
+          paragraphs: { createMany: { data: event.paragraphs } },
+          tags: { connect: event.tags },
+          customTags: {
+            connectOrCreate: {
+              
+            },
+          },
+        },
+      });
     } catch (error) {
       console.log(error);
-      throw new HttpException(error, 400, {
-        cause: new Error('Some Error'),
-      });
+      throw new BadRequestException();
     }
   }
 
@@ -51,6 +60,7 @@ export class EventsService {
       include: {
         tags: true,
         customTags: true,
+        paragraphs: true,
       },
     });
   }

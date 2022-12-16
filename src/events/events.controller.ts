@@ -15,7 +15,8 @@ import {
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { Event, Multimedia } from '@prisma/client';
-import { EventQueryParamsDto } from './events.query.params.dto';
+import { eventsCreateDto } from './dto/events.create.dto';
+import { EventQueryParamsDto } from './dto/events.query.params.dto';
 import { EventsService } from './events.service';
 
 @Controller('events')
@@ -23,8 +24,7 @@ export class EventsController {
   constructor(private readonly eventsService: EventsService) {}
 
   @Post()
-  @UseInterceptors(FilesInterceptor('files'))
-  async create(@Body() event: Event, @UploadedFiles() files: Array<Express.Multer.File>) {
+  async create(@Body() event: eventsCreateDto) {
     return this.eventsService.create(event);
   }
 

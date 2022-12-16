@@ -164,7 +164,7 @@ async function main() {
     },
   });
 
-  prisma.user.upsert({
+  await prisma.user.upsert({
     where: { email: `joy@${organisation}` },
     update: {},
     create: {
@@ -179,11 +179,12 @@ async function main() {
             title: '20 people per team is the new norm',
             description:
               'We are going to limit the amount of people in a team to 20 as bigger teams tend to cause chaos and some people fall to the background.',
-            dateOfEvent: new Date('2008-11-19T00:00:00.000Z'),
+            dateOfEvent: new Date('2008-12-11T00:00:00.000Z'),
             customTags: {
-              create: [
+              connectOrCreate: [
                 {
-                  subject: 'Changing team sizes',
+                  where: { subject: 'Changing team sizes' },
+                  create: { subject: 'Changing team sizes' },
                 },
               ],
             },

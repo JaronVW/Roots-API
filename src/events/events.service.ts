@@ -1,12 +1,7 @@
-import {
-  BadRequestException,
-  HttpException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, HttpException, Injectable, NotFoundException } from '@nestjs/common';
 import { Event, Prisma } from '@prisma/client';
 import { PrismaClientService } from 'src/prisma-client/prisma-client.service';
-import { eventsCreateDto } from './dto/events.dto';
+import { eventsCreateDto, eventsUpdateDto } from './dto/events.dto';
 import { EventQueryParamsDto } from './dto/events.query.params.dto';
 
 @Injectable()
@@ -39,9 +34,7 @@ export class EventsService {
     }
   }
 
-  async findOne(
-    eventUniqueInput: Prisma.EventWhereUniqueInput,
-  ): Promise<Event | null> {
+  async findOne(eventUniqueInput: Prisma.EventWhereUniqueInput): Promise<Event | null> {
     try {
       return await this.prisma.event.findUnique({
         where: eventUniqueInput,
@@ -71,10 +64,7 @@ export class EventsService {
     });
   }
 
-  async update(params: {
-    where: Prisma.EventWhereUniqueInput;
-    event: eventsCreateDto;
-  }): Promise<Event> {
+  async update(params: { where: Prisma.EventWhereUniqueInput; event: eventsUpdateDto }): Promise<Event> {
     try {
       const { where, event } = params;
       return await this.prisma.event.update({
@@ -95,6 +85,12 @@ export class EventsService {
           userId: event.userId,
         },
         where,
+        include: {
+          paragraphs: true,
+          tags: true,
+          customTags: true,
+          multimediaItems: true,
+        },
       });
     } catch (error) {
       console.log(error);

@@ -1,5 +1,5 @@
 import {
-  BadRequestException,
+  BadRequestException, HttpException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -32,9 +32,8 @@ export class EventsService {
           userId: event.userId,
         },
       });
-    } catch (error) {
-      console.log(error);
-      throw new BadRequestException();
+    } catch (e) {
+      throw new HttpException(e.message, 400);
     }
   }
 
@@ -52,8 +51,7 @@ export class EventsService {
         },
       });
     } catch (error) {
-      if (error.code == 'P2025') throw new NotFoundException();
-      else throw new BadRequestException();
+       throw new HttpException(error.message, 400);
     }
   }
 
@@ -96,9 +94,7 @@ export class EventsService {
         where,
       });
     } catch (error) {
-      console.log(error);
-      if (error.code == 'P2025') throw new NotFoundException();
-      else throw new BadRequestException();
+      throw new HttpException(error.message, 400);
     }
   }
 
@@ -108,8 +104,7 @@ export class EventsService {
         where,
       });
     } catch (error) {
-      if (error.code == 'P2025') throw new NotFoundException();
-      else throw new BadRequestException();
+      throw new HttpException(error.message, 400);
     }
   }
 }

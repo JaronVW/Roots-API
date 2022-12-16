@@ -1,5 +1,5 @@
 import { PartialType } from '@nestjs/mapped-types';
-import { IsDate, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsDate, IsDateString, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 import { multimediaItemsDto } from './multimedia.items.create.dto';
 import { paragraphCreateDto } from './paragraph.create.dto';
 import { tagCreateDto } from './tag.create.dto';
@@ -18,7 +18,7 @@ export class eventsCreateDto {
   description: string;
 
   @IsOptional()
-  @IsDate()
+  @IsDateString()
   dateOfEvent: Date;
 
   @IsOptional()

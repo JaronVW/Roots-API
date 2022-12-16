@@ -3,7 +3,7 @@ import {
   Get,
   Post,
   Body,
-  Patch,
+  Put,
   Param,
   Delete,
   Query,
@@ -45,7 +45,7 @@ export class EventsController {
     return this.eventsService.findOne({ id: Number(id) });
   }
 
-  @Patch(':id')
+  @Put(':id')
   @UsePipes(new ValidationPipe({ transform: true }))
   async update(@Param('id') id: string, @Body() event: eventsUpdateDto) {
     return this.eventsService.update({

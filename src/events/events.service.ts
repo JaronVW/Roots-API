@@ -1,12 +1,9 @@
-import {
-  BadRequestException, HttpException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, HttpException, Injectable, NotFoundException } from '@nestjs/common';
 import { Event, Prisma } from '@prisma/client';
 import { PrismaClientService } from 'src/prisma-client/prisma-client.service';
 import { eventsCreateDto, eventsUpdateDto } from './dto/events.dto';
 import { EventQueryParamsDto } from './dto/events.query.params.dto';
+import { paragraphCreateDto } from './dto/paragraph.create.dto';
 
 @Injectable()
 export class EventsService {
@@ -49,7 +46,7 @@ export class EventsService {
         },
       });
     } catch (error) {
-       throw new HttpException(error.message, 400);
+      throw new HttpException(error.message, 400);
     }
   }
 
@@ -69,14 +66,25 @@ export class EventsService {
   async update(params: { where: Prisma.EventWhereUniqueInput; event: eventsUpdateDto }): Promise<Event> {
     try {
       const { where, event } = params;
+      console.log(event);
       return await this.prisma.event.update({
         data: {
           ...event,
-          paragraphs: { createMany: { data: event.paragraphs } },
-          
-          tags: { connect: event.tags.map((tag) => ({
-            id: tag.id
-          })) },
+          paragraphs: {
+            deleteMany: { eventId: where.id },
+            createMany: {
+              data: event.paragraphs.map((paragraph) => ({
+                id: paragraph.id,
+                title: paragraph.title,
+                text: paragraph.text,
+              })),
+            },
+          },
+          tags: {
+            connect: event.tags.map((tag) => ({
+              id: tag.id,
+            })),
+          },
 
           customTags: {
             connectOrCreate: event.customTags.map((tag) => ({
@@ -98,6 +106,7 @@ export class EventsService {
         },
       });
     } catch (error) {
+      console.log(error);
       throw new HttpException(error.message, 400);
     }
   }

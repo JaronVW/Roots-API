@@ -15,7 +15,11 @@ export class EventsService {
         data: {
           ...event,
           paragraphs: { createMany: { data: event.paragraphs } },
-          tags: { connect: event.tags },
+          tags: {
+            connect: event.tags.map((tag) => ({
+              id: tag.id,
+            })),
+          },
 
           customTags: {
             connectOrCreate: event.customTags.map((tag) => ({

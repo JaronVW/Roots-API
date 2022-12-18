@@ -81,6 +81,7 @@ export class EventsService {
             },
           },
           tags: {
+            set: [],
             connect: event.tags.map((tag) => ({
               id: tag.id,
             })),

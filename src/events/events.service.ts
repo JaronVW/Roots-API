@@ -1,9 +1,8 @@
-import { BadRequestException, HttpException, Injectable, NotFoundException } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { Event, Prisma } from '@prisma/client';
 import { PrismaClientService } from 'src/prisma-client/prisma-client.service';
 import { eventsCreateDto, eventsUpdateDto } from './dto/events.dto';
 import { EventQueryParamsDto } from './dto/events.query.params.dto';
-import { paragraphCreateDto } from './dto/paragraph.create.dto';
 
 @Injectable()
 export class EventsService {
@@ -14,15 +13,8 @@ export class EventsService {
       return await this.prisma.event.create({
         data: {
           ...event,
-          paragraphs: { createMany: { data: event.paragraphs } },
           tags: {
-            connect: event.tags.map((tag) => ({
-              id: tag.id,
-            })),
-          },
-
-          customTags: {
-            connectOrCreate: event.customTags.map((tag) => ({
+            connectOrCreate: event.tags.map((tag) => ({
               where: { subject: tag.subject },
               create: { subject: tag.subject },
             })),
@@ -43,10 +35,8 @@ export class EventsService {
       return await this.prisma.event.findUnique({
         where: eventUniqueInput,
         include: {
-          paragraphs: true,
           multimediaItems: true,
           tags: true,
-          customTags: true,
         },
       });
     } catch (error) {
@@ -61,8 +51,6 @@ export class EventsService {
       take: Number(queryDto.max),
       include: {
         tags: true,
-        customTags: true,
-        paragraphs: true,
       },
     });
   }
@@ -74,25 +62,8 @@ export class EventsService {
       return await this.prisma.event.update({
         data: {
           ...event,
-          paragraphs: {
-            deleteMany: { eventId: where.id },
-            createMany: {
-              data: event.paragraphs.map((paragraph) => ({
-                id: paragraph.id,
-                title: paragraph.title,
-                text: paragraph.text,
-              })),
-            },
-          },
           tags: {
-            set: [],
-            connect: event.tags.map((tag) => ({
-              id: tag.id,
-            })),
-          },
-
-          customTags: {
-            connectOrCreate: event.customTags.map((tag) => ({
+            connectOrCreate: event.tags.map((tag) => ({
               where: { subject: tag.subject },
               create: { subject: tag.subject },
             })),
@@ -104,9 +75,7 @@ export class EventsService {
         },
         where,
         include: {
-          paragraphs: true,
           tags: true,
-          customTags: true,
           multimediaItems: true,
         },
       });

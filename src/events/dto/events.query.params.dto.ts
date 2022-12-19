@@ -16,4 +16,8 @@ export class EventQueryParamsDto {
   @IsString()
   @Matches(/^(asc|desc)$/)
   order = 'desc';
+
+  @IsOptional()
+  @IsString()
+  searchQuery: string;
 }

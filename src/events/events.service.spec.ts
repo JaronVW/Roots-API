@@ -1,73 +1,18 @@
-import { MockContext, createMockContext } from 'prisma/context';
-import { Context } from 'vm';
+import { Test, TestingModule } from '@nestjs/testing';
+import { EventsService } from './events.service';
 
-let mockCtx: MockContext;
-let ctx: Context;
+describe('EventsService', () => {
+  let service: EventsService;
 
-const testTag = {
-  id: 1,
-  subject: 'test tag 1',
-};
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [EventsService],
+    }).compile();
 
-const testEvent1 = {
-  title: 'Test event 1',
-  description: 'Test event 1',
-  dateOfEvent: new Date(),
-  userId: 1,
-  tags: [testTag],
-  multimediaItems: [],
-  customTags: [],
-  paragraphs: [],
-};
+    service = module.get<EventsService>(EventsService);
+  });
 
-const eventArray = [
-  testEvent1,
-  {
-    title: 'Test event 1',
-    description: 'Test event 1',
-    dateOfEvent: new Date(),
-    userId: 1,
-    tags: [testTag],
-    multimediaItems: [],
-    customTags: [],
-    paragraphs: [],
-  },
-];
-
-const oneEvent = eventArray[0];
-
-beforeEach(() => {
-  mockCtx = createMockContext();
-  ctx = mockCtx as unknown as Context;
+  it('should be defined', () => {
+    expect(service).toBeDefined();
+  });
 });
-
-
-
-interface CreateUser {
-  name: string
-  email: string
-  acceptTermsAndConditions: boolean
-}
-
-export async function createUser(user: CreateUser, ctx: Context) {
-  if (user.acceptTermsAndConditions) {
-    return await ctx.prisma.user.create({
-      data: user,
-    })
-  } else {
-    return new Error('User must accept terms!')
-  }
-}
-
-interface UpdateUser {
-  id: number
-  name: string
-  email: string
-}
-
-export async function updateUsername(user: UpdateUser, ctx: Context) {
-  return await ctx.prisma.user.update({
-    where: { id: user.id },
-    data: user,
-  })
-}

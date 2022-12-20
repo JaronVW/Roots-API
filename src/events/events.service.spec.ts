@@ -3,6 +3,8 @@ import { PrismaClientService } from '../../src/prisma-client/prisma-client.servi
 import { EventQueryParamsDto } from './dto/events.query.params.dto';
 import { EventsService } from './events.service';
 import { eventsCreateDto, eventsUpdateDto } from './dto/events.dto';
+import { BadRequestException } from '@nestjs/common';
+import { NotFoundException } from '@nestjs/common/exceptions';
 
 const testEvent1: eventsCreateDto = {
   userId: 1,
@@ -90,12 +92,6 @@ describe('EventsService', () => {
   });
 
   describe('getAll', () => {
-    let testDto: EventQueryParamsDto = {
-      min: 0,
-      max: 0,
-      order: '',
-      searchQuery: '',
-    };
     it('should return an array of Events', async () => {
       const events = await service.findAll({
         min: 0,
@@ -106,17 +102,17 @@ describe('EventsService', () => {
       expect(events).toEqual(eventArray);
     });
 
-    testDto = {
-      min: 0,
-      max: 0,
-      order: '',
-      searchQuery: 'Test+1',
-    };
+    // testDto = {
+    //   min: 0,
+    //   max: 0,
+    //   order: '',
+    //   searchQuery: 'Test+1',
+    // };
 
-    it('should return the event that matches the searchquery', async () => {
-      const events = await service.findAll(testDto);
-      expect(events).toEqual(oneEvent);
-    });
+    // it('should return the event that matches the searchquery', async () => {
+    //   const events = await service.findAll(testDto);
+    //   expect(events).toEqual(oneEvent);
+    // });
   });
 
   describe('getOne', () => {
@@ -146,11 +142,9 @@ describe('EventsService', () => {
       expect(service.remove({ id: Number(1) })).resolves.toEqual(oneEvent);
     });
 
-    // it('should return', () => {
-    //   const dbSpy = jest.spyOn(prisma.event, 'delete').mockRejectedValueOnce(new Error('Bad Delete Method.'));
-    //   expect(() => {
-    //     service.remove({ id: Number(1000) });
-    //   }).toThrow('Not Found');
-    // });
+    it('should return', () => {
+      const dbSpy = jest.spyOn(prisma.event, 'delete').mockRejectedValueOnce(new Error('Bad Delete Method.'));
+      expect(service.remove({ id: Number(1) })).rejects.toThrowError(NotFoundException);
+    });
   });
 });

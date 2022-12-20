@@ -3,7 +3,6 @@ import { Event, Prisma } from '@prisma/client';
 import { PrismaClientService } from '../../src/prisma-client/prisma-client.service';
 import { eventsCreateDto, eventsUpdateDto } from './dto/events.dto';
 import { EventQueryParamsDto } from './dto/events.query.params.dto';
-import { paragraphCreateDto } from './dto/paragraph.create.dto';
 
 @Injectable()
 export class EventsService {
@@ -14,15 +13,8 @@ export class EventsService {
       return await this.prisma.event.create({
         data: {
           ...event,
-          paragraphs: { createMany: { data: event.paragraphs } },
           tags: {
-            connect: event.tags.map((tag) => ({
-              id: tag.id,
-            })),
-          },
-
-          customTags: {
-            connectOrCreate: event.customTags.map((tag) => ({
+            connectOrCreate: event.tags.map((tag) => ({
               where: { subject: tag.subject },
               create: { subject: tag.subject },
             })),
@@ -34,35 +26,36 @@ export class EventsService {
         },
       });
     } catch (e) {
-      throw new HttpException(e.message, 400);
+      throw new BadRequestException();
     }
   }
 
   async findOne(eventUniqueInput: Prisma.EventWhereUniqueInput): Promise<Event | null> {
-    try {
-      return await this.prisma.event.findUnique({
-        where: eventUniqueInput,
-        include: {
-          paragraphs: true,
-          multimediaItems: true,
-          tags: true,
-          customTags: true,
-        },
-      });
-    } catch (error) {
-      throw new HttpException(error.message, 400);
-    }
+    const event = await this.prisma.event.findUnique({
+      where: eventUniqueInput,
+      include: {
+        multimediaItems: true,
+        tags: true,
+      },
+    });
+    if (event != null) return event;
+    throw new NotFoundException();
   }
 
   async findAll(queryDto: EventQueryParamsDto): Promise<Event[]> {
     return await this.prisma.event.findMany({
+      where: {
+        OR: [
+          { title: { contains: queryDto.searchQuery } },
+          { tags: { some: { subject: { equals: queryDto.searchQuery } } } },
+          { description: { contains: queryDto.searchQuery } },
+        ],
+      },
       orderBy: { dateOfEvent: queryDto.order } as any,
       skip: Number(queryDto.min),
       take: Number(queryDto.max),
       include: {
         tags: true,
-        customTags: true,
-        paragraphs: true,
       },
     });
   }
@@ -73,25 +66,8 @@ export class EventsService {
       return await this.prisma.event.update({
         data: {
           ...event,
-          paragraphs: {
-            deleteMany: { eventId: where.id },
-            createMany: {
-              data: event.paragraphs.map((paragraph) => ({
-                id: paragraph.id,
-                title: paragraph.title,
-                text: paragraph.text,
-              })),
-            },
-          },
           tags: {
-            set: [],
-            connect: event.tags.map((tag) => ({
-              id: tag.id,
-            })),
-          },
-
-          customTags: {
-            connectOrCreate: event.customTags.map((tag) => ({
+            connectOrCreate: event.tags.map((tag) => ({
               where: { subject: tag.subject },
               create: { subject: tag.subject },
             })),
@@ -103,14 +79,13 @@ export class EventsService {
         },
         where,
         include: {
-          paragraphs: true,
           tags: true,
-          customTags: true,
           multimediaItems: true,
         },
       });
     } catch (error) {
-      throw new HttpException(error.message, 400);
+      if ((error.code = 'P2025')) throw new NotFoundException();
+      throw new BadRequestException();
     }
   }
 
@@ -120,7 +95,8 @@ export class EventsService {
         where,
       });
     } catch (error) {
-      throw new NotFoundException();
+      if ((error.code = 'P2025')) throw new NotFoundException();
+      throw new BadRequestException();
     }
   }
 }

@@ -1,8 +1,8 @@
 import { PartialType } from '@nestjs/mapped-types';
-import { IsDate, IsDateString, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsDateString, IsNotEmpty, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { multimediaItemsDto } from './multimedia.items.create.dto';
-import { paragraphCreateDto } from './paragraph.create.dto';
 import { tagCreateDto } from './tag.create.dto';
+import { Type } from 'class-transformer';
 
 export class eventsCreateDto {
   @IsOptional()
@@ -22,16 +22,14 @@ export class eventsCreateDto {
   dateOfEvent: Date;
 
   @IsOptional()
+  @ValidateNested()
+  @Type(() => multimediaItemsDto)
   multimediaItems: multimediaItemsDto[] = [];
 
   @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => tagCreateDto)
   tags: tagCreateDto[] = [];
-
-  @IsOptional()
-  customTags: tagCreateDto[] = [];
-
-  @IsOptional()
-  paragraphs: paragraphCreateDto[] = [];
 }
 
 export class eventsUpdateDto extends PartialType(eventsCreateDto) {

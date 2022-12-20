@@ -113,6 +113,7 @@ describe('EventsService', () => {
       min: 0,
       max: 0,
       order: '',
+      searchQuery: ''
     };
     it('should return an array of Events', async () => {
       const events = await service.findAll(testDto);
@@ -154,4 +155,5 @@ describe('EventsService', () => {
       }).toThrow( "Not Found");
     });
   });
+});
 });

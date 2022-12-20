@@ -1,4 +1,4 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpException, Injectable, NotFoundException } from '@nestjs/common';
 import { Event, Prisma } from '@prisma/client';
 import { PrismaClientService } from 'src/prisma-client/prisma-client.service';
 import { eventsCreateDto, eventsUpdateDto } from './dto/events.dto';
@@ -31,17 +31,15 @@ export class EventsService {
   }
 
   async findOne(eventUniqueInput: Prisma.EventWhereUniqueInput): Promise<Event | null> {
-    try {
-      return await this.prisma.event.findUnique({
-        where: eventUniqueInput,
-        include: {
-          multimediaItems: true,
-          tags: true,
-        },
-      });
-    } catch (error) {
-      throw new HttpException(error.message, 400);
-    }
+    const event = await this.prisma.event.findUnique({
+      where: eventUniqueInput,
+      include: {
+        multimediaItems: true,
+        tags: true,
+      },
+    });
+    if (event != null) return event;
+    throw new NotFoundException();
   }
 
   async findAll(queryDto: EventQueryParamsDto): Promise<Event[]> {

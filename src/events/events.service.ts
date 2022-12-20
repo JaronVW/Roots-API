@@ -46,6 +46,13 @@ export class EventsService {
 
   async findAll(queryDto: EventQueryParamsDto): Promise<Event[]> {
     return await this.prisma.event.findMany({
+      where: {
+        OR: [
+          { title: { contains: queryDto.searchQuery } },
+          { tags: { some: { subject: { equals: queryDto.searchQuery } } } },
+          { description: { contains: queryDto.searchQuery } },
+        ],
+      },
       orderBy: { dateOfEvent: queryDto.order } as any,
       skip: Number(queryDto.min),
       take: Number(queryDto.max),

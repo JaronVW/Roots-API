@@ -1,10 +1,8 @@
-import { TestingModule, Test } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { PrismaClientService } from '../../src/prisma-client/prisma-client.service';
 import { EventQueryParamsDto } from './dto/events.query.params.dto';
 import { EventsService } from './events.service';
 import { eventsCreateDto, eventsUpdateDto } from './dto/events.dto';
-import { NotFoundException } from '@nestjs/common';
-import { BadRequestException } from '@nestjs/common/exceptions';
 
 const testEvent1: eventsCreateDto = {
   userId: 1,
@@ -13,8 +11,6 @@ const testEvent1: eventsCreateDto = {
   dateOfEvent: new Date(),
   multimediaItems: [],
   tags: [],
-  customTags: [],
-  paragraphs: [],
 };
 
 const testEvent1U: eventsUpdateDto = {
@@ -24,8 +20,6 @@ const testEvent1U: eventsUpdateDto = {
   dateOfEvent: new Date(),
   multimediaItems: [],
   tags: [],
-  customTags: [],
-  paragraphs: [],
 };
 
 const eventArray = [
@@ -36,7 +30,6 @@ const eventArray = [
     dateOfEvent: new Date(),
     multimediaItems: [],
     tags: [],
-    customTags: [],
     paragraphs: [],
   },
   {
@@ -46,7 +39,6 @@ const eventArray = [
     dateOfEvent: new Date(),
     multimediaItems: [],
     tags: [],
-    customTags: [],
     paragraphs: [],
   },
   {
@@ -56,7 +48,6 @@ const eventArray = [
     dateOfEvent: new Date(),
     multimediaItems: [],
     tags: [],
-    customTags: [],
     paragraphs: [],
   },
   {
@@ -66,7 +57,6 @@ const eventArray = [
     dateOfEvent: new Date(),
     multimediaItems: [],
     tags: [],
-    customTags: [],
     paragraphs: [],
   },
 ];
@@ -113,7 +103,7 @@ describe('EventsService', () => {
       min: 0,
       max: 0,
       order: '',
-      searchQuery: ''
+      searchQuery: '',
     };
     it('should return an array of Events', async () => {
       const events = await service.findAll(testDto);
@@ -152,8 +142,7 @@ describe('EventsService', () => {
       const dbSpy = jest.spyOn(prisma.event, 'delete').mockRejectedValueOnce(new Error('Bad Delete Method.'));
       expect(() => {
         service.remove({ id: Number(1000) });
-      }).toThrow( "Not Found");
+      }).toThrow('Not Found');
     });
   });
-});
 });

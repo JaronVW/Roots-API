@@ -26,7 +26,7 @@ export class EventsService {
         },
       });
     } catch (e) {
-      throw new HttpException(e.message, 400);
+      throw new BadRequestException();
     }
   }
 
@@ -63,7 +63,6 @@ export class EventsService {
   async update(params: { where: Prisma.EventWhereUniqueInput; event: eventsUpdateDto }): Promise<Event> {
     try {
       const { where, event } = params;
-      console.log(event);
       return await this.prisma.event.update({
         data: {
           ...event,
@@ -85,8 +84,8 @@ export class EventsService {
         },
       });
     } catch (error) {
-      console.log(error);
-      throw new HttpException(error.message, 400);
+      if ((error.code = 'P2025')) throw new NotFoundException();
+      throw new BadRequestException();
     }
   }
 
@@ -96,7 +95,8 @@ export class EventsService {
         where,
       });
     } catch (error) {
-      throw new HttpException(error.message, 400);
+      if ((error.code = 'P2025')) throw new NotFoundException();
+      throw new BadRequestException();
     }
   }
 }

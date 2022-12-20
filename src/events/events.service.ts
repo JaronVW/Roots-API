@@ -120,7 +120,7 @@ export class EventsService {
         where,
       });
     } catch (error) {
-      throw new HttpException(error.message, 400);
+      throw new NotFoundException();
     }
   }
 }

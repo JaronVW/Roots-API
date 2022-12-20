@@ -3,6 +3,8 @@ import { PrismaClientService } from '../../src/prisma-client/prisma-client.servi
 import { EventQueryParamsDto } from './dto/events.query.params.dto';
 import { EventsService } from './events.service';
 import { eventsCreateDto, eventsUpdateDto } from './dto/events.dto';
+import { NotFoundException } from '@nestjs/common';
+import { BadRequestException } from '@nestjs/common/exceptions';
 
 const testEvent1: eventsCreateDto = {
   userId: 1,
@@ -110,7 +112,7 @@ describe('EventsService', () => {
     const testDto: EventQueryParamsDto = {
       min: 0,
       max: 0,
-      order: ''
+      order: '',
     };
     it('should return an array of Events', async () => {
       const events = await service.findAll(testDto);
@@ -137,6 +139,19 @@ describe('EventsService', () => {
         event: oneEvent,
       });
       expect(cat).toEqual(oneEvent);
+    });
+  });
+
+  describe('deleteOne', () => {
+    it('should return {deleted: true}', () => {
+      expect(service.remove({ id: Number(1) })).resolves.toEqual(oneEvent);
+    });
+
+    it('should return', () => {
+      const dbSpy = jest.spyOn(prisma.event, 'delete').mockRejectedValueOnce(new Error('Bad Delete Method.'));
+      expect(() => {
+        service.remove({ id: Number(1000) });
+      }).toThrow( "Not Found");
     });
   });
 });

@@ -1,9 +1,8 @@
-import { BadRequestException, HttpException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, HttpException, Injectable } from '@nestjs/common';
 import { Event, Prisma } from '@prisma/client';
-import { PrismaClientService } from 'src/prisma-client/prisma-client.service';
+import { PrismaClientService } from '../../src/prisma-client/prisma-client.service';
 import { eventsCreateDto, eventsUpdateDto } from './dto/events.dto';
 import { EventQueryParamsDto } from './dto/events.query.params.dto';
-import { paragraphCreateDto } from './dto/paragraph.create.dto';
 
 @Injectable()
 export class EventsService {
@@ -50,7 +49,8 @@ export class EventsService {
         },
       });
     } catch (error) {
-      throw new HttpException(error.message, 400);
+      // console.log(error);
+      throw new BadRequestException();
     }
   }
 
@@ -70,7 +70,7 @@ export class EventsService {
   async update(params: { where: Prisma.EventWhereUniqueInput; event: eventsUpdateDto }): Promise<Event> {
     try {
       const { where, event } = params;
-      console.log(event);
+      // console.log(event);
       return await this.prisma.event.update({
         data: {
           ...event,
@@ -111,7 +111,7 @@ export class EventsService {
         },
       });
     } catch (error) {
-      console.log(error);
+      // console.log(error);
       throw new HttpException(error.message, 400);
     }
   }

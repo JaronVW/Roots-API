@@ -17,6 +17,10 @@ export class eventsCreateDto {
   description: string;
 
   @IsOptional()
+  @IsString()
+  content: string;
+
+  @IsOptional()
   @IsDateString()
   dateOfEvent: Date;
 

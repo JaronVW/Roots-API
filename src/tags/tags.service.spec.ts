@@ -1,15 +1,28 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TagsService } from './tags.service';
+import { PrismaClientService } from '../../src/prisma-client/prisma-client.service';
 
 describe('TagsService', () => {
   let service: TagsService;
+  let prisma: PrismaClientService;
+
+  const db = {
+    tag: {},
+  };
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [TagsService],
+    const mod = await Test.createTestingModule({
+      providers: [
+        TagsService,
+        {
+          provide: PrismaClientService,
+          useValue: db,
+        },
+      ],
     }).compile();
 
-    service = module.get<TagsService>(TagsService);
+    service = mod.get<TagsService>(TagsService);
+    prisma = mod.get<PrismaClientService>(PrismaClientService);
   });
 
   it('should be defined', () => {

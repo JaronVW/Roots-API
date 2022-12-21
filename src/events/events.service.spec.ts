@@ -101,18 +101,6 @@ describe('EventsService', () => {
       });
       expect(events).toEqual(eventArray);
     });
-
-    // testDto = {
-    //   min: 0,
-    //   max: 0,
-    //   order: '',
-    //   searchQuery: 'Test+1',
-    // };
-
-    // it('should return the event that matches the searchquery', async () => {
-    //   const events = await service.findAll(testDto);
-    //   expect(events).toEqual(oneEvent);
-    // });
   });
 
   describe('getOne', () => {
@@ -135,6 +123,16 @@ describe('EventsService', () => {
       });
       expect(cat).toEqual(oneEvent);
     });
+
+    it('should return a notfound exception', () => {
+      const dbSpy = jest.spyOn(prisma.event, 'update').mockRejectedValueOnce(new Error('Bad Delete Method.'));
+      expect(
+        service.update({
+          where: { id: Number(1000) },
+          event: oneEvent,
+        }),
+      ).rejects.toThrowError(NotFoundException);
+    });
   });
 
   describe('deleteOne', () => {
@@ -142,7 +140,7 @@ describe('EventsService', () => {
       expect(service.remove({ id: Number(1) })).resolves.toEqual(oneEvent);
     });
 
-    it('should return', () => {
+    it('should return a notfound exception', () => {
       const dbSpy = jest.spyOn(prisma.event, 'delete').mockRejectedValueOnce(new Error('Bad Delete Method.'));
       expect(service.remove({ id: Number(1) })).rejects.toThrowError(NotFoundException);
     });

@@ -10,7 +10,10 @@ import {
   UsePipes,
   ValidationPipe,
   HttpException,
+  UploadedFiles,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { Event } from '@prisma/client';
 import { eventsCreateDto, eventsUpdateDto } from './dto/events.dto';
 import { EventQueryParamsDto } from './dto/events.query.params.dto';
@@ -21,8 +24,14 @@ export class EventsController {
   constructor(private readonly eventsService: EventsService) {}
 
   @Post()
+  @UseInterceptors(FilesInterceptor('files'))
   @UsePipes(new ValidationPipe({ transform: true }))
-  async create(@Body() event: eventsCreateDto) {
+  async create(@Body() event: eventsCreateDto, @UploadedFiles() files: Array<Express.Multer.File>) {
+    event.multimediaItems = [];
+    for (let i = 0; i < files.length; i++) {
+      event.multimediaItems[i].multimedia = files[i].path;
+    }
+    console.log(event);
     try {
       return this.eventsService.create(event);
     } catch (e) {

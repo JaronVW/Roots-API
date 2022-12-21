@@ -1,6 +1,6 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { BadRequestException,  Injectable, NotFoundException } from '@nestjs/common';
 import { Event, Prisma } from '@prisma/client';
-import { PrismaClientService } from 'src/prisma-client/prisma-client.service';
+import { PrismaClientService } from '../../src/prisma-client/prisma-client.service';
 import { eventsCreateDto, eventsUpdateDto } from './dto/events.dto';
 import { EventQueryParamsDto } from './dto/events.query.params.dto';
 
@@ -26,26 +26,31 @@ export class EventsService {
         },
       });
     } catch (e) {
-      throw new HttpException(e.message, 400);
+      throw new BadRequestException();
     }
   }
 
   async findOne(eventUniqueInput: Prisma.EventWhereUniqueInput): Promise<Event | null> {
-    try {
-      return await this.prisma.event.findUnique({
-        where: eventUniqueInput,
-        include: {
-          multimediaItems: true,
-          tags: true,
-        },
-      });
-    } catch (error) {
-      throw new HttpException(error.message, 400);
-    }
+    const event = await this.prisma.event.findUnique({
+      where: eventUniqueInput,
+      include: {
+        multimediaItems: true,
+        tags: true,
+      },
+    });
+    if (event != null) return event;
+    throw new NotFoundException();
   }
 
   async findAll(queryDto: EventQueryParamsDto): Promise<Event[]> {
     return await this.prisma.event.findMany({
+      where: {
+        OR: [
+          { title: { contains: queryDto.searchQuery } },
+          { tags: { some: { subject: { equals: queryDto.searchQuery } } } },
+          { description: { contains: queryDto.searchQuery } },
+        ],
+      },
       orderBy: { dateOfEvent: queryDto.order } as any,
       skip: Number(queryDto.min),
       take: Number(queryDto.max),
@@ -58,7 +63,6 @@ export class EventsService {
   async update(params: { where: Prisma.EventWhereUniqueInput; event: eventsUpdateDto }): Promise<Event> {
     try {
       const { where, event } = params;
-      console.log(event);
       return await this.prisma.event.update({
         data: {
           ...event,
@@ -80,8 +84,8 @@ export class EventsService {
         },
       });
     } catch (error) {
-      console.log(error);
-      throw new HttpException(error.message, 400);
+      if ((error.code = 'P2025')) throw new NotFoundException();
+      throw new BadRequestException();
     }
   }
 
@@ -91,7 +95,8 @@ export class EventsService {
         where,
       });
     } catch (error) {
-      throw new HttpException(error.message, 400);
+      if ((error.code = 'P2025')) throw new NotFoundException();
+      throw new BadRequestException();
     }
   }
 }

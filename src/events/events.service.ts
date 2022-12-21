@@ -1,4 +1,4 @@
-import { BadRequestException,  Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Event, Prisma } from '@prisma/client';
 import { PrismaClientService } from '../../src/prisma-client/prisma-client.service';
 import { eventsCreateDto, eventsUpdateDto } from './dto/events.dto';
@@ -43,21 +43,35 @@ export class EventsService {
   }
 
   async findAll(queryDto: EventQueryParamsDto): Promise<Event[]> {
-    return await this.prisma.event.findMany({
-      where: {
-        OR: [
-          { title: { contains: queryDto.searchQuery } },
-          { tags: { some: { subject: { equals: queryDto.searchQuery } } } },
-          { description: { contains: queryDto.searchQuery } },
-        ],
-      },
-      orderBy: { dateOfEvent: queryDto.order } as any,
-      skip: Number(queryDto.min),
-      take: Number(queryDto.max),
-      include: {
-        tags: true,
-      },
-    });
+    console.log(queryDto);
+    let queryData;
+    if (queryDto.searchQuery != undefined) {
+      queryData = {
+        where: {
+          OR: [
+            { title: { contains: queryDto.searchQuery } },
+            { tags: { some: { subject: { equals: queryDto.searchQuery } } } },
+            { description: { contains: queryDto.searchQuery } },
+          ],
+        },
+        orderBy: { dateOfEvent: queryDto.order } as any,
+        skip: Number(queryDto.min),
+        take: Number(queryDto.max),
+        include: {
+          tags: true,
+        },
+      }}
+      else {
+        queryData = {
+          orderBy: { dateOfEvent: queryDto.order } as any,
+          skip: Number(queryDto.min),
+          take: Number(queryDto.max),
+          include: {
+            tags: true,
+          },
+        }
+      }
+    return await this.prisma.event.findMany(queryData);
   }
 
   async update(params: { where: Prisma.EventWhereUniqueInput; event: eventsUpdateDto }): Promise<Event> {

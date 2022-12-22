@@ -1,14 +1,14 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Event, Prisma } from '@prisma/client';
 import { PrismaClientService } from '../../src/prisma-client/prisma-client.service';
-import { eventsCreateDto, eventsUpdateDto } from './dto/events.dto';
+import { EventsCreateDto, EventsUpdateDto } from './dto/events.dto';
 import { EventQueryParamsDto } from './dto/events.query.params.dto';
 
 @Injectable()
 export class EventsService {
   constructor(private readonly prisma: PrismaClientService) {}
 
-  async create(event: eventsCreateDto): Promise<Event> {
+  async create(event: EventsCreateDto): Promise<Event> {
     console.log(event);
     try {
       return await this.prisma.event.create({
@@ -62,7 +62,7 @@ export class EventsService {
     });
   }
 
-  async update(params: { where: Prisma.EventWhereUniqueInput; event: eventsUpdateDto }): Promise<Event> {
+  async update(params: { where: Prisma.EventWhereUniqueInput; event: EventsUpdateDto }): Promise<Event> {
     try {
       const { where, event } = params;
       return await this.prisma.event.update({
@@ -86,7 +86,8 @@ export class EventsService {
         },
       });
     } catch (error) {
-      if ((error.code = 'P2025')) throw new NotFoundException();
+      console.log('error update', error);
+      if (error.code == 'P2025') throw new NotFoundException();
       throw new BadRequestException();
     }
   }
@@ -97,7 +98,8 @@ export class EventsService {
         where,
       });
     } catch (error) {
-      if ((error.code = 'P2025')) throw new NotFoundException();
+      console.log('error remove', error);
+      if (error.code == 'P2025') throw new NotFoundException();
       throw new BadRequestException();
     }
   }

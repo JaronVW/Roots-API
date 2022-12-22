@@ -1,10 +1,10 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { IsDateString, IsNotEmpty, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
-import { multimediaItemsDto } from './multimedia.items.create.dto';
-import { tagCreateDto } from './tag.create.dto';
+import { MultimediaItemsDto } from './multimedia.items.create.dto';
+import { TagCreateDto } from './tag.create.dto';
 import { Type } from 'class-transformer';
 
-export class eventsCreateDto {
+export class EventsCreateDto {
   @IsOptional()
   @IsNumber()
   userId: number;
@@ -27,16 +27,16 @@ export class eventsCreateDto {
 
   @IsOptional()
   @ValidateNested()
-  @Type(() => multimediaItemsDto)
-  multimediaItems: multimediaItemsDto[] = [];
+  @Type(() => MultimediaItemsDto)
+  multimediaItems: MultimediaItemsDto[] = [];
 
   @IsOptional()
   @ValidateNested({ each: true })
-  @Type(() => tagCreateDto)
-  tags: tagCreateDto[] = [];
+  @Type(() => TagCreateDto)
+  tags: TagCreateDto[] = [];
 }
 
-export class eventsUpdateDto extends PartialType(eventsCreateDto) {
+export class EventsUpdateDto extends PartialType(EventsCreateDto) {
   @IsOptional()
   @IsString()
   override title: string;

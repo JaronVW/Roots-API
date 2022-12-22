@@ -15,7 +15,7 @@ import {
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { Event } from '@prisma/client';
-import { eventsCreateDto, eventsUpdateDto } from './dto/events.dto';
+import { EventsCreateDto, EventsUpdateDto } from './dto/events.dto';
 import { EventQueryParamsDto } from './dto/events.query.params.dto';
 import { EventsService } from './events.service';
 
@@ -26,7 +26,7 @@ export class EventsController {
   @Post()
   @UseInterceptors(FilesInterceptor('files'))
   @UsePipes(new ValidationPipe({ transform: true }))
-  async create(@Body() event: eventsCreateDto, @UploadedFiles() files: Array<Express.Multer.File>) {
+  async create(@Body() event: EventsCreateDto, @UploadedFiles() files: Array<Express.Multer.File>) {
     if (files) {
       event.multimediaItems = [];
       for (let i = 0; i < files.length; i++) {
@@ -58,7 +58,7 @@ export class EventsController {
 
   @Put(':id')
   @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
-  async update(@Param('id') id: string, @Body() event: eventsUpdateDto) {
+  async update(@Param('id') id: string, @Body() event: EventsUpdateDto) {
     return this.eventsService.update({
       where: { id: Number(id) },
       event,

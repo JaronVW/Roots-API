@@ -1,15 +1,14 @@
 import { Test } from '@nestjs/testing';
 import { PrismaClientService } from '../../src/prisma-client/prisma-client.service';
-import { EventQueryParamsDto } from './dto/events.query.params.dto';
 import { EventsService } from './events.service';
-import { eventsCreateDto, eventsUpdateDto } from './dto/events.dto';
-import { BadRequestException } from '@nestjs/common';
+import { EventsCreateDto } from './dto/events.dto';
 import { NotFoundException } from '@nestjs/common/exceptions';
 
-const testEvent1: eventsCreateDto = {
+const testEvent1: EventsCreateDto = {
   userId: 1,
   title: 'Test 1',
   description: 'Test 1',
+  content: 'Test 1',
   dateOfEvent: new Date(),
   multimediaItems: [],
   tags: [],
@@ -20,6 +19,7 @@ const eventArray = [
     userId: 1,
     title: 'Test 1',
     description: 'Test 1',
+    content: 'Test 1',
     dateOfEvent: new Date(),
     multimediaItems: [],
     tags: [],
@@ -29,6 +29,7 @@ const eventArray = [
     userId: 1,
     title: 'Test 2',
     description: 'Test 2',
+    content: 'Test 2',
     dateOfEvent: new Date(),
     multimediaItems: [],
     tags: [],
@@ -38,6 +39,7 @@ const eventArray = [
     userId: 1,
     title: 'Test 3',
     description: 'Test 3',
+    content: 'Test 3',
     dateOfEvent: new Date(),
     multimediaItems: [],
     tags: [],
@@ -47,6 +49,7 @@ const eventArray = [
     userId: 1,
     title: 'Test 4',
     description: 'Test 4',
+    content: 'Test 4',
     dateOfEvent: new Date(),
     multimediaItems: [],
     tags: [],
@@ -104,14 +107,16 @@ describe('EventsService', () => {
   });
 
   describe('getOne', () => {
-    it('should get a single Event', () => {
-      expect(service.findOne({ id: Number(1) })).resolves.toEqual(oneEvent);
+    it('should get a single Event', async () => {
+      const event = await service.findOne({ id: Number(1) });
+      expect(event).toEqual(oneEvent);
     });
   });
 
   describe('insertOne', () => {
-    it('should successfully insert an Event', () => {
-      expect(service.create(testEvent1)).resolves.toEqual(oneEvent);
+    it('should successfully insert an Event', async () => {
+      const event = await service.create(testEvent1);
+      expect(event).toEqual(oneEvent);
     });
   });
 
@@ -124,8 +129,8 @@ describe('EventsService', () => {
       expect(cat).toEqual(oneEvent);
     });
 
-    it('should return a notfound exception', () => {
-      const dbSpy = jest.spyOn(prisma.event, 'update').mockRejectedValueOnce(new Error('Bad Delete Method.'));
+    it('should return a notfound exception', async () => {
+      jest.spyOn(prisma.event, 'update').mockRejectedValueOnce({ code: 'P2025', message: 'Bad Delete Method.' });
       expect(
         service.update({
           where: { id: Number(1000) },
@@ -136,12 +141,13 @@ describe('EventsService', () => {
   });
 
   describe('deleteOne', () => {
-    it('should return {deleted: true}', () => {
-      expect(service.remove({ id: Number(1) })).resolves.toEqual(oneEvent);
+    it('should return {deleted: true}', async () => {
+      const event = await service.remove({ id: Number(1) });
+      expect(event).toEqual(oneEvent);
     });
 
-    it('should return a notfound exception', () => {
-      const dbSpy = jest.spyOn(prisma.event, 'delete').mockRejectedValueOnce(new Error('Bad Delete Method.'));
+    it('should return a notfound exception', async () => {
+      jest.spyOn(prisma.event, 'delete').mockRejectedValueOnce({ code: 'P2025', message: 'Bad Delete Method.' });
       expect(service.remove({ id: Number(1) })).rejects.toThrowError(NotFoundException);
     });
   });

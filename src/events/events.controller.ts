@@ -27,13 +27,14 @@ export class EventsController {
   @UseInterceptors(FilesInterceptor('files'))
   @UsePipes(new ValidationPipe({ transform: true }))
   async create(@Body() event: eventsCreateDto, @UploadedFiles() files: Array<Express.Multer.File>) {
-    event.multimediaItems = [];
-    for (let i = 0; i < files.length; i++) {
-      event.multimediaItems[i].multimedia = files[i].path;
+    if (files) {
+      event.multimediaItems = [];
+      for (let i = 0; i < files.length; i++) {
+        event.multimediaItems[i].multimedia = files[i].path;
+      }
     }
-    console.log(event);
     try {
-      return this.eventsService.create(event);
+      return await this.eventsService.create(event);
     } catch (e) {
       throw new HttpException(e, 400);
     }
@@ -43,7 +44,7 @@ export class EventsController {
   @UsePipes(new ValidationPipe({ transform: true }))
   async findAll(@Query() queryDto: EventQueryParamsDto) {
     try {
-      return this.eventsService.findAll(queryDto);
+      return await this.eventsService.findAll(queryDto);
     } catch (e) {
       throw new HttpException(e, 400);
     }
@@ -51,6 +52,7 @@ export class EventsController {
 
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<Event | null> {
+    if (Number.isNaN(Number(id))) throw new HttpException('Invalid id', 400);
     return this.eventsService.findOne({ id: Number(id) });
   }
 
@@ -65,6 +67,7 @@ export class EventsController {
 
   @Delete(':id')
   async remove(@Param('id') id: string): Promise<Event> {
+    if (Number.isNaN(Number(id))) throw new HttpException('Invalid id', 400);
     return this.eventsService.remove({ id: Number(id) });
   }
 }

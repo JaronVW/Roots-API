@@ -14,97 +14,10 @@ describe('AppController (e2e)', () => {
   let event2: Event;
   let event3: Event;
   let eventArray: Event[];
-
-  // const testUser1 = {
-  //   id: 1,
-  //   email: 'exampleEmail',
-  //   password: 'examplePassword',
-  //   firstName: 'exampleFirstName',
-  //   lastName: 'exampleLastName',
-  // };
-
-  // const userArray: User[] = [
-  //   testUser1,
-  //   {
-  //     id: 2,
-  //     email: 'exampleEmail2',
-  //     password: 'examplePassword2',
-  //     firstName: 'exampleName2',
-  //     lastName: 'exampleLastName2',
-  //   },
-  //   {
-  //     id: 3,
-  //     email: 'exampleEmail3',
-  //     password: 'examplePassword3',
-  //     firstName: 'exampleName3',
-  //     lastName: 'exampleLastName3',
-  //   },
-  // ];
-
-  // const testEvent1 = {
-  //   id: 1,
-  //   title: 'exampleTitle',
-  //   description: 'exampleDescription',
-  //   dateOfEvent: new Date(),
-  //   userId: 1,
-  // };
-
-  // const eventArray: Event[] = [
-  //   testEvent1,
-  //   {
-  //     id: 2,
-  //     title: 'exampleTitle2',
-  //     description: 'exampleDescription2',
-  //     dateOfEvent: new Date(),
-  //     userId: 1,
-  //   },
-  //   {
-  //     id: 3,
-  //     title: 'exampleTitle3',
-  //     description: 'exampleDescription3',
-  //     dateOfEvent: new Date(),
-  //     userId: 1,
-  //   },
-  // ];
-
-  // const tagArray: Tag[] = [
-  //   {
-  //     id: 1,
-  //     subject: 'exampleSubject',
-  //   },
-  //   {
-  //     id: 2,
-  //     subject: 'exampleSubject2',
-  //   },
-  //   {
-  //     id: 3,
-  //     subject: 'exampleSubject3',
-  //   },
-  // ];
-
-  // const db = {
-  //   user: {
-  //     findMany: jest.fn().mockResolvedValue(userArray),
-  //     create: jest.fn().mockResolvedValue(testUser1),
-  //     findUnique: jest.fn().mockResolvedValue(testUser1),
-  //     update: jest.fn().mockResolvedValue(testUser1),
-  //     delete: jest.fn().mockResolvedValue(testUser1),
-  //   },
-  //   event: {
-  //     findMany: jest.fn().mockResolvedValue(eventArray),
-  //     create: jest.fn().mockResolvedValue(testEvent1),
-  //     findUnique: jest.fn().mockResolvedValue(testEvent1),
-  //     update: jest.fn().mockResolvedValue(testEvent1),
-  //     delete: jest.fn().mockResolvedValue(testEvent1),
-  //   },
-  //   tag: {
-  //     findMany: jest.fn().mockResolvedValue(tagArray),
-  //     create: jest.fn().mockResolvedValue(tagArray[0]),
-  //     findUnique: jest.fn().mockResolvedValue(tagArray[0]),
-  //     update: jest.fn().mockResolvedValue(tagArray[0]),
-  //     delete: jest.fn().mockResolvedValue(tagArray[0]),
-  //   },
-  // };
+  let tag1: Tag;
+  let tag2: Tag;
+  let tag3: Tag;
+  let tagArray: Tag[];
 
   const userShape = expect.objectContaining({
     id: expect.any(Number),
@@ -118,6 +31,7 @@ describe('AppController (e2e)', () => {
     id: expect.any(Number),
     title: expect.any(String),
     description: expect.any(String),
+    content: expect.any(String),
     dateOfEvent: expect.any(String),
     userId: expect.any(Number),
     tags: expect.any(Array),
@@ -152,24 +66,31 @@ describe('AppController (e2e)', () => {
       },
     });
 
-    await prisma.tag.createMany({
-      data: [
-        {
-          subject: 'exampleSubject',
-        },
-        {
-          subject: 'exampleSubject2',
-        },
-        {
-          subject: 'exampleSubject3',
-        },
-      ],
+    tag1 = await prisma.tag.create({
+      data: {
+        subject: 'exampleSubject',
+      },
     });
+
+    tag2 = await prisma.tag.create({
+      data: {
+        subject: 'exampleSubject2',
+      },
+    });
+
+    tag3 = await prisma.tag.create({
+      data: {
+        subject: 'exampleSubject3',
+      },
+    });
+
+    tagArray = [tag1, tag2, tag3];
 
     event1 = await prisma.event.create({
       data: {
         title: 'exampleTitle',
         description: 'exampleDescription',
+        content: 'exampleContent',
         dateOfEvent: new Date('2022-01-01').toISOString(),
         userId: user.id,
         tags: {
@@ -189,6 +110,7 @@ describe('AppController (e2e)', () => {
       data: {
         title: 'exampleTitle2',
         description: 'exampleDescription2',
+        content: 'exampleContent2',
         dateOfEvent: new Date('2019-01-01').toISOString(),
         userId: user.id,
         tags: {
@@ -205,6 +127,7 @@ describe('AppController (e2e)', () => {
       data: {
         title: 'exampleTitle3',
         description: 'exampleDescription3',
+        content: 'exampleContent3',
         dateOfEvent: new Date('2020-01-01').toISOString(),
         userId: user.id,
         tags: {
@@ -306,22 +229,17 @@ describe('AppController (e2e)', () => {
       });
 
       it('should return a bad request when the id is not valid', async () => {
-        const { status, body } = await request(app.getHttpServer()).get('/events/invalid');
-        expect(status).toBe(400);
-        // expect(body).toHaveProperty('message', ['id must be an integer number']);
+        await request(app.getHttpServer()).get('/events/invalid').expect(400);
       });
 
-      // it('should return a not found when the id is not found', async () => {
-      //   const { status, body } = await request(app.getHttpServer()).get('/events/0');
-      //   console.log(body);
-      //   expect(status).toBe(404);
-      //   // expect(body).toHaveProperty('message', 'Event not found');
-      // });
+      it('should return a not found when the id is not found', async () => {
+        await request(app.getHttpServer()).get('/events/0').expect(404);
+      });
     });
 
     describe('POST /events', () => {
       it('should create a new event', async () => {
-        const { status, body } = await request(app.getHttpServer())
+        const { body } = await request(app.getHttpServer())
           .post('/events')
           .send({
             title: 'Example title create',
@@ -336,7 +254,7 @@ describe('AppController (e2e)', () => {
       });
 
       it('should return a bad request when the body is not valid', async () => {
-        const { status, body } = await request(app.getHttpServer())
+        const { body } = await request(app.getHttpServer())
           .post('/events')
           .send({
             title: 'example title',
@@ -348,7 +266,7 @@ describe('AppController (e2e)', () => {
       });
 
       it('should return a bad request when the body is not provided', async () => {
-        const { status, body } = await request(app.getHttpServer()).post('/events').expect(400);
+        const { body } = await request(app.getHttpServer()).post('/events').expect(400);
         expect(body).toHaveProperty('message', [
           'title must be a string',
           'title should not be empty',
@@ -358,7 +276,7 @@ describe('AppController (e2e)', () => {
       });
 
       it('should return a bad request when the body is empty', async () => {
-        const { status, body } = await request(app.getHttpServer()).post('/events').send({}).expect(400);
+        const { body } = await request(app.getHttpServer()).post('/events').send({}).expect(400);
         expect(body).toHaveProperty('message', [
           'title must be a string',
           'title should not be empty',
@@ -368,7 +286,7 @@ describe('AppController (e2e)', () => {
       });
 
       it('should return a bad request when the body is missing a property', async () => {
-        const { status, body } = await request(app.getHttpServer())
+        const { body } = await request(app.getHttpServer())
           .post('/events')
           .send({
             description: 'exampleName',
@@ -378,7 +296,7 @@ describe('AppController (e2e)', () => {
       });
 
       it('should return a bad request when the body has an extra property', async () => {
-        const { status, body } = await request(app.getHttpServer())
+        const { body } = await request(app.getHttpServer())
           .post('/events')
           .send({
             title: 'example title',
@@ -387,14 +305,13 @@ describe('AppController (e2e)', () => {
             extra: 'extra',
           })
           .expect(400);
-        console.log('extra property', body);
         expect(body).toHaveProperty('message');
       });
     });
 
     describe('PUT /events/:id', () => {
       it('should update an event', async () => {
-        const { status, body } = await request(app.getHttpServer())
+        const { body } = await request(app.getHttpServer())
           .put(`/events/${event1.id}`)
           .send({
             title: 'Example title update',
@@ -409,7 +326,7 @@ describe('AppController (e2e)', () => {
       });
 
       it('should create and update an event', async () => {
-        const { status, body } = await request(app.getHttpServer())
+        const { body } = await request(app.getHttpServer())
           .post(`/events`)
           .send({
             title: 'Example title create',
@@ -422,7 +339,7 @@ describe('AppController (e2e)', () => {
         expect(body).toHaveProperty('description', 'Example description create');
         expect(body).toHaveProperty('dateOfEvent', '2018-01-01T00:00:00.000Z');
 
-        const { status: status2, body: body2 } = await request(app.getHttpServer())
+        const { body: body2 } = await request(app.getHttpServer())
           .put(`/events/${body.id}`)
           .send({
             title: 'Example title update',
@@ -437,7 +354,7 @@ describe('AppController (e2e)', () => {
       });
 
       it('should return a bad request when the body is not valid', async () => {
-        const { status, body } = await request(app.getHttpServer())
+        const { body } = await request(app.getHttpServer())
           .put(`/events/${event1.id}`)
           .send({
             title: 'example title',
@@ -447,50 +364,123 @@ describe('AppController (e2e)', () => {
           .expect(400);
         expect(body).toHaveProperty('message', ['dateOfEvent must be a valid ISO 8601 date string']);
       });
+
+      it('should still return an OK if body is not provided', async () => {
+        const { body } = await request(app.getHttpServer()).put(`/events/${event1.id}`).expect(200);
+        expect(body).toHaveProperty('id', event1.id);
+        expect(body).toHaveProperty('title', event1.title);
+        expect(body).toHaveProperty('description', event1.description);
+      });
+
+      it('should update without all required properties for creating an event', async () => {
+        const { body } = await request(app.getHttpServer())
+          .put(`/events/${event1.id}`)
+          .send({
+            description: 'a new description',
+          })
+          .expect(200);
+        expect(body).toHaveProperty('id', event1.id);
+        expect(body).toHaveProperty('title', event1.title);
+        expect(body).toHaveProperty('description', 'a new description');
+      });
+    });
+
+    describe('DELETE /events/:id', () => {
+      it('should delete an event', async () => {
+        const { body } = await request(app.getHttpServer()).delete(`/events/${event1.id}`).expect(200);
+        expect(body).toHaveProperty('id', event1.id);
+        expect(body).toHaveProperty('title', event1.title);
+        expect(body).toHaveProperty('description', event1.description);
+      });
+
+      it('should return a not found when the event does not exist', async () => {
+        const { body } = await request(app.getHttpServer()).delete(`/events/0`).expect(404);
+        expect(body).toHaveProperty('message', 'Not Found');
+      });
+
+      it('should return a not found when the event id is invalid', async () => {
+        const { body } = await request(app.getHttpServer()).delete(`/events/invalid`).expect(400);
+        expect(body).toHaveProperty('message', 'Invalid id');
+      });
+
+      it('should return a not found if an id is not provided, as it is not a valid route', async () => {
+        const { body } = await request(app.getHttpServer()).delete(`/events/`).expect(404);
+        expect(body).toHaveProperty('message', 'Cannot DELETE /events/');
+      });
     });
   });
 
-  // describe('User', () => {
-  // describe('POST /users', () => {
-  //   it('should create a new user', () => {
-  //     return request(app.getHttpServer())
-  //       .post('/users')
-  //       .send({
-  //         email: 'exampleEmail2',
-  //         password: 'examplePassword2',
-  //         firstName: 'exampleFirstName2',
-  //         lastName: 'exampleLastName2',
-  //       })
-  //       .expect(201)
-  //       .expect(userShape);
-  //   });
-  // });
+  describe('Tags', () => {
+    describe('GET /tags', () => {
+      it('should return an array of tags', async () => {
+        const { body } = await request(app.getHttpServer()).get(`/tags`).expect(200);
+        expect(body).toEqual(expect.arrayContaining([tagShape]));
+        expect(body).toEqual(tagArray);
+      });
+    });
 
-  // describe('GET /users/:id', () => {
-  //   it('should return a user', () => {
-  //     return request(app.getHttpServer()).get(`/users/${user.id}`).expect(200).expect(userShape);
-  //   });
-  // });
+    it.skip('should create tags', async () => {
+      const { body } = await request(app.getHttpServer())
+        .post(`/tags`)
+        .send({
+          subject: 'Example subject create',
+        })
+        .expect(201);
+      expect(body).toHaveProperty('id');
+      expect(body).toHaveProperty('name', 'Example subject create');
+    });
 
-  // describe('PUT /users/:id', () => {
-  //   it('should update a user', () => {
-  //     return request(app.getHttpServer())
-  //       .put(`/users/${user.id}`)
-  //       .send({
-  //         email: 'exampleEmail2',
-  //         password: 'examplePassword2',
-  //         firstName: 'exampleFirstName2',
-  //         lastName: 'exampleLastName2',
-  //       })
-  //       .expect(200)
-  //       .expect(userShape);
-  //   });
-  // });
+    it.skip('should return a bad request when the body is not valid', async () => {
+      await request(app.getHttpServer())
+        .post(`/tags`)
+        .send({
+          name: 'Example name create',
+        })
+        .expect(400);
+    });
+  });
 
-  // describe('DELETE /users/:id', () => {
-  //   it('should delete a user', () => {
-  //     return request(app.getHttpServer()).delete(`/users/${user.id}`).expect(200).expect(userShape);
-  //   });
-  // });
-  // });
+  describe('User', () => {
+    describe('POST /users', () => {
+      it.skip('should create a new user', () => {
+        return request(app.getHttpServer())
+          .post('/users')
+          .send({
+            email: 'exampleEmail2',
+            password: 'examplePassword2',
+            firstName: 'exampleFirstName2',
+            lastName: 'exampleLastName2',
+          })
+          .expect(201)
+          .expect(userShape);
+      });
+    });
+
+    describe('GET /users/:id', () => {
+      it.skip('should return a user', () => {
+        return request(app.getHttpServer()).get(`/users/${user.id}`).expect(200).expect(userShape);
+      });
+    });
+
+    describe('PUT /users/:id', () => {
+      it.skip('should update a user', () => {
+        return request(app.getHttpServer())
+          .put(`/users/${user.id}`)
+          .send({
+            email: 'exampleEmail2',
+            password: 'examplePassword2',
+            firstName: 'exampleFirstName2',
+            lastName: 'exampleLastName2',
+          })
+          .expect(200)
+          .expect(userShape);
+      });
+    });
+
+    describe('DELETE /users/:id', () => {
+      it.skip('should delete a user', () => {
+        return request(app.getHttpServer()).delete(`/users/${user.id}`).expect(200).expect(userShape);
+      });
+    });
+  });
 });

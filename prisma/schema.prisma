@@ -23,7 +23,7 @@ model Event {
   id              Int          @id @default(autoincrement())
   title           String       @unique @db.VarChar(100)
   description     String       @db.VarChar(250)
-  content         String       @db.VarChar(5000)
+  content         String?      @db.VarChar(5000)
   dateOfEvent     DateTime     @default(now())
   tags            Tag[]
   multimediaItems Multimedia[]

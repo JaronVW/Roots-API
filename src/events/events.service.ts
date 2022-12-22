@@ -45,21 +45,33 @@ export class EventsService {
   }
 
   async findAll(queryDto: EventQueryParamsDto): Promise<Event[]> {
-    return await this.prisma.event.findMany({
-      where: {
-        OR: [
-          { title: { contains: queryDto.searchQuery } },
-          { tags: { some: { subject: { equals: queryDto.searchQuery } } } },
-          { description: { contains: queryDto.searchQuery } },
-        ],
-      },
-      orderBy: { dateOfEvent: queryDto.order } as any,
-      skip: Number(queryDto.min),
-      take: Number(queryDto.max),
-      include: {
-        tags: true,
-      },
-    });
+    let prismaQuery = {};
+    if (queryDto.searchQuery == undefined)
+      prismaQuery = {
+        where: {
+          OR: [
+            { title: { contains: queryDto.searchQuery } },
+            { tags: { some: { subject: { equals: queryDto.searchQuery } } } },
+            { description: { contains: queryDto.searchQuery } },
+          ],
+        },
+        orderBy: { dateOfEvent: queryDto.order } as any,
+        skip: Number(queryDto.min),
+        take: Number(queryDto.max),
+        include: {
+          tags: true,
+        },
+      };
+    else
+      prismaQuery = {
+        orderBy: { dateOfEvent: queryDto.order } as any,
+        skip: Number(queryDto.min),
+        take: Number(queryDto.max),
+        include: {
+          tags: true,
+        },
+      };
+    return await this.prisma.event.findMany(prismaQuery);
   }
 
   async update(params: { where: Prisma.EventWhereUniqueInput; event: eventsUpdateDto }): Promise<Event> {

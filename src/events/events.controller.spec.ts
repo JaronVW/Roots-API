@@ -12,6 +12,7 @@ const testEvent1: eventsCreateDto = {
   dateOfEvent: new Date('2020-01-01'),
   multimediaItems: [],
   tags: [],
+  content: '',
 };
 
 const eventArray = [
@@ -23,6 +24,7 @@ const eventArray = [
     dateOfEvent: new Date('2020-01-01'),
     multimediaItems: [],
     tags: [],
+    content: '',
   },
   {
     userId: 1,
@@ -31,6 +33,7 @@ const eventArray = [
     dateOfEvent: new Date('2020-01-01'),
     multimediaItems: [],
     tags: [],
+    content: '',
   },
   {
     userId: 1,
@@ -39,6 +42,7 @@ const eventArray = [
     dateOfEvent: new Date('2020-01-01'),
     multimediaItems: [],
     tags: [],
+    content: '',
   },
 ];
 
@@ -49,6 +53,7 @@ const createdEvent: eventsCreateDto = {
   dateOfEvent: new Date('2020-01-01'),
   multimediaItems: [],
   tags: [],
+  content: '',
 };
 
 const updatedEvent: eventsCreateDto = {
@@ -58,6 +63,7 @@ const updatedEvent: eventsCreateDto = {
   dateOfEvent: new Date('2020-01-01'),
   multimediaItems: [],
   tags: [],
+  content: '',
 };
 
 describe('EventsController', () => {
@@ -109,6 +115,7 @@ describe('EventsController', () => {
           dateOfEvent: new Date('2020-01-01'),
           multimediaItems: [],
           tags: [],
+          content: '',
         },
         {
           userId: 1,
@@ -117,6 +124,7 @@ describe('EventsController', () => {
           dateOfEvent: new Date('2020-01-01'),
           multimediaItems: [],
           tags: [],
+          content: '',
         },
         {
           userId: 1,
@@ -125,6 +133,7 @@ describe('EventsController', () => {
           dateOfEvent: new Date('2020-01-01'),
           multimediaItems: [],
           tags: [],
+          content: '',
         },
         {
           userId: 1,
@@ -133,6 +142,7 @@ describe('EventsController', () => {
           dateOfEvent: new Date('2020-01-01'),
           multimediaItems: [],
           tags: [],
+          content: '',
         },
       ]);
     });
@@ -153,8 +163,10 @@ describe('EventsController', () => {
         dateOfEvent: new Date('2022-12-21'),
         multimediaItems: [],
         tags: [],
+        content: '',
       };
-      await expect(controller.create(newEventDto)).resolves.toEqual({
+      const files: Array<Express.Multer.File> = [];
+      await expect(controller.create(newEventDto, files)).resolves.toEqual({
         id: 5,
         ...createdEvent,
       });

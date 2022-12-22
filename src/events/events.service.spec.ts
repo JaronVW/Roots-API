@@ -13,6 +13,7 @@ const testEvent1: eventsCreateDto = {
   dateOfEvent: new Date(),
   multimediaItems: [],
   tags: [],
+  content: ''
 };
 
 const eventArray = [
@@ -24,6 +25,7 @@ const eventArray = [
     multimediaItems: [],
     tags: [],
     paragraphs: [],
+    content: ''
   },
   {
     userId: 1,
@@ -33,6 +35,7 @@ const eventArray = [
     multimediaItems: [],
     tags: [],
     paragraphs: [],
+    content: ''
   },
   {
     userId: 1,
@@ -42,6 +45,7 @@ const eventArray = [
     multimediaItems: [],
     tags: [],
     paragraphs: [],
+    content: ''
   },
   {
     userId: 1,
@@ -51,6 +55,7 @@ const eventArray = [
     multimediaItems: [],
     tags: [],
     paragraphs: [],
+    content: ''
   },
 ];
 

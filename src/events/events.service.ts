@@ -54,6 +54,7 @@ export class EventsService {
             { tags: { some: { subject: { equals: queryDto.searchQuery } } } },
             { description: { contains: queryDto.searchQuery } },
           ],
+          AND: { isArchived: false },
         },
         orderBy: { dateOfEvent: queryDto.order } as any,
         skip: Number(queryDto.min),
@@ -64,6 +65,9 @@ export class EventsService {
       };
     else
       prismaQuery = {
+        where: {
+          isArchived: false,
+        },
         orderBy: { dateOfEvent: queryDto.order } as any,
         skip: Number(queryDto.min),
         take: Number(queryDto.max),
@@ -115,4 +119,23 @@ export class EventsService {
       throw new BadRequestException();
     }
   }
+
+  async archive(where: Prisma.EventWhereUniqueInput): Promise<Event> {
+    try {
+      return await this.prisma.event.update({ where, data: { isArchived: true } });
+    } catch (error) {
+      if (error.code == 'P2025') throw new NotFoundException();
+      throw new BadRequestException();
+    }
+  }
+
+  async unarchive(where: Prisma.EventWhereUniqueInput): Promise<Event> {
+    try {
+      return await this.prisma.event.update({ where, data: { isArchived: false } });
+    } catch (error) {
+      if (error.code == 'P2025') throw new NotFoundException();
+      throw new BadRequestException();
+    }
+  }
+  
 }

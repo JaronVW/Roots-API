@@ -29,6 +29,7 @@ model Event {
   multimediaItems Multimedia[]
   user            User?        @relation(fields: [userId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   userId          Int?
+  isArchived      Boolean      @default(false)
 }
 
 model Tag {

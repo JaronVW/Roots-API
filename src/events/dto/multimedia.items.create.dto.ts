@@ -1,6 +1,6 @@
 import { IsNotEmpty, IsString, IsOptional } from 'class-validator';
 
-export class multimediaItemsDto {
+export class MultimediaItemsDto {
   @IsNotEmpty()
   @IsString()
   multimedia: string;

@@ -1,6 +1,6 @@
 import { IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
-export class tagCreateDto {
+export class TagCreateDto {
   @IsInt()
   @IsOptional()
   id: number;

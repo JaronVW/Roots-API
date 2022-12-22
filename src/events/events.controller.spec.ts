@@ -2,17 +2,16 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { EventsController } from './events.controller';
 import { EventQueryParamsDto } from './dto/events.query.params.dto';
 import { EventsService } from './events.service';
-import { eventsCreateDto, eventsUpdateDto } from './dto/events.dto';
-import { NotFoundException } from '@nestjs/common';
+import { EventsCreateDto } from './dto/events.dto';
 
-const testEvent1: eventsCreateDto = {
+const testEvent1: EventsCreateDto = {
   userId: 1,
   title: 'Test 1',
   description: 'Test 1',
+  content: 'Test 1',
   dateOfEvent: new Date('2020-01-01'),
   multimediaItems: [],
   tags: [],
-  content: '',
 };
 
 const eventArray = [
@@ -21,49 +20,49 @@ const eventArray = [
     userId: 1,
     title: 'Test 2',
     description: 'Test 2',
+    content: 'Test 2',
     dateOfEvent: new Date('2020-01-01'),
     multimediaItems: [],
     tags: [],
-    content: '',
   },
   {
     userId: 1,
     title: 'Test 3',
     description: 'Test 3',
+    content: 'Test 3',
     dateOfEvent: new Date('2020-01-01'),
     multimediaItems: [],
     tags: [],
-    content: '',
   },
   {
     userId: 1,
     title: 'Test 4',
     description: 'Test 4',
+    content: 'Test 4',
     dateOfEvent: new Date('2020-01-01'),
     multimediaItems: [],
     tags: [],
-    content: '',
   },
 ];
 
-const createdEvent: eventsCreateDto = {
+const createdEvent: EventsCreateDto = {
   userId: 1,
   title: 'Test 5',
   description: 'Test 5',
+  content: 'Test 5',
   dateOfEvent: new Date('2020-01-01'),
   multimediaItems: [],
   tags: [],
-  content: '',
 };
 
-const updatedEvent: eventsCreateDto = {
+const updatedEvent: EventsCreateDto = {
   userId: 1,
   title: 'Test updated',
   description: 'Test updated',
+  content: 'Test updated',
   dateOfEvent: new Date('2020-01-01'),
   multimediaItems: [],
   tags: [],
-  content: '',
 };
 
 describe('EventsController', () => {
@@ -78,13 +77,9 @@ describe('EventsController', () => {
           provide: EventsService,
           useValue: {
             findAll: jest.fn().mockResolvedValue(eventArray),
-            findOne: jest.fn().mockImplementation((id: '1') => Promise.resolve(testEvent1)),
-            create: jest
-              .fn()
-              .mockImplementation((event: eventsCreateDto) => Promise.resolve({ id: 5, ...createdEvent })),
-            update: jest
-              .fn()
-              .mockImplementation((id: string, event: eventsUpdateDto) => Promise.resolve({ id: 5, ...updatedEvent })),
+            findOne: jest.fn().mockImplementation(() => Promise.resolve(testEvent1)),
+            create: jest.fn().mockImplementation(() => Promise.resolve({ id: 5, ...createdEvent })),
+            update: jest.fn().mockImplementation(() => Promise.resolve({ id: 5, ...updatedEvent })),
             remove: jest.fn().mockResolvedValue(updatedEvent),
           },
         },
@@ -112,37 +107,37 @@ describe('EventsController', () => {
           userId: 1,
           title: 'Test 1',
           description: 'Test 1',
+          content: 'Test 1',
           dateOfEvent: new Date('2020-01-01'),
           multimediaItems: [],
           tags: [],
-          content: '',
         },
         {
           userId: 1,
           title: 'Test 2',
           description: 'Test 2',
+          content: 'Test 2',
           dateOfEvent: new Date('2020-01-01'),
           multimediaItems: [],
           tags: [],
-          content: '',
         },
         {
           userId: 1,
           title: 'Test 3',
           description: 'Test 3',
+          content: 'Test 3',
           dateOfEvent: new Date('2020-01-01'),
           multimediaItems: [],
           tags: [],
-          content: '',
         },
         {
           userId: 1,
           title: 'Test 4',
           description: 'Test 4',
+          content: 'Test 4',
           dateOfEvent: new Date('2020-01-01'),
           multimediaItems: [],
           tags: [],
-          content: '',
         },
       ]);
     });
@@ -156,17 +151,16 @@ describe('EventsController', () => {
 
   describe('newCat', () => {
     it('should create a new Event', async () => {
-      const newEventDto: eventsCreateDto = {
+      const newEventDto: EventsCreateDto = {
         userId: 1,
         title: 'Test event 5',
         description: 'Test event 5',
+        content: 'Test event 5',
         dateOfEvent: new Date('2022-12-21'),
         multimediaItems: [],
         tags: [],
-        content: '',
       };
-      const files: Array<Express.Multer.File> = [];
-      await expect(controller.create(newEventDto, files)).resolves.toEqual({
+      await expect(controller.create(newEventDto, undefined)).resolves.toEqual({
         id: 5,
         ...createdEvent,
       });
@@ -188,9 +182,7 @@ describe('EventsController', () => {
     });
 
     it('should return that it not delete an event', async () => {
-      const deleteSpy = jest
-        .spyOn(eventsService, 'remove')
-        .mockRejectedValueOnce({ errorCode: 404, message: 'Not found' });
+      jest.spyOn(eventsService, 'remove').mockRejectedValueOnce({ errorCode: 404, message: 'Not found' });
       await expect(controller.remove('1000')).rejects.toEqual({ errorCode: 404, message: 'Not found' });
     });
   });

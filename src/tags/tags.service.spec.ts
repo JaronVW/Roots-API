@@ -1,4 +1,4 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { TagsService } from './tags.service';
 import { PrismaClientService } from '../../src/prisma-client/prisma-client.service';
 
@@ -27,5 +27,6 @@ describe('TagsService', () => {
 
   it('should be defined', () => {
     expect(service).toBeDefined();
+    expect(prisma).toBeDefined();
   });
 });

@@ -19,7 +19,7 @@ export class EventsCreateDto {
 
   @IsOptional()
   @IsString()
-  content = '';
+  content: string;
 
   @IsOptional()
   @IsDateString()

@@ -2,7 +2,7 @@ name: Roots API CI
 
 on:
   push:
-    branches: ['main', 'development', 'feature-workflow']
+    branches: ['main', 'development']
   pull_request:
     branches: ['main']
 

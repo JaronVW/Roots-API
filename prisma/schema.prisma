@@ -44,6 +44,6 @@ model Multimedia {
   eventId     Int
   multimedia  String?
   description String? @db.VarChar(500)
-  transcript  String? @db.VarChar(65535)
+  transcript  String? @db.Text
   alt         String? @db.VarChar(100)
 }

@@ -7,7 +7,7 @@ export class TagsService {
 
   async findAll() {
     return await this.prisma.tag.findMany({
-      orderBy: { Events: { _count: 'desc' } },
+      orderBy: [{ Events: { _count: 'desc' } }, { subject: 'asc' }],
       include: {
         _count: {
           select: {

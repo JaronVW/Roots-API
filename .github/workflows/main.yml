@@ -2,22 +2,21 @@ name: Roots API CI
 
 on:
   push:
-    branches: [ "feature-workflow" ]
+    branches: ['feature-workflow']
   # pull_request:
   #   branches: [ "main" ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     env:
       DB_DATABASE: roots_test_db
       DB_USER: root
       DB_PASSWORD: root
       APP_ENV: test
-      DATABASE_URL : mysql://root:root@127.0.0.1:3306/roots_test_db
+      DATABASE_URL: mysql://root:root@127.0.0.1:3306/roots_test_db
     steps:
-      
       - name: Set up MySQL
         run: |
           sudo /etc/init.d/mysql start
@@ -30,12 +29,12 @@ jobs:
         with:
           node-version: 18.x
           cache: 'npm'
-      - name: install npm 
+      - name: install npm
         run: |
           npm install
       - name: run tests
         run: |
           npx prisma generate
           npx prisma migrate deploy
-          npm run jest -i
-          npm run jest --config ./test/jest-e2e.json
+          npm run test
+          npm run test:e2e

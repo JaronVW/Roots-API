@@ -21,7 +21,7 @@ jobs:
       - name: Set up MySQL
         run: |
           sudo /etc/init.d/mysql start
-          mysql -e 'CREATE DATABASE roots_test_db;' -u root -p root
+          mysql -e 'CREATE DATABASE roots_test_db;' -uroot -proot
 
       - uses: actions/checkout@v3
 

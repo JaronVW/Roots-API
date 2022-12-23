@@ -45,33 +45,42 @@ export class EventsService {
   }
 
   async findAll(queryDto: EventQueryParamsDto): Promise<Event[]> {
-    let prismaQuery = {};
-    if (queryDto.searchQuery == undefined)
-      prismaQuery = {
-        where: {
-          OR: [
-            { title: { contains: queryDto.searchQuery } },
-            { tags: { some: { subject: { equals: queryDto.searchQuery } } } },
-            { description: { contains: queryDto.searchQuery } },
-          ],
-        },
-        orderBy: { dateOfEvent: queryDto.order } as any,
-        skip: Number(queryDto.min),
-        take: Number(queryDto.max),
-        include: {
-          tags: true,
-        },
-      };
-    else
-      prismaQuery = {
-        orderBy: { dateOfEvent: queryDto.order } as any,
-        skip: Number(queryDto.min),
-        take: Number(queryDto.max),
-        include: {
-          tags: true,
-        },
-      };
-    return await this.prisma.event.findMany(prismaQuery);
+    try {
+      let prismaQuery = {};
+      if (queryDto.searchQuery != undefined)
+        prismaQuery = {
+          where: {
+            OR: [
+              { title: { contains: queryDto.searchQuery } },
+              { tags: { some: { subject: { equals: queryDto.searchQuery } } } },
+              { description: { contains: queryDto.searchQuery } },
+            ],
+            AND: { isArchived: queryDto.getArchivedItems },
+          },
+          orderBy: { dateOfEvent: queryDto.order } as any,
+          skip: Number(queryDto.min),
+          take: Number(queryDto.max),
+          include: {
+            tags: true,
+          },
+        };
+      else
+        prismaQuery = {
+          where: {
+            isArchived: queryDto.getArchivedItems,
+          },
+          orderBy: { dateOfEvent: queryDto.order } as any,
+          skip: Number(queryDto.min),
+          take: Number(queryDto.max),
+          include: {
+            tags: true,
+          },
+        };
+      return await this.prisma.event.findMany(prismaQuery);
+    } catch (error) {
+      console.log(error);
+      throw new BadRequestException();
+    }
   }
 
   async update(params: { where: Prisma.EventWhereUniqueInput; event: EventsUpdateDto }): Promise<Event> {
@@ -111,6 +120,24 @@ export class EventsService {
       });
     } catch (error) {
       console.log('error remove', error);
+      if (error.code == 'P2025') throw new NotFoundException();
+      throw new BadRequestException();
+    }
+  }
+
+  async archive(where: Prisma.EventWhereUniqueInput): Promise<Event> {
+    try {
+      return await this.prisma.event.update({ where, data: { isArchived: true } });
+    } catch (error) {
+      if (error.code == 'P2025') throw new NotFoundException();
+      throw new BadRequestException();
+    }
+  }
+
+  async unarchive(where: Prisma.EventWhereUniqueInput): Promise<Event> {
+    try {
+      return await this.prisma.event.update({ where, data: { isArchived: false } });
+    } catch (error) {
       if (error.code == 'P2025') throw new NotFoundException();
       throw new BadRequestException();
     }

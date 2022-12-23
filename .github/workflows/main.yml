@@ -1,0 +1,40 @@
+name: Roots API CI
+
+on:
+  push:
+    branches: ['main', 'development']
+  pull_request:
+    branches: ['main']
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      DB_DATABASE: roots_test_db
+      DB_USER: root
+      DB_PASSWORD: root
+      APP_ENV: test
+      DATABASE_URL: mysql://root:root@127.0.0.1:3306/roots_test_db
+    steps:
+      - name: Set up MySQL
+        run: |
+          sudo /etc/init.d/mysql start
+          mysql -e 'CREATE DATABASE $DB_DATABASE;' -u$DB_USER -p$DB_PASSWORD
+
+      - uses: actions/checkout@v3
+
+      - name: Set up Node.js version
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+          cache: 'npm'
+      - name: install npm
+        run: |
+          npm ci
+      - name: run tests
+        run: |
+          npx prisma generate
+          npx prisma migrate deploy
+          npm run test
+          npm run test:e2e

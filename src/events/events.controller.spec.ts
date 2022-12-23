@@ -100,6 +100,7 @@ describe('EventsController', () => {
       max: 0,
       order: '',
       searchQuery: '',
+      getArchivedItems: false,
     };
     it('should get an array of Event', async () => {
       await expect(controller.findAll(dto)).resolves.toEqual([

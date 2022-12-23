@@ -12,6 +12,7 @@ import {
   HttpException,
   UploadedFiles,
   UseInterceptors,
+  Patch,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { Event } from '@prisma/client';
@@ -70,4 +71,15 @@ export class EventsController {
     if (Number.isNaN(Number(id))) throw new HttpException('Invalid id', 400);
     return this.eventsService.remove({ id: Number(id) });
   }
+
+  @Patch(':id/archive')
+  async archive(@Param('id') id: string): Promise<Event> {
+    return this.eventsService.archive({ id: Number(id) });
+  }
+
+  @Patch(':id/unarchive')
+  async unarchive(@Param('id') id: string): Promise<Event> {
+    return this.eventsService.unarchive({ id: Number(id) });
+  }
+  
 }

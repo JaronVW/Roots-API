@@ -7,6 +7,7 @@ import { User, Event, Tag } from '@prisma/client';
 import { useContainer } from 'class-validator';
 
 describe('AppController (e2e)', () => {
+  // delete local testdb, then run locally using npm run test:prisma:deploy && npm run test:e2e
   let app: INestApplication;
   let prisma: PrismaClientService;
   let user: User;
@@ -17,7 +18,6 @@ describe('AppController (e2e)', () => {
   let tag1: Tag;
   let tag2: Tag;
   let tag3: Tag;
-  let tagArray: Tag[];
 
   const userShape = expect.objectContaining({
     id: expect.any(Number),
@@ -40,6 +40,7 @@ describe('AppController (e2e)', () => {
   const tagShape = expect.objectContaining({
     id: expect.any(Number),
     subject: expect.any(String),
+    _count: expect.objectContaining({ Events: expect.any(Number) }),
   });
 
   beforeAll(async () => {
@@ -84,8 +85,6 @@ describe('AppController (e2e)', () => {
       },
     });
 
-    tagArray = [tag1, tag2, tag3];
-
     event1 = await prisma.event.create({
       data: {
         title: 'exampleTitle',
@@ -117,6 +116,9 @@ describe('AppController (e2e)', () => {
           connect: [
             {
               subject: 'exampleSubject',
+            },
+            {
+              subject: 'exampleSubject3',
             },
           ],
         },
@@ -415,28 +417,14 @@ describe('AppController (e2e)', () => {
       it('should return an array of tags', async () => {
         const { body } = await request(app.getHttpServer()).get(`/tags`).expect(200);
         expect(body).toEqual(expect.arrayContaining([tagShape]));
-        expect(body).toEqual(tagArray);
       });
-    });
 
-    it.skip('should create tags', async () => {
-      const { body } = await request(app.getHttpServer())
-        .post(`/tags`)
-        .send({
-          subject: 'Example subject create',
-        })
-        .expect(201);
-      expect(body).toHaveProperty('id');
-      expect(body).toHaveProperty('name', 'Example subject create');
-    });
-
-    it.skip('should return a bad request when the body is not valid', async () => {
-      await request(app.getHttpServer())
-        .post(`/tags`)
-        .send({
-          name: 'Example name create',
-        })
-        .expect(400);
+      it('should be ordered by number of events', async () => {
+        const { body } = await request(app.getHttpServer()).get(`/tags`).expect(200);
+        expect(body[0]).toHaveProperty('id', tag1.id);
+        expect(body[1]).toHaveProperty('id', tag3.id);
+        expect(body[2]).toHaveProperty('id', tag2.id);
+      });
     });
   });
 

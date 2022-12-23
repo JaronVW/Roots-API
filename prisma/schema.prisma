@@ -11,12 +11,14 @@ datasource db {
 }
 
 model User {
-  id        Int     @id @default(autoincrement())
-  email     String  @unique @db.VarChar(256)
-  password  String  @db.VarChar(256)
-  firstName String  @db.VarChar(100)
-  lastName  String  @db.VarChar(100)
-  events    Event[]
+  id             Int          @id @default(autoincrement())
+  email          String       @unique @db.VarChar(256)
+  password       String       @db.VarChar(256)
+  firstName      String       @db.VarChar(100)
+  lastName       String       @db.VarChar(100)
+  events         Event[]
+  organisationId Int?
+  organisation   Organisation? @relation(fields: [organisationId], references: [id], onDelete: SetNull, onUpdate: Cascade)
 }
 
 model Event {
@@ -29,12 +31,17 @@ model Event {
   multimediaItems Multimedia[]
   user            User?        @relation(fields: [userId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   userId          Int?
+  isArchived      Boolean      @default(false)
+  organisationId  Int?
+  organisation    Organisation? @relation(fields: [organisationId], references: [id], onDelete: SetNull, onUpdate: Cascade)
 }
 
 model Tag {
-  id      Int     @id @default(autoincrement())
-  subject String  @unique @db.VarChar(50)
-  Events  Event[]
+  id             Int          @id @default(autoincrement())
+  subject        String       @unique @db.VarChar(50)
+  Events         Event[]
+  organisationId Int?
+  organisation   Organisation? @relation(fields: [organisationId], references: [id], onDelete: SetNull, onUpdate: Cascade)
 }
 
 model Multimedia {
@@ -43,6 +50,14 @@ model Multimedia {
   eventId     Int
   multimedia  String?
   description String? @db.VarChar(500)
-  transcript  String? @db.VarChar(65535)
+  transcript  String? @db.Text
   alt         String? @db.VarChar(100)
+}
+
+model Organisation {
+  id         Int          @id @default(autoincrement())
+  name       String       @unique @db.VarChar(100)
+  event      Event[]
+  tag        Tag[]
+  user       User[]
 }

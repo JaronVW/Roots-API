@@ -1,4 +1,4 @@
-name: Roots API CI
+name: Roots Client CI
 
 on:
   push:
@@ -31,7 +31,7 @@ jobs:
           cache: 'npm'
       - name: install npm
         run: |
-          npm install
+          npm ci
       - name: run tests
         run: |
           npx prisma generate

@@ -5,7 +5,6 @@ CREATE TABLE `User` (
     `password` VARCHAR(256) NOT NULL,
     `firstName` VARCHAR(100) NOT NULL,
     `lastName` VARCHAR(100) NOT NULL,
-    `role` VARCHAR(5) NOT NULL,
 
     UNIQUE INDEX `User_email_key`(`email`),
     PRIMARY KEY (`id`)
@@ -16,29 +15,12 @@ CREATE TABLE `Event` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `title` VARCHAR(100) NOT NULL,
     `description` VARCHAR(250) NOT NULL,
+    `content` VARCHAR(5000) NULL,
     `dateOfEvent` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `userId` INTEGER NULL,
+    `isArchived` BOOLEAN NOT NULL DEFAULT false,
 
     UNIQUE INDEX `Event_title_key`(`title`),
-    PRIMARY KEY (`id`)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
--- CreateTable
-CREATE TABLE `Paragraph` (
-    `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `title` VARCHAR(50) NULL,
-    `text` VARCHAR(5000) NOT NULL,
-    `eventId` INTEGER NOT NULL,
-
-    PRIMARY KEY (`id`)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
--- CreateTable
-CREATE TABLE `CustomTag` (
-    `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `subject` VARCHAR(50) NOT NULL,
-
-    UNIQUE INDEX `CustomTag_subject_key`(`subject`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -56,8 +38,8 @@ CREATE TABLE `Multimedia` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `eventId` INTEGER NOT NULL,
     `multimedia` VARCHAR(191) NULL,
-    `description` VARCHAR(1000) NULL,
-    `transcript` VARCHAR(10000) NULL,
+    `description` VARCHAR(500) NULL,
+    `transcript` VARCHAR(65535) NULL,
     `alt` VARCHAR(100) NULL,
 
     PRIMARY KEY (`id`)
@@ -72,20 +54,8 @@ CREATE TABLE `_EventToTag` (
     INDEX `_EventToTag_B_index`(`B`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
--- CreateTable
-CREATE TABLE `_CustomTagToEvent` (
-    `A` INTEGER NOT NULL,
-    `B` INTEGER NOT NULL,
-
-    UNIQUE INDEX `_CustomTagToEvent_AB_unique`(`A`, `B`),
-    INDEX `_CustomTagToEvent_B_index`(`B`)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
 -- AddForeignKey
 ALTER TABLE `Event` ADD CONSTRAINT `Event_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `Paragraph` ADD CONSTRAINT `Paragraph_eventId_fkey` FOREIGN KEY (`eventId`) REFERENCES `Event`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Multimedia` ADD CONSTRAINT `Multimedia_eventId_fkey` FOREIGN KEY (`eventId`) REFERENCES `Event`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
@@ -95,9 +65,3 @@ ALTER TABLE `_EventToTag` ADD CONSTRAINT `_EventToTag_A_fkey` FOREIGN KEY (`A`) 
 
 -- AddForeignKey
 ALTER TABLE `_EventToTag` ADD CONSTRAINT `_EventToTag_B_fkey` FOREIGN KEY (`B`) REFERENCES `Tag`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `_CustomTagToEvent` ADD CONSTRAINT `_CustomTagToEvent_A_fkey` FOREIGN KEY (`A`) REFERENCES `CustomTag`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `_CustomTagToEvent` ADD CONSTRAINT `_CustomTagToEvent_B_fkey` FOREIGN KEY (`B`) REFERENCES `Event`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;

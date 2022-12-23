@@ -15,7 +15,7 @@ jobs:
       DB_USER: root
       DB_PASSWORD: root
       APP_ENV: test
-      DATABASE_URL : mysql://mysql://root:root@127.0.0.1:3306/roots_test_db
+      DATABASE_URL : mysql://root:root@127.0.0.1:3306/roots_test_db
     steps:
       
       - name: Set up MySQL

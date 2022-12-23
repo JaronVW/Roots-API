@@ -18,10 +18,10 @@ jobs:
       DATABASE_URL : mysql://mysql://root:root@localhost:3306/roots_test_db
     steps:
       
-      #- name: Set up MySQL
-      #  run: |
-      #    sudo /etc/init.d/mysql start
-      #    mysql -e 'CREATE DATABASE ${{ env.DB_DATABASE }};' -u${{ env.DB_USER }} -p${{ env.DB_PASSWORD }}
+      - name: Set up MySQL
+        run: |
+          sudo /etc/init.d/mysql start
+          mysql -e 'CREATE DATABASE ${{ env.DB_DATABASE }};' -u${{ env.DB_USER }} -p${{ env.DB_PASSWORD }}
 
       - uses: actions/checkout@v3
 

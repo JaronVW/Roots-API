@@ -101,6 +101,7 @@ describe('EventsService', () => {
         max: 0,
         order: '',
         searchQuery: '',
+        getArchivedItems: false,
       });
       expect(events).toEqual(eventArray);
     });

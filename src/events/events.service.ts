@@ -47,7 +47,7 @@ export class EventsService {
   async findAll(queryDto: EventQueryParamsDto): Promise<Event[]> {
     try {
       let prismaQuery = {};
-      if (queryDto.searchQuery == undefined)
+      if (queryDto.searchQuery != undefined)
         prismaQuery = {
           where: {
             OR: [

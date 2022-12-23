@@ -1,5 +1,5 @@
-import { Type } from 'class-transformer';
-import { IsInt, IsOptional, IsString, Matches } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
+import { IsBoolean, IsBooleanString, IsInt, IsOptional, IsString, Matches } from 'class-validator';
 
 export class EventQueryParamsDto {
   @IsOptional()
@@ -20,4 +20,8 @@ export class EventQueryParamsDto {
   @IsOptional()
   @IsString()
   searchQuery: string;
+
+  @IsOptional()
+  @Transform(({ value }) => value === 'true')
+  getArchivedItems: boolean;
 }

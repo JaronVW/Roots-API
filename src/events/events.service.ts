@@ -45,37 +45,44 @@ export class EventsService {
   }
 
   async findAll(queryDto: EventQueryParamsDto): Promise<Event[]> {
-    let prismaQuery = {};
-    if (queryDto.searchQuery == undefined)
-      prismaQuery = {
-        where: {
-          OR: [
-            { title: { contains: queryDto.searchQuery } },
-            { tags: { some: { subject: { equals: queryDto.searchQuery } } } },
-            { description: { contains: queryDto.searchQuery } },
-          ],
-          AND: { isArchived: false },
-        },
-        orderBy: { dateOfEvent: queryDto.order } as any,
-        skip: Number(queryDto.min),
-        take: Number(queryDto.max),
-        include: {
-          tags: true,
-        },
-      };
-    else
-      prismaQuery = {
-        where: {
-          isArchived: false,
-        },
-        orderBy: { dateOfEvent: queryDto.order } as any,
-        skip: Number(queryDto.min),
-        take: Number(queryDto.max),
-        include: {
-          tags: true,
-        },
-      };
-    return await this.prisma.event.findMany(prismaQuery);
+    console.log(queryDto.getArchivedItems);
+    try {
+      let prismaQuery = {};
+      if (queryDto.searchQuery == undefined)
+        prismaQuery = {
+          where: {
+            OR: [
+              { title: { contains: queryDto.searchQuery } },
+              { tags: { some: { subject: { equals: queryDto.searchQuery } } } },
+              { description: { contains: queryDto.searchQuery } },
+            ],
+            AND: { isArchived: queryDto.getArchivedItems },
+          },
+          orderBy: { dateOfEvent: queryDto.order } as any,
+          skip: Number(queryDto.min),
+          take: Number(queryDto.max),
+          include: {
+            tags: true,
+          },
+        };
+      else
+        prismaQuery = {
+          where: {
+            isArchived: queryDto.getArchivedItems,
+          },
+          orderBy: { dateOfEvent: queryDto.order } as any,
+          skip: Number(queryDto.min),
+          take: Number(queryDto.max),
+          include: {
+            tags: true,
+          },
+        };
+
+      return await this.prisma.event.findMany(prismaQuery);
+    } catch (error) {
+      console.log(error);
+      throw new BadRequestException();
+    }
   }
 
   async update(params: { where: Prisma.EventWhereUniqueInput; event: EventsUpdateDto }): Promise<Event> {
@@ -137,5 +144,4 @@ export class EventsService {
       throw new BadRequestException();
     }
   }
-  
 }

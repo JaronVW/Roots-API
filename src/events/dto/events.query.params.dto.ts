@@ -1,5 +1,5 @@
 import { Transform, Type } from 'class-transformer';
-import { IsBoolean, IsBooleanString, IsInt, IsOptional, IsString, Matches } from 'class-validator';
+import { IsInt, IsOptional, IsString, Matches } from 'class-validator';
 
 export class EventQueryParamsDto {
   @IsOptional()

@@ -36,5 +36,5 @@ jobs:
         run: |
           npx prisma generate
           npx prisma migrate deploy
-          npm run test
+          npm run jest -i
           npm run jest --config ./test/jest-e2e.json

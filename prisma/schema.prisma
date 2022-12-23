@@ -53,3 +53,11 @@ model Multimedia {
   transcript  String? @db.Text
   alt         String? @db.VarChar(100)
 }
+
+model Organisation {
+  id         Int          @id @default(autoincrement())
+  name       String       @unique @db.VarChar(100)
+  event      Event[]
+  tag        Tag[]
+  user       User[]
+}

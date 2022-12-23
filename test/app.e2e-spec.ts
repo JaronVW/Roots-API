@@ -7,6 +7,7 @@ import { User, Event, Tag } from '@prisma/client';
 import { useContainer } from 'class-validator';
 
 describe('AppController (e2e)', () => {
+  // delete local testdb, then run locally using npm run test:prisma:deploy && npm run test:e2e
   let app: INestApplication;
   let prisma: PrismaClientService;
   let user: User;

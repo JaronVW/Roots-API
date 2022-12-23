@@ -22,6 +22,7 @@ export class EventQueryParamsDto {
   searchQuery: string;
 
   @IsOptional()
-  @Transform(({ value }) => value === 'true')
-  getArchivedItems: boolean;
+  @Type(() => Boolean)
+  @IsBoolean()
+  getArchivedItems = false;
 }

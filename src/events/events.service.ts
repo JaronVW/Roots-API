@@ -46,6 +46,7 @@ export class EventsService {
 
   async findAll(queryDto: EventQueryParamsDto): Promise<Event[]> {
     try {
+      console.log(queryDto.getArchivedItems);
       let prismaQuery = {};
       if (queryDto.searchQuery != undefined)
         prismaQuery = {

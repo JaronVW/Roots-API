@@ -45,7 +45,6 @@ export class EventsService {
   }
 
   async findAll(queryDto: EventQueryParamsDto): Promise<Event[]> {
-    console.log(queryDto.getArchivedItems);
     try {
       let prismaQuery = {};
       if (queryDto.searchQuery == undefined)
@@ -77,7 +76,6 @@ export class EventsService {
             tags: true,
           },
         };
-
       return await this.prisma.event.findMany(prismaQuery);
     } catch (error) {
       console.log(error);

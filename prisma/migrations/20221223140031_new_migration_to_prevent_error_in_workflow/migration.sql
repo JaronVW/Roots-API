@@ -39,7 +39,7 @@ CREATE TABLE `Multimedia` (
     `eventId` INTEGER NOT NULL,
     `multimedia` VARCHAR(191) NULL,
     `description` VARCHAR(500) NULL,
-    `transcript` VARCHAR(65535) NULL,
+    `transcript` TEXT NULL,
     `alt` VARCHAR(100) NULL,
 
     PRIMARY KEY (`id`)

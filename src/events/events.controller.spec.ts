@@ -81,6 +81,8 @@ describe('EventsController', () => {
             create: jest.fn().mockImplementation(() => Promise.resolve({ id: 5, ...createdEvent })),
             update: jest.fn().mockImplementation(() => Promise.resolve({ id: 5, ...updatedEvent })),
             remove: jest.fn().mockResolvedValue(updatedEvent),
+            archive: jest.fn().mockResolvedValue(testEvent1),
+            unarchive: jest.fn().mockResolvedValue(testEvent1),
           },
         },
       ],
@@ -102,7 +104,7 @@ describe('EventsController', () => {
       searchQuery: '',
       getArchivedItems: false,
     };
-    it('should get an array of Event', async () => {
+    it('should get an array of Events', async () => {
       await expect(controller.findAll(dto)).resolves.toEqual([
         {
           userId: 1,
@@ -144,13 +146,13 @@ describe('EventsController', () => {
     });
   });
 
-  describe('getById', () => {
+  describe('get event by id', () => {
     it('should get a single Event', async () => {
       await expect(controller.findOne('1')).resolves.toEqual(eventArray[0]);
     });
   });
 
-  describe('newCat', () => {
+  describe('new event', () => {
     it('should create a new Event', async () => {
       const newEventDto: EventsCreateDto = {
         userId: 1,
@@ -168,8 +170,8 @@ describe('EventsController', () => {
     });
   });
 
-  describe('updateCat', () => {
-    it('should update a Event', async () => {
+  describe('update event', () => {
+    it('should update an Event', async () => {
       await expect(controller.update('5', updatedEvent)).resolves.toEqual({
         id: 5,
         ...updatedEvent,
@@ -177,12 +179,28 @@ describe('EventsController', () => {
     });
   });
 
-  describe('deleteCat', () => {
+  describe('archive event', () => {
+    it('should archive an Event', async () => {
+      await expect(controller.archive('1')).resolves.toEqual({
+        ...testEvent1,
+      });
+    });
+  });
+
+  describe('unarchive event', () => {
+    it('should unarchive an Event', async () => {
+      await expect(controller.unarchive('1')).resolves.toEqual({
+        ...testEvent1,
+      });
+    });
+  });
+
+  describe('delete event', () => {
     it('should return that deleted Event', async () => {
       await expect(controller.remove('5')).resolves.toEqual(updatedEvent);
     });
 
-    it('should return that it not delete an event', async () => {
+    it('should return that it did not delete the event', async () => {
       jest.spyOn(eventsService, 'remove').mockRejectedValueOnce({ errorCode: 404, message: 'Not found' });
       await expect(controller.remove('1000')).rejects.toEqual({ errorCode: 404, message: 'Not found' });
     });

@@ -9,7 +9,7 @@ export class EventsService {
   constructor(private readonly prisma: PrismaClientService) {}
 
   async create(event: EventsCreateDto): Promise<Event> {
-    console.log(event);
+    // console.log(event);
     try {
       return await this.prisma.event.create({
         data: {
@@ -27,7 +27,7 @@ export class EventsService {
         },
       });
     } catch (e) {
-      console.log(e);
+      // console.log(e);
       throw new BadRequestException();
     }
   }
@@ -119,7 +119,7 @@ export class EventsService {
         where,
       });
     } catch (error) {
-      console.log('error remove', error);
+      // console.log('error remove', error);
       if (error.code == 'P2025') throw new NotFoundException();
       throw new BadRequestException();
     }

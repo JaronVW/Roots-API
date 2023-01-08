@@ -35,6 +35,8 @@ describe('AppController (e2e)', () => {
     dateOfEvent: expect.any(String),
     userId: expect.any(Number),
     tags: expect.any(Array),
+    isArchived: expect.any(Boolean),
+    organisationId: null,
   });
 
   const tagShape = expect.objectContaining({
@@ -253,6 +255,7 @@ describe('AppController (e2e)', () => {
         expect(body).toHaveProperty('title', 'Example title create');
         expect(body).toHaveProperty('description', 'Example description create');
         expect(body).toHaveProperty('dateOfEvent', '2018-01-01T00:00:00.000Z');
+        expect(body).toHaveProperty('isArchived', false);
       });
 
       it('should return a bad request when the body is not valid', async () => {
@@ -408,6 +411,76 @@ describe('AppController (e2e)', () => {
       it('should return a not found if an id is not provided, as it is not a valid route', async () => {
         const { body } = await request(app.getHttpServer()).delete(`/events/`).expect(404);
         expect(body).toHaveProperty('message', 'Cannot DELETE /events/');
+      });
+    });
+
+    describe('PATCH events/:id/archive', () => {
+      it('should archive an event', async () => {
+        const { body } = await request(app.getHttpServer()).patch(`/events/${event1.id}/archive`).expect(200);
+        expect(body).toHaveProperty('id', event1.id);
+        expect(body).toHaveProperty('isArchived', true);
+      });
+
+      it('should return a not found when the event does not exist', async () => {
+        const { body } = await request(app.getHttpServer()).patch(`/events/0/archive`).expect(404);
+        expect(body).toHaveProperty('message', 'Not Found');
+      });
+
+      it('should return a not found when the event id is invalid', async () => {
+        const { body } = await request(app.getHttpServer()).patch(`/events/invalid/archive`).expect(400);
+        expect(body).toHaveProperty('message', 'Bad Request');
+      });
+
+      it('should return a not found if an id is not provided, as it is not a valid route', async () => {
+        const { body } = await request(app.getHttpServer()).patch(`/events//archive`).expect(404);
+        expect(body).toHaveProperty('message', 'Cannot PATCH /events//archive');
+      });
+
+      it('should still return an OK if body is not provided', async () => {
+        const { body } = await request(app.getHttpServer()).patch(`/events/${event1.id}/archive`).expect(200);
+        expect(body).toHaveProperty('id', event1.id);
+        expect(body).toHaveProperty('isArchived', true);
+      });
+
+      it('should update without all required properties for creating an event', async () => {
+        const { body } = await request(app.getHttpServer()).patch(`/events/${event1.id}/archive`).expect(200);
+        expect(body).toHaveProperty('id', event1.id);
+        expect(body).toHaveProperty('isArchived', true);
+      });
+    });
+
+    describe('PATCH events/:id/unarchive', () => {
+      it('should unarchive an event', async () => {
+        const { body } = await request(app.getHttpServer()).patch(`/events/${event1.id}/unarchive`).expect(200);
+        expect(body).toHaveProperty('id', event1.id);
+        expect(body).toHaveProperty('isArchived', false);
+      });
+
+      it('should return a not found when the event does not exist', async () => {
+        const { body } = await request(app.getHttpServer()).patch(`/events/0/unarchive`).expect(404);
+        expect(body).toHaveProperty('message', 'Not Found');
+      });
+
+      it('should return a not found when the event id is invalid', async () => {
+        const { body } = await request(app.getHttpServer()).patch(`/events/invalid/unarchive`).expect(400);
+        expect(body).toHaveProperty('message', 'Bad Request');
+      });
+
+      it('should return a not found if an id is not provided, as it is not a valid route', async () => {
+        const { body } = await request(app.getHttpServer()).patch(`/events//unarchive`).expect(404);
+        expect(body).toHaveProperty('message', 'Cannot PATCH /events//unarchive');
+      });
+
+      it('should still return an OK if body is not provided', async () => {
+        const { body } = await request(app.getHttpServer()).patch(`/events/${event1.id}/unarchive`).expect(200);
+        expect(body).toHaveProperty('id', event1.id);
+        expect(body).toHaveProperty('isArchived', false);
+      });
+
+      it('should update without all required properties for creating an event', async () => {
+        const { body } = await request(app.getHttpServer()).patch(`/events/${event1.id}/unarchive`).expect(200);
+        expect(body).toHaveProperty('id', event1.id);
+        expect(body).toHaveProperty('isArchived', false);
       });
     });
   });

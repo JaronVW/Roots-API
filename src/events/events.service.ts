@@ -9,7 +9,6 @@ export class EventsService {
   constructor(private readonly prisma: PrismaClientService) {}
 
   async create(event: EventsCreateDto): Promise<Event> {
-    // console.log(event);
     try {
       return await this.prisma.event.create({
         data: {
@@ -27,8 +26,7 @@ export class EventsService {
         },
       });
     } catch (e) {
-      // console.log(e);
-      throw new BadRequestException();
+      throw new BadRequestException("Can't create event");
     }
   }
 
@@ -41,7 +39,7 @@ export class EventsService {
       },
     });
     if (event != null) return event;
-    throw new NotFoundException();
+    throw new NotFoundException("Can't find event");
   }
 
   async findAll(queryDto: EventQueryParamsDto): Promise<Event[]> {
@@ -79,7 +77,7 @@ export class EventsService {
       return await this.prisma.event.findMany(prismaQuery);
     } catch (error) {
       console.log(error);
-      throw new BadRequestException();
+      throw new BadRequestException("Can't retrieve events");
     }
   }
 
@@ -108,7 +106,7 @@ export class EventsService {
       });
     } catch (error) {
       console.log('error update', error);
-      if (error.code == 'P2025') throw new NotFoundException();
+      if (error.code == 'P2025') throw new NotFoundException("Event doesn't exist");
       throw new BadRequestException();
     }
   }
@@ -119,8 +117,7 @@ export class EventsService {
         where,
       });
     } catch (error) {
-      // console.log('error remove', error);
-      if (error.code == 'P2025') throw new NotFoundException();
+      if (error.code == 'P2025') throw new NotFoundException("Event doesn't exist");
       throw new BadRequestException();
     }
   }
@@ -129,8 +126,8 @@ export class EventsService {
     try {
       return await this.prisma.event.update({ where, data: { isArchived: true } });
     } catch (error) {
-      if (error.code == 'P2025') throw new NotFoundException();
-      throw new BadRequestException();
+      if (error.code == 'P2025') throw new NotFoundException("Event doesn't exist");
+      throw new BadRequestException("Can't archive event");
     }
   }
 
@@ -138,8 +135,8 @@ export class EventsService {
     try {
       return await this.prisma.event.update({ where, data: { isArchived: false } });
     } catch (error) {
-      if (error.code == 'P2025') throw new NotFoundException();
-      throw new BadRequestException();
+      if (error.code == 'P2025') throw new NotFoundException("Event doesn't exist");
+      throw new BadRequestException("Can't unarchive event");
     }
   }
 }

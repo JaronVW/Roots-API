@@ -55,7 +55,9 @@ export class EventsService {
               { tags: { some: { subject: { equals: queryDto.searchQuery } } } },
               { description: { contains: queryDto.searchQuery } },
             ],
-            AND: { isArchived: queryDto.getArchivedItems },
+            AND: {
+              OR: [{ isArchived: false }, { isArchived: queryDto.getArchivedItems }],
+            },
           },
           orderBy: { dateOfEvent: queryDto.order } as any,
           skip: Number(queryDto.min),
@@ -67,7 +69,7 @@ export class EventsService {
       else
         prismaQuery = {
           where: {
-            isArchived: queryDto.getArchivedItems,
+            OR: [{ isArchived: false }, { isArchived: queryDto.getArchivedItems }],
           },
           orderBy: { dateOfEvent: queryDto.order } as any,
           skip: Number(queryDto.min),

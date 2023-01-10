@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
 import { OrganisationsService } from './organisations.service';
 import { Organisation, Prisma } from '@prisma/client';
+import { UpdateDomainNameDto } from './dto/UpdateDomainNameDto';
 
 @Controller('organisations')
 export class OrganisationsController {
@@ -12,13 +13,15 @@ export class OrganisationsController {
   }
 
   @Patch(':id')
-  async updateDomainName(@Body() id: number, @Body() organisationName: string): Promise<Organisation> {
-    return await this.organisationsService.updateOrganisationName(id, organisationName);
+  async updateDomainName(
+    @Param('id') id: number,
+    @Body() UpdateDomainNameDto: UpdateDomainNameDto,
+  ): Promise<Organisation> {
+    return await this.organisationsService.updateDomainName(id, UpdateDomainNameDto);
   }
 
   @Get(':id')
   async findOne(@Param('id') id: number): Promise<Organisation> {
     return await this.organisationsService.findOne(id);
   }
-
 }

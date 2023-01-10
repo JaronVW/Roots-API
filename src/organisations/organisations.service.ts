@@ -25,7 +25,6 @@ export class OrganisationsService {
         data: data,
       });
     } catch (error) {
-      console.log(error);
       if (error.code == 'P2002') throw new BadRequestException('Organisation with that domain name already exists');
       throw new BadRequestException("Can't create organisation");
     }
@@ -38,7 +37,6 @@ export class OrganisationsService {
         data: { name: updateDomainNameDto.domainName },
       })
       .catch((error) => {
-        console.log(error);
         if (error.code == 'P2025' || error.status == 404) throw new NotFoundException("Can't find organisation");
         throw new BadRequestException("Can't update organisation name");
       });

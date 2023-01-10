@@ -8,7 +8,7 @@ import { OrganisationsModule } from './organisations/organisations.module';
 import { UsersModule } from './users/users.module';
 import { ConfigModule } from '@nestjs/config';
 import { AuthenticationService } from './authentication/authentication.service';
-import { LocalStrategy } from './authentication/local.strategy';
+import { LocalStrategy } from './authentication/strategies/local.strategy';
 import { authenticationModule } from './authentication/authentication.module';
 
 @Module({

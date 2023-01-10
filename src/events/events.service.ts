@@ -78,7 +78,6 @@ export class EventsService {
         };
       return await this.prisma.event.findMany(prismaQuery);
     } catch (error) {
-      console.log(error);
       throw new BadRequestException("Can't retrieve events");
     }
   }
@@ -107,7 +106,6 @@ export class EventsService {
         },
       });
     } catch (error) {
-      console.log('error update', error);
       if (error.code == 'P2025') throw new NotFoundException("Event doesn't exist");
       throw new BadRequestException();
     }

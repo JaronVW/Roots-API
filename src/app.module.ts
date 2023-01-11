@@ -12,6 +12,7 @@ import { LocalStrategy } from './authentication/strategies/local.strategy';
 import { authenticationModule } from './authentication/authentication.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './authentication/guards/jwt-auth.guard';
+import { FilesController } from './files/files.controller';
 
 @Module({
   imports: [
@@ -23,7 +24,7 @@ import { JwtAuthGuard } from './authentication/guards/jwt-auth.guard';
     UsersModule,
     authenticationModule
   ],
-  controllers: [AppController],
+  controllers: [AppController, FilesController],
   providers: [AppService,],
 })
 export class AppModule {}

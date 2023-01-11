@@ -7,7 +7,6 @@ import { Public } from './decorators/Public';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { Response } from 'express';
-import { IsNotEmpty } from 'class-validator';
 import { FileNameDto } from './FileNameDto';
 
 @Controller()
@@ -39,31 +38,5 @@ export class AppController {
     }
   }
 
-  @Get('file/:encryptedFileName')
-  getFile(
-    @Param('encryptedFileName') encryptedFileName: string,
-    @Res() response: Response,
-
-    @Query()
-    ofn: FileNameDto,
-  ) {
-    const file = readFileSync(join(process.cwd(), `upload/${encryptedFileName}`));
-    if (
-      ofn.originalFilename.includes('.jpg') ||
-      ofn.originalFilename.includes('.jpeg') ||
-      ofn.originalFilename.includes('.png') ||
-      ofn.originalFilename.includes('.gif') ||
-      ofn.originalFilename.includes('.svg')
-    ) {
-      response.contentType('image/*');
-      response.set('Content-Disposition', 'inline;');
-    }
-
-    if (ofn.originalFilename.includes('.mp4')) response.contentType('video/mp4');
-    if (ofn.originalFilename.includes('.mp3')) response.contentType('audio/mp3');
-    if (ofn.originalFilename.includes('.pdf')) response.contentType('application/pdf');
-
-    response.attachment(ofn.originalFilename);
-    response.send(file);
-  }
+  
 }

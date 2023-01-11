@@ -17,7 +17,7 @@ export class AuthenticationService {
     try {
       const user = await this.userService.findOne(username);
       if (user && (await argon2.verify(user.password, password))) {
-        const result = { id: user.id, username: user.email };
+        const result = { id: user.id, username: user.email, organisationId: user.organisationId };
         return result;
       }
       return null;
@@ -26,7 +26,7 @@ export class AuthenticationService {
     }
   }
 
-  async generateUser(signUpDto: SignUpDto): Promise<{ id: number; username: string }> {
+  async generateUser(signUpDto: SignUpDto): Promise<{ id: number; username: string; organisationId: number }> {
     try {
       const organisation = await this.organisationsService
         .findOne({ domainName: signUpDto.username.split('@').pop() })
@@ -41,7 +41,7 @@ export class AuthenticationService {
         lastName: signUpDto.lastName,
         organisation: { connect: { id: organisation.id } },
       });
-      return { id: data.id, username: data.email };
+      return { id: data.id, username: data.email, organisationId: data.organisationId };
     } catch (error) {
       if (error.code == 'P2002') throw new BadRequestException('email is already in use');
       if (error instanceof NotFoundException) throw error;
@@ -50,7 +50,8 @@ export class AuthenticationService {
   }
 
   async login(user: any) {
-    const payload = { username: user.username, sub: user.id };
+    console.log(user);
+    const payload = { username: user.username, sub: user.id , organisationId: user.organisationId };
     return {
       access_token: this.jwtService.sign(payload),
     };

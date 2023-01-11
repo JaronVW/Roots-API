@@ -15,7 +15,7 @@ import { OrganisationsModule } from 'src/organisations/organisations.module';
     PassportModule,
     JwtModule.register({
       secret: jwtConstants.secret,
-      signOptions: { expiresIn: '60s' },
+      signOptions: { expiresIn: '1d' },
     }),
   ],
   providers: [AuthenticationService, LocalStrategy, JwtStrategy],

@@ -1,9 +1,11 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { OrganisationsService } from './organisations.service';
 import { Organisation, Prisma } from '@prisma/client';
 import { UpdateDomainNameDto } from './dto/UpdateDomainNameDto';
+import { JwtAuthGuard } from 'src/authentication/guards/jwt-auth.guard';
 
 @Controller('organisations')
+
 export class OrganisationsController {
   constructor(private readonly organisationsService: OrganisationsService) {}
 

@@ -43,18 +43,21 @@ export class AppController {
   getFile(
     @Param('encryptedFileName') encryptedFileName: string,
     @Res() response: Response,
-    
-    @Query() 
+
+    @Query()
     ofn: FileNameDto,
   ) {
     const file = readFileSync(join(process.cwd(), `upload/${encryptedFileName}`));
-    if (ofn.originalFilename.includes('.jpg')) response.contentType('image/jpg');
-    response.set('Content-Disposition', 'inline;');
-
-    if (ofn.originalFilename.includes('.png')) response.contentType('image/png');
-    response.set('Content-Disposition', 'inline;');
-    if (ofn.originalFilename.includes('.jpeg')) response.contentType('image/jpeg');
-    response.set('Content-Disposition', 'inline;');
+    if (
+      ofn.originalFilename.includes('.jpg') ||
+      ofn.originalFilename.includes('.jpeg') ||
+      ofn.originalFilename.includes('.png') ||
+      ofn.originalFilename.includes('.gif') ||
+      ofn.originalFilename.includes('.svg')
+    ) {
+      response.contentType('image/*');
+      response.set('Content-Disposition', 'inline;');
+    }
 
     if (ofn.originalFilename.includes('.mp4')) response.contentType('video/mp4');
     if (ofn.originalFilename.includes('.mp3')) response.contentType('audio/mp3');

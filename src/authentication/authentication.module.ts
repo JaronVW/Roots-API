@@ -6,7 +6,6 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { jwtConstants } from './constants';
 import { JwtStrategy } from './strategies/jwt.strategy';
-import { OrganisationsService } from 'src/organisations/organisations.service';
 import { OrganisationsModule } from 'src/organisations/organisations.module';
 
 @Module({

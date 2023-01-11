@@ -1,8 +1,8 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { UsersService } from 'src/users/users.service';
+import { UsersService } from '../../src/users/users.service';
 import argon2 = require('argon2');
-import { OrganisationsService } from 'src/organisations/organisations.service';
+import { OrganisationsService } from '../../src/organisations/organisations.service';
 import { SignUpDto } from './dto/signUpDto';
 
 @Injectable()

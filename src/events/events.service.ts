@@ -110,7 +110,7 @@ export class EventsService {
       });
 
       // delete files from disk
-      const multimediaItemsToDeletePaths = multimediaItemsToDelete.map((item) => item.multimedia);
+      const multimediaItemsToDeletePaths = multimediaItemsToDelete.map((item) => item.path);
       multimediaItemsToDeletePaths.forEach((path) => {
         if (path != null) {
           promisify(fs.unlink)(path).catch((err) => console.log(err));

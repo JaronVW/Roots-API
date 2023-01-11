@@ -3,6 +3,8 @@ import { Event, Prisma } from '@prisma/client';
 import { PrismaClientService } from '../../src/prisma-client/prisma-client.service';
 import { EventsCreateDto, EventsUpdateDto } from './dto/events.dto';
 import { EventQueryParamsDto } from './dto/events.query.params.dto';
+import * as fs from 'fs';
+import { promisify } from 'util';
 
 @Injectable()
 export class EventsService {
@@ -20,7 +22,7 @@ export class EventsService {
             })),
           },
           multimediaItems: {
-            createMany: { data: event.multimediaItems, skipDuplicates: false },
+            createMany: { data: event.multimediaItems, skipDuplicates: true },
           },
           userId: event.userId,
         },
@@ -86,7 +88,34 @@ export class EventsService {
   async update(params: { where: Prisma.EventWhereUniqueInput; event: EventsUpdateDto }): Promise<Event> {
     try {
       const { where, event } = params;
-      return await this.prisma.event.update({
+      console.log(event);
+      const eventToUpdate = await this.prisma.event.findUnique({
+        where,
+        include: {
+          multimediaItems: true,
+        },
+      });
+      const multimediaItemsToDelete = eventToUpdate.multimediaItems.filter((item) => {
+        return !event.multimediaItems.some((item2) => item2.multimedia == item.multimedia);
+      });
+      const multimediaItemsToDeleteIds = multimediaItemsToDelete.map((item) => item.id);
+      await this.prisma.multimedia.deleteMany({
+        where: {
+          id: {
+            in: multimediaItemsToDeleteIds,
+          },
+        },
+      });
+
+      // delete files from disk
+      const multimediaItemsToDeletePaths = multimediaItemsToDelete.map((item) => item.multimedia);
+      multimediaItemsToDeletePaths.forEach((path) => {
+        if (path != null) {
+          promisify(fs.unlink)(path).catch((err) => console.log(err));
+        }
+      });
+
+      const updatedEvent = await this.prisma.event.update({
         data: {
           ...event,
           tags: {
@@ -96,7 +125,10 @@ export class EventsService {
             })),
           },
           multimediaItems: {
-            createMany: { data: event.multimediaItems, skipDuplicates: false },
+            connectOrCreate: event.multimediaItems.map((item) => ({
+              where: { path: item.path },
+              create: item,
+            })),
           },
           userId: event.userId,
         },
@@ -106,6 +138,7 @@ export class EventsService {
           multimediaItems: true,
         },
       });
+      return updatedEvent;
     } catch (error) {
       if (error.code == 'P2025') throw new NotFoundException("Event doesn't exist");
       throw new BadRequestException();

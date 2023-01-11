@@ -37,6 +37,7 @@ export class EventsController {
     try {
       return await this.eventsService.create(event);
     } catch (e) {
+      console.log(e);
       throw new HttpException(e, 400);
     }
   }

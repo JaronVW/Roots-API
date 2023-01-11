@@ -29,14 +29,17 @@ export class EventsController {
   @UsePipes(new ValidationPipe({ transform: true }))
   async create(@Body() event: EventsCreateDto, @UploadedFiles() files: Array<Express.Multer.File>) {
     if (files) {
-      event.multimediaItems = [];
+      // event.multimediaItems = [];
+      console.log(event.multimediaItems)
       for (let i = 0; i < files.length; i++) {
+        
         event.multimediaItems[i].multimedia = files[i].path;
       }
     }
     try {
       return await this.eventsService.create(event);
     } catch (e) {
+      console.log(e)
       throw new HttpException(e, 400);
     }
   }

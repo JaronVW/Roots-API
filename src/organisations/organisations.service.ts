@@ -7,10 +7,10 @@ import { UpdateDomainNameDto } from './dto/UpdateDomainNameDto';
 export class OrganisationsService {
   constructor(private readonly prisma: PrismaClientService) {}
 
-  public async findOne(id: number): Promise<Organisation> {
+  public async findOne(where: Prisma.OrganisationWhereUniqueInput): Promise<Organisation> {
     return await this.prisma.organisation
       .findUnique({
-        where: { id: Number(id) },
+        where,
       })
       .then((organisation) => {
         if (!organisation) throw new NotFoundException("Can't find organisation");

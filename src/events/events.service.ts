@@ -26,6 +26,7 @@ export class EventsService {
         },
       });
     } catch (e) {
+      console.log(e);
       throw new BadRequestException("Can't create event");
     }
   }

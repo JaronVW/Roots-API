@@ -22,6 +22,6 @@ export class OrganisationsController {
 
   @Get(':id')
   async findOne(@Param('id') id: number): Promise<Organisation> {
-    return await this.organisationsService.findOne(id);
+    return await this.organisationsService.findOne({id: Number(id)});
   }
 }

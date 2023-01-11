@@ -13,14 +13,12 @@ import {
   UploadedFiles,
   UseInterceptors,
   Patch,
-  UseGuards,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { Event } from '@prisma/client';
 import { EventsCreateDto, EventsUpdateDto } from './dto/events.dto';
 import { EventQueryParamsDto } from './dto/events.query.params.dto';
 import { EventsService } from './events.service';
-import { JwtAuthGuard } from 'src/authentication/guards/jwt-auth.guard';
 
 @Controller('events')
 export class EventsController {

@@ -6,7 +6,7 @@ export class TagsService {
   constructor(private readonly prisma: PrismaClientService) {}
 
   async findAll() {
-    return await this.prisma.tag.findMany({
+    const tags = await this.prisma.tag.findMany({
       orderBy: [{ Events: { _count: 'desc' } }, { subject: 'asc' }],
       include: {
         _count: {
@@ -16,5 +16,10 @@ export class TagsService {
         },
       },
     });
+    return tags.map((tag) => ({
+      id: tag.id,
+      subject: tag.subject,
+      count: tag._count.Events,
+    }));
   }
 }

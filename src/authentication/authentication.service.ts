@@ -3,7 +3,6 @@ import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
 import argon2 = require('argon2');
 import { OrganisationsService } from 'src/organisations/organisations.service';
-import { Console } from 'console';
 import { SignUpDto } from './dto/signUpDto';
 
 @Injectable()

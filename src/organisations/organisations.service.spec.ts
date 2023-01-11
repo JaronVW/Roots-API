@@ -48,13 +48,13 @@ describe('OrganisationsService', () => {
 
   describe('getOne', () => {
     it('should get a single Event', async () => {
-      const organisation = await service.findOne(1);
+      const organisation = await service.findOne({id: 1});
       expect(organisation).toEqual(organisation);
     });
 
     it('wrong id, should return a Not found exception', async () => {
       jest.spyOn(prisma.organisation, 'findUnique').mockRejectedValueOnce(new NotFoundException());
-      expect(service.findOne(5)).rejects.toThrowError(NotFoundException);
+      expect(service.findOne({id: 5})).rejects.toThrowError(NotFoundException);
     });
   });
 

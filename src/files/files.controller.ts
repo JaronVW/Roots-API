@@ -20,17 +20,20 @@ export class FilesController {
       ofn.originalFilename.includes('.jpeg') ||
       ofn.originalFilename.includes('.png') ||
       ofn.originalFilename.includes('.gif') ||
-      ofn.originalFilename.includes('.svg')
+      ofn.originalFilename.includes('.svg') || 
+      ofn.originalFilename.includes('.webp')
     ) {
-      response.contentType('image/*');
-      response.set('Content-Disposition', 'inline;');
+      response.contentType(`image/${ofn.originalFilename.split('.').pop()}`);
+      response.set('Content-Disposition', `inline; filename=\"${ofn.originalFilename}\""`);
+      response.send(file);
+    } else {
+      if (ofn.originalFilename.includes('.mp4')) response.contentType('video/mp4');
+      else if (ofn.originalFilename.includes('.mp3')) response.contentType('audio/mp3');
+      else if (ofn.originalFilename.includes('.pdf')) response.contentType('application/pdf');
+      else if (ofn.originalFilename.includes('.docx'))
+        response.contentType('application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+      response.attachment(ofn.originalFilename);
+      response.send(file);
     }
-
-    if (ofn.originalFilename.includes('.mp4')) response.contentType('video/mp4');
-    if (ofn.originalFilename.includes('.mp3')) response.contentType('audio/mp3');
-    if (ofn.originalFilename.includes('.pdf')) response.contentType('application/pdf');
-
-    response.attachment(ofn.originalFilename);
-    response.send(file);
   }
 }

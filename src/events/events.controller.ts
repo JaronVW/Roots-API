@@ -30,11 +30,10 @@ export class EventsController {
   @UseInterceptors(FilesInterceptor('files'))
   @UsePipes(new ValidationPipe({ transform: true }))
   async create(@Body() event: EventsCreateDto, @UploadedFiles() files: Array<Express.Multer.File>) {
-    if (files) {
-      // event.multimediaItems = [];
-      console.log(event.multimediaItems);
+    if (files && event.multimediaItems) {
       for (let i = 0; i < files.length; i++) {
-        event.multimediaItems[i].multimedia = files[i].path;
+        event.multimediaItems[i].multimedia = files[i].originalname;
+        event.multimediaItems[i].path = files[i].path;
       }
     }
     try {
@@ -62,8 +61,19 @@ export class EventsController {
   }
 
   @Put(':id')
+  @UseInterceptors(FilesInterceptor('files'))
   @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
-  async update(@Param('id') id: string, @Body() event: EventsUpdateDto) {
+  async update(
+    @Param('id') id: string,
+    @Body() event: EventsUpdateDto,
+    @UploadedFiles() files: Array<Express.Multer.File>,
+  ) {
+    if (files && event.multimediaItems) {
+      for (let i = 0; i < files.length; i++) {
+        event.multimediaItems[i].multimedia = files[i].originalname;
+        event.multimediaItems[i].path = files[i].path;
+      }
+    }
     return this.eventsService.update({
       where: { id: Number(id) },
       event,

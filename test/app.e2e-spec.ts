@@ -42,7 +42,7 @@ describe('AppController (e2e)', () => {
   const tagShape = expect.objectContaining({
     id: expect.any(Number),
     subject: expect.any(String),
-    _count: expect.objectContaining({ Events: expect.any(Number) }),
+    count: expect.any(Number),
   });
 
   beforeAll(async () => {
@@ -400,7 +400,7 @@ describe('AppController (e2e)', () => {
 
       it('should return a not found when the event does not exist', async () => {
         const { body } = await request(app.getHttpServer()).delete(`/events/0`).expect(404);
-        expect(body).toHaveProperty('message', 'Not Found');
+        expect(body).toHaveProperty('message', "Event doesn't exist");
       });
 
       it('should return a not found when the event id is invalid', async () => {
@@ -423,12 +423,12 @@ describe('AppController (e2e)', () => {
 
       it('should return a not found when the event does not exist', async () => {
         const { body } = await request(app.getHttpServer()).patch(`/events/0/archive`).expect(404);
-        expect(body).toHaveProperty('message', 'Not Found');
+        expect(body).toHaveProperty('message', "Event doesn't exist");
       });
 
       it('should return a not found when the event id is invalid', async () => {
         const { body } = await request(app.getHttpServer()).patch(`/events/invalid/archive`).expect(400);
-        expect(body).toHaveProperty('message', 'Bad Request');
+        expect(body).toHaveProperty('message', "Can't archive event");
       });
 
       it('should return a not found if an id is not provided, as it is not a valid route', async () => {
@@ -458,12 +458,12 @@ describe('AppController (e2e)', () => {
 
       it('should return a not found when the event does not exist', async () => {
         const { body } = await request(app.getHttpServer()).patch(`/events/0/unarchive`).expect(404);
-        expect(body).toHaveProperty('message', 'Not Found');
+        expect(body).toHaveProperty('message', "Event doesn't exist");
       });
 
       it('should return a not found when the event id is invalid', async () => {
         const { body } = await request(app.getHttpServer()).patch(`/events/invalid/unarchive`).expect(400);
-        expect(body).toHaveProperty('message', 'Bad Request');
+        expect(body).toHaveProperty('message', "Can't unarchive event");
       });
 
       it('should return a not found if an id is not provided, as it is not a valid route', async () => {

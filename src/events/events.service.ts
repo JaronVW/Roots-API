@@ -88,7 +88,6 @@ export class EventsService {
   async update(params: { where: Prisma.EventWhereUniqueInput; event: EventsUpdateDto }): Promise<Event> {
     try {
       const { where, event } = params;
-      console.log(event);
       const eventToUpdate = await this.prisma.event.findUnique({
         where,
         include: {

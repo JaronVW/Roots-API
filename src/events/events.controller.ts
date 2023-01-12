@@ -30,8 +30,8 @@ export class EventsController {
   async create(@Body() event: EventsCreateDto, @UploadedFiles() files: Array<Express.Multer.File>) {
     if (files && event.multimediaItems) {
       for (let i = 0; i < files.length; i++) {
-        event.multimediaItems[i].path = files[i].path;
         event.multimediaItems[i].multimedia = files[i].originalname;
+        event.multimediaItems[i].path = files[i].path;
       }
     }
     try {
@@ -68,8 +68,8 @@ export class EventsController {
   ) {
     if (files && event.multimediaItems) {
       for (let i = 0; i < files.length; i++) {
-        event.multimediaItems[i].path = files[i].path;
         event.multimediaItems[i].multimedia = files[i].originalname;
+        event.multimediaItems[i].path = files[i].path;
       }
     }
     return this.eventsService.update({

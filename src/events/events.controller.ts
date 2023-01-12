@@ -69,7 +69,7 @@ export class EventsController {
     if (files && event.multimediaItems) {
       for (let i = 0; i < files.length; i++) {
         event.multimediaItems[i].multimedia = files[i].originalname;
-        event.multimediaItems[i].path = files[i].path;
+        event.multimediaItems[i].path = files[i].filename;
       }
     }
     return this.eventsService.update({

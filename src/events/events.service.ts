@@ -88,7 +88,6 @@ export class EventsService {
   async update(params: { where: Prisma.EventWhereUniqueInput; event: EventsUpdateDto }): Promise<Event> {
     try {
       const { where, event } = params;
-      console.log(event);
       const eventToUpdate = await this.prisma.event.findUnique({
         where,
         include: {
@@ -108,7 +107,7 @@ export class EventsService {
       });
 
       // delete files from disk
-      const multimediaItemsToDeletePaths = multimediaItemsToDelete.map((item) => item.multimedia);
+      const multimediaItemsToDeletePaths = multimediaItemsToDelete.map((item) => item.path);
       multimediaItemsToDeletePaths.forEach((path) => {
         if (path != null) {
           promisify(fs.unlink)(path).catch((err) => console.log(err));

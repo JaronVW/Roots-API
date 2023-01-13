@@ -110,7 +110,7 @@ export class EventsService {
       const multimediaItemsToDeletePaths = multimediaItemsToDelete.map((item) => item.path);
       multimediaItemsToDeletePaths.forEach((path) => {
         if (path != null) {
-          promisify(fs.unlink)(path).catch((err) => console.log(err));
+          promisify(fs.unlink)('upload/' + path).catch((err) => console.log(err));
         }
       });
 

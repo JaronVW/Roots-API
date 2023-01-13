@@ -19,7 +19,7 @@ export class OrganisationsService {
   }
 
   public async create(data: Prisma.OrganisationCreateInput) {
-    if (!data.domainName.match(/@\w+([\.-]?\w+)*(\.\w{2,})+$/)) throw new BadRequestException('Invalid domain name');
+    if (!data.domainName.match(/\w+([\.-]?\w+)*(\.\w{2,})+$/)) throw new BadRequestException('Invalid domain name');
     try {
       return await this.prisma.organisation.create({
         data: data,
@@ -28,8 +28,8 @@ export class OrganisationsService {
       let errorMessage = 'error already exists';
       if (error.meta != undefined) {
         if ((error.meta.target = 'organisation_domain_name_key'))
-          errorMessage = 'Organisation with that domain name already exists';
-        if ((error.meta.target = 'organisation_name_key')) errorMessage = 'Organisation with that name already exists';
+          errorMessage = 'Organisation with that name already exists';
+        if ((error.meta.target = 'organisation_name_key')) errorMessage = 'An organisation is already using that domain name';
       }
       if (error.code == 'P2002') throw new BadRequestException(errorMessage);
       throw new BadRequestException("Can't create organisation");

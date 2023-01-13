@@ -3,7 +3,7 @@ import { OrganisationsService } from './organisations.service';
 import { Organisation, Prisma } from '@prisma/client';
 import { UpdateDomainNameDto } from './dto/UpdateDomainNameDto';
 import { JwtAuthGuard } from 'src/authentication/guards/jwt-auth.guard';
-import { Public } from 'src/decorators/Public';
+import { Public } from '../decorators/Public';
 
 @Controller('organisations')
 

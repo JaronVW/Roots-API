@@ -81,8 +81,8 @@ export class EventsController {
     event.organisationId = decodedJwt.organisationId;
     if (files && event.multimediaItems) {
       for (let i = 0; i < files.length; i++) {
-        event.multimediaItems[i].multimedia = files[i].originalname;
-        event.multimediaItems[i].path = files[i].filename;
+        event.multimediaItems.filter((multimediaItem) => !multimediaItem.path)[i].multimedia = files[i].originalname;
+        event.multimediaItems.filter((multimediaItem) => !multimediaItem.path)[i].path = files[i].filename;
       }
     }
     return this.eventsService.update({

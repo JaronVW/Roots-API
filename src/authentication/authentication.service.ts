@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException, Request } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../../src/users/users.service';
 import argon2 = require('argon2');

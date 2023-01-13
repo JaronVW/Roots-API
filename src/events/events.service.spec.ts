@@ -12,6 +12,7 @@ const testEvent1: EventsCreateDto = {
   dateOfEvent: new Date(),
   multimediaItems: [],
   tags: [],
+  organisationId: 1
 };
 
 const eventArray = [
@@ -24,6 +25,8 @@ const eventArray = [
     multimediaItems: [],
     tags: [],
     paragraphs: [],
+    organisationId: 1
+
   },
   {
     userId: 1,
@@ -34,6 +37,8 @@ const eventArray = [
     multimediaItems: [],
     tags: [],
     paragraphs: [],
+    organisationId: 1
+
   },
   {
     userId: 1,
@@ -44,6 +49,8 @@ const eventArray = [
     multimediaItems: [],
     tags: [],
     paragraphs: [],
+    organisationId: 1
+
   },
   {
     userId: 1,
@@ -54,6 +61,8 @@ const eventArray = [
     multimediaItems: [],
     tags: [],
     paragraphs: [],
+    organisationId: 1
+
   },
 ];
 
@@ -103,14 +112,14 @@ describe('EventsService', () => {
         order: '',
         searchQuery: '',
         getArchivedItems: false,
-      });
+      },1);
       expect(events).toEqual(eventArray);
     });
   });
 
   describe('getOne', () => {
     it('should get a single Event', async () => {
-      const event = await service.findOne({ id: Number(1) });
+      const event = await service.findOne(1,1);
       expect(event).toEqual(oneEvent);
     });
   });
@@ -124,11 +133,11 @@ describe('EventsService', () => {
 
   describe('updateOne', () => {
     it('should call the update method', async () => {
-      const cat = await service.update({
+      const event = await service.update({
         where: { id: Number(1) },
         event: oneEvent,
       });
-      expect(cat).toEqual(oneEvent);
+      expect(event).toEqual(oneEvent);
     });
 
     it('should return a notfound exception', async () => {
@@ -144,13 +153,13 @@ describe('EventsService', () => {
 
   describe('deleteOne', () => {
     it('should return {deleted: true}', async () => {
-      const event = await service.remove({ id: Number(1) });
+      const event = await service.remove({ id: Number(1) },1);
       expect(event).toEqual(oneEvent);
     });
 
     it('should return a notfound exception', async () => {
       jest.spyOn(prisma.event, 'delete').mockRejectedValueOnce({ code: 'P2025', message: 'Bad Delete Method.' });
-      expect(service.remove({ id: Number(1) })).rejects.toThrowError(NotFoundException);
+      expect(service.remove({ id: Number(1) },1)).rejects.toThrowError(NotFoundException);
     });
   });
 });

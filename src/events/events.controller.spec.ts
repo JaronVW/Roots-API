@@ -3,6 +3,7 @@ import { EventsController } from './events.controller';
 import { EventQueryParamsDto } from './dto/events.query.params.dto';
 import { EventsService } from './events.service';
 import { EventsCreateDto } from './dto/events.dto';
+import { JwtModule } from '@nestjs/jwt';
 
 const testEvent1: EventsCreateDto = {
   userId: 1,
@@ -12,6 +13,7 @@ const testEvent1: EventsCreateDto = {
   dateOfEvent: new Date('2020-01-01'),
   multimediaItems: [],
   tags: [],
+  organisationId: 1,
 };
 
 const eventArray = [
@@ -24,6 +26,7 @@ const eventArray = [
     dateOfEvent: new Date('2020-01-01'),
     multimediaItems: [],
     tags: [],
+    organisationId: 1,
   },
   {
     userId: 1,
@@ -33,6 +36,7 @@ const eventArray = [
     dateOfEvent: new Date('2020-01-01'),
     multimediaItems: [],
     tags: [],
+    organisationId: 1,
   },
   {
     userId: 1,
@@ -42,6 +46,7 @@ const eventArray = [
     dateOfEvent: new Date('2020-01-01'),
     multimediaItems: [],
     tags: [],
+    organisationId: 1,
   },
 ];
 
@@ -53,6 +58,7 @@ const createdEvent: EventsCreateDto = {
   dateOfEvent: new Date('2020-01-01'),
   multimediaItems: [],
   tags: [],
+  organisationId: 1,
 };
 
 const updatedEvent: EventsCreateDto = {
@@ -63,6 +69,7 @@ const updatedEvent: EventsCreateDto = {
   dateOfEvent: new Date('2020-01-01'),
   multimediaItems: [],
   tags: [],
+  organisationId: 1,
 };
 
 describe('EventsController', () => {
@@ -72,6 +79,14 @@ describe('EventsController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [EventsController],
+      imports: [
+        JwtModule.register({
+          secretOrPrivateKey: process.env.SECRETKEY || 'secretKey',
+          signOptions: {
+            expiresIn: 3600,
+          },
+        }),
+      ],
       providers: [
         {
           provide: EventsService,
@@ -105,7 +120,8 @@ describe('EventsController', () => {
       getArchivedItems: false,
     };
     it('should get an array of Events', async () => {
-      await expect(controller.findAll(dto)).resolves.toEqual([
+      const req = { headers: { authorization: 'Bearer token  ' } };
+      await expect(controller.findAll(dto, req)).resolves.toEqual([
         {
           userId: 1,
           title: 'Test 1',
@@ -114,6 +130,7 @@ describe('EventsController', () => {
           dateOfEvent: new Date('2020-01-01'),
           multimediaItems: [],
           tags: [],
+          organisationId: 1,
         },
         {
           userId: 1,
@@ -123,6 +140,7 @@ describe('EventsController', () => {
           dateOfEvent: new Date('2020-01-01'),
           multimediaItems: [],
           tags: [],
+          organisationId: 1,
         },
         {
           userId: 1,
@@ -132,6 +150,7 @@ describe('EventsController', () => {
           dateOfEvent: new Date('2020-01-01'),
           multimediaItems: [],
           tags: [],
+          organisationId: 1,
         },
         {
           userId: 1,
@@ -141,14 +160,16 @@ describe('EventsController', () => {
           dateOfEvent: new Date('2020-01-01'),
           multimediaItems: [],
           tags: [],
+          organisationId: 1,
         },
       ]);
     });
   });
 
   describe('get event by id', () => {
+    const req = { headers: { authorization: 'Bearer token  ' } };
     it('should get a single Event', async () => {
-      await expect(controller.findOne('1')).resolves.toEqual(eventArray[0]);
+      await expect(controller.findOne('1', req)).resolves.toEqual(eventArray[0]);
     });
   });
 
@@ -162,8 +183,10 @@ describe('EventsController', () => {
         dateOfEvent: new Date('2022-12-21'),
         multimediaItems: [],
         tags: [],
+        organisationId: 1,
       };
-      await expect(controller.create(newEventDto, undefined)).resolves.toEqual({
+      const req = { headers: { authorization: 'Bearer token  ' } };
+      await expect(controller.create(newEventDto, undefined, req)).resolves.toEqual({
         id: 5,
         ...createdEvent,
       });
@@ -172,7 +195,8 @@ describe('EventsController', () => {
 
   describe('update event', () => {
     it('should update an Event', async () => {
-      await expect(controller.update('5', updatedEvent)).resolves.toEqual({
+      const req = { headers: { authorization: 'Bearer token  ' } };
+      await expect(controller.update('5', updatedEvent, undefined, req)).resolves.toEqual({
         id: 5,
         ...updatedEvent,
       });
@@ -181,7 +205,8 @@ describe('EventsController', () => {
 
   describe('archive event', () => {
     it('should archive an Event', async () => {
-      await expect(controller.archive('1')).resolves.toEqual({
+      const req = { headers: { authorization: 'Bearer token  ' } };
+      await expect(controller.archive('1', req)).resolves.toEqual({
         ...testEvent1,
       });
     });
@@ -189,7 +214,8 @@ describe('EventsController', () => {
 
   describe('unarchive event', () => {
     it('should unarchive an Event', async () => {
-      await expect(controller.unarchive('1')).resolves.toEqual({
+      const req = { headers: { authorization: 'Bearer token  ' } };
+      await expect(controller.unarchive('1', req)).resolves.toEqual({
         ...testEvent1,
       });
     });
@@ -197,12 +223,14 @@ describe('EventsController', () => {
 
   describe('delete event', () => {
     it('should return that deleted Event', async () => {
-      await expect(controller.remove('5')).resolves.toEqual(updatedEvent);
+      const req = { headers: { authorization: 'Bearer token  ' } };
+      await expect(controller.remove('5', req)).resolves.toEqual(updatedEvent);
     });
 
     it('should return that it did not delete the event', async () => {
+      const req = { headers: { authorization: 'Bearer token  ' } };
       jest.spyOn(eventsService, 'remove').mockRejectedValueOnce({ errorCode: 404, message: 'Not found' });
-      await expect(controller.remove('1000')).rejects.toEqual({ errorCode: 404, message: 'Not found' });
+      await expect(controller.remove('1000', req)).rejects.toEqual({ errorCode: 404, message: 'Not found' });
     });
   });
 });

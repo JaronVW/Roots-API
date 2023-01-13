@@ -103,22 +103,24 @@ export class EventsService {
       const multimediaItemsToDelete = eventToUpdate.multimediaItems.filter((item) => {
         return !event.multimediaItems.some((item2) => item2.multimedia == item.multimedia);
       });
-      const multimediaItemsToDeleteIds = multimediaItemsToDelete.map((item) => item.id);
-      await this.prisma.multimedia.deleteMany({
-        where: {
-          id: {
-            in: multimediaItemsToDeleteIds,
+      if (multimediaItemsToDelete.length > 0) {
+        const multimediaItemsToDeleteIds = multimediaItemsToDelete.map((item) => item.id);
+        await this.prisma.multimedia.deleteMany({
+          where: {
+            id: {
+              in: multimediaItemsToDeleteIds,
+            },
           },
-        },
-      });
+        });
 
-      // delete files from disk
-      const multimediaItemsToDeletePaths = multimediaItemsToDelete.map((item) => item.path);
-      multimediaItemsToDeletePaths.forEach((path) => {
-        if (path != null) {
-          promisify(fs.unlink)('upload/' + path).catch((err) => console.log(err));
-        }
-      });
+        // delete files from disk
+        const multimediaItemsToDeletePaths = multimediaItemsToDelete.map((item) => item.path);
+        multimediaItemsToDeletePaths.forEach((path) => {
+          if (path != null) {
+            promisify(fs.unlink)('upload/' + path).catch((err) => console.log(err));
+          }
+        });
+      }
 
       const updatedEvent = await this.prisma.event.update({
         data: {
@@ -145,7 +147,8 @@ export class EventsService {
       });
       return updatedEvent;
     } catch (error) {
-      if (error.code == 'P2025') throw new NotFoundException("Event doesn't exist");
+      if (error.code == 'P2025' || error.status == 404) throw new NotFoundException("Event doesn't exist");
+      console.log(error);
       throw new BadRequestException();
     }
   }

@@ -31,27 +31,48 @@ async function main() {
   });
 
   // Users with events
-  const organisation = 'jjmttl.nl';
+  const domainName = 'jjmttl.nl';
 
-  await prisma.user.upsert({
-    where: { email: `adminmail@${organisation}` },
+  await prisma.organisation.upsert({
+    where: { name: 'JJMTTL' },
     update: {},
     create: {
-      email: `adminmail@${organisation}`,
-      password: await argon2.hash('Secret12#'),
-      firstName: 'A',
-      lastName: 'Admin',
+      name: 'JJMTTL',
+      domainName: domainName,
     },
   });
 
   await prisma.user.upsert({
-    where: { email: `jaron@${organisation}` },
+    where: { email: `adminmail@${domainName}` },
     update: {},
     create: {
-      email: `jaron@${organisation}`,
+      email: `adminmail@${domainName}`,
+      password: await argon2.hash('Secret12#'),
+      firstName: 'A',
+      lastName: 'Admin',
+      organisation: {
+        connectOrCreate: {
+          where: { name: 'JJMTTL' },
+          create: { name: 'JJMTTL', domainName: domainName },
+        },
+      },
+    },
+  });
+
+  await prisma.user.upsert({
+    where: { email: `jaron@${domainName}` },
+    update: {},
+    create: {
+      email: `jaron@${domainName}`,
       password: await argon2.hash('Secret12#'),
       firstName: 'Jaron',
       lastName: 'van Well',
+      organisation: {
+        connectOrCreate: {
+          where: { name: 'JJMTTL' },
+          create: { name: 'JJMTTL', domainName: domainName },
+        },
+      },
       events: {
         create: [
           {
@@ -87,13 +108,19 @@ async function main() {
   });
 
   await prisma.user.upsert({
-    where: { email: `joy@${organisation}` },
+    where: { email: `joy@${domainName}` },
     update: {},
     create: {
-      email: `joy@${organisation}`,
+      email: `joy@${domainName}`,
       password: await argon2.hash('Secret12#'),
       firstName: 'Joy',
       lastName: 'Boellaard',
+      organisation: {
+        connectOrCreate: {
+          where: { name: 'JJMTTL' },
+          create: { name: 'JJMTTL', domainName: domainName },
+        },
+      },
       events: {
         create: [
           {
@@ -141,13 +168,19 @@ async function main() {
   });
 
   await prisma.user.upsert({
-    where: { email: `lucas@${organisation}` },
+    where: { email: `lucas@${domainName}` },
     update: {},
     create: {
-      email: `lucas@${organisation}`,
+      email: `lucas@${domainName}`,
       password: await argon2.hash('Secret12#'),
       firstName: 'Lucas',
       lastName: 'de Kleijn',
+      organisation: {
+        connectOrCreate: {
+          where: { name: 'JJMTTL' },
+          create: { name: 'JJMTTL', domainName: domainName },
+        },
+      },
       events: {
         create: [
           {
@@ -176,35 +209,53 @@ async function main() {
   });
 
   await prisma.user.upsert({
-    where: { email: `matthijs@${organisation}` },
+    where: { email: `matthijs@${domainName}` },
     update: {},
     create: {
-      email: `matthijs@${organisation}`,
+      email: `matthijs@${domainName}`,
       password: await argon2.hash('Secret12#'),
       firstName: 'Matthijs',
       lastName: 'Feringa',
+      organisation: {
+        connectOrCreate: {
+          where: { name: 'JJMTTL' },
+          create: { name: 'JJMTTL', domainName: domainName },
+        },
+      },
     },
   });
 
   await prisma.user.upsert({
-    where: { email: `thomas@${organisation}` },
+    where: { email: `thomas@${domainName}` },
     update: {},
     create: {
-      email: `thomas@${organisation}`,
+      email: `thomas@${domainName}`,
       password: await argon2.hash('Secret12#'),
       firstName: 'Thomas',
       lastName: 'van Otterloo',
+      organisation: {
+        connectOrCreate: {
+          where: { name: 'JJMTTL' },
+          create: { name: 'JJMTTL', domainName: domainName },
+        },
+      },
     },
   });
 
   await prisma.user.upsert({
-    where: { email: `timothy@${organisation}` },
+    where: { email: `timothy@${domainName}` },
     update: {},
     create: {
-      email: `timothy@${organisation}`,
+      email: `timothy@${domainName}`,
       password: await argon2.hash('Secret12#'),
       firstName: 'Timothy',
       lastName: 'Borghouts',
+      organisation: {
+        connectOrCreate: {
+          where: { name: 'JJMTTL' },
+          create: { name: 'JJMTTL', domainName: domainName },
+        },
+      },
     },
   });
 }

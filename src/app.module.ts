@@ -22,10 +22,16 @@ import { FilesController } from './files/files.controller';
     OrganisationsModule,
     ConfigModule.forRoot(),
     UsersModule,
-    authenticationModule
+    authenticationModule,
   ],
   controllers: [AppController, FilesController],
-  providers: [AppService,],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+  ],
 })
 export class AppModule {}
 

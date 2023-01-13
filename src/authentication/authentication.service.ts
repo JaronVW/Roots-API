@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, Request } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../../src/users/users.service';
 import argon2 = require('argon2');
@@ -57,7 +57,8 @@ export class AuthenticationService {
     };
   }
 
-  async decodeToken(token: string) {
-    return this.jwtService.decode(token);
+  decodeToken(token: string) {
+    const decodedJwt = this.jwtService.decode(token.split(' ')[1]) as any;
+    return decodedJwt;
   }
 }

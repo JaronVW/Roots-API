@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { Event, Prisma } from '@prisma/client';
 import { PrismaClientService } from '../../src/prisma-client/prisma-client.service';
 import { EventsCreateDto, EventsUpdateDto } from './dto/events.dto';
@@ -33,9 +33,9 @@ export class EventsService {
     }
   }
 
-  async findOne(eventUniqueInput: Prisma.EventWhereUniqueInput): Promise<Event | null> {
-    const event = await this.prisma.event.findUnique({
-      where: eventUniqueInput,
+  async findOne(eventId: number, organisationId: number): Promise<Event | null> {
+    const event = await this.prisma.event.findFirst({
+      where: { id: eventId, organisationId },
       include: {
         multimediaItems: true,
         tags: true,
@@ -45,7 +45,7 @@ export class EventsService {
     throw new NotFoundException("Can't find event");
   }
 
-  async findAll(queryDto: EventQueryParamsDto): Promise<Event[]> {
+  async findAll(queryDto: EventQueryParamsDto, origanisationId: number): Promise<Event[]> {
     try {
       let prismaQuery = {};
       if (queryDto.searchQuery != undefined)
@@ -59,6 +59,7 @@ export class EventsService {
             AND: {
               OR: [{ isArchived: false }, { isArchived: queryDto.getArchivedItems }],
             },
+            organisationId: origanisationId,
           },
           orderBy: { dateOfEvent: queryDto.order } as any,
           skip: Number(queryDto.min),
@@ -71,7 +72,9 @@ export class EventsService {
         prismaQuery = {
           where: {
             OR: [{ isArchived: false }, { isArchived: queryDto.getArchivedItems }],
+            organisationId: origanisationId,
           },
+
           orderBy: { dateOfEvent: queryDto.order } as any,
           skip: Number(queryDto.min),
           take: Number(queryDto.max),
@@ -81,12 +84,17 @@ export class EventsService {
         };
       return await this.prisma.event.findMany(prismaQuery);
     } catch (error) {
+      console.log(error);
       throw new BadRequestException("Can't retrieve events");
     }
   }
 
   async update(params: { where: Prisma.EventWhereUniqueInput; event: EventsUpdateDto }): Promise<Event> {
     try {
+      const eventToDelete = await this.prisma.event.findFirst({
+        where: { id: params.where.id, organisationId: params.event.organisationId },
+      });
+      if (eventToDelete == null) throw new UnauthorizedException();
       const { where, event } = params;
       const eventToUpdate = await this.prisma.event.findUnique({
         where,
@@ -144,8 +152,12 @@ export class EventsService {
     }
   }
 
-  async remove(where: Prisma.EventWhereUniqueInput): Promise<Event> {
+  async remove(where: Prisma.EventWhereUniqueInput, organisationId: number): Promise<Event> {
     try {
+      const eventToDelete = await this.prisma.event.findFirst({
+        where: { id: where.id, organisationId },
+      });
+      if (eventToDelete == null) throw new UnauthorizedException();
       return await this.prisma.event.delete({
         where,
       });
@@ -155,8 +167,12 @@ export class EventsService {
     }
   }
 
-  async archive(where: Prisma.EventWhereUniqueInput): Promise<Event> {
+  async archive(where: Prisma.EventWhereUniqueInput, organisationId: number): Promise<Event> {
     try {
+      const eventToDelete = await this.prisma.event.findFirst({
+        where: { id: where.id, organisationId },
+      });
+      if (eventToDelete == null) throw new UnauthorizedException();
       return await this.prisma.event.update({ where, data: { isArchived: true } });
     } catch (error) {
       if (error.code == 'P2025') throw new NotFoundException("Event doesn't exist");
@@ -164,8 +180,12 @@ export class EventsService {
     }
   }
 
-  async unarchive(where: Prisma.EventWhereUniqueInput): Promise<Event> {
+  async unarchive(where: Prisma.EventWhereUniqueInput, organisationId: number): Promise<Event> {
     try {
+      const eventToDelete = await this.prisma.event.findFirst({
+        where: { id: where.id, organisationId },
+      });
+      if (eventToDelete == null) throw new UnauthorizedException();
       return await this.prisma.event.update({ where, data: { isArchived: false } });
     } catch (error) {
       if (error.code == 'P2025') throw new NotFoundException("Event doesn't exist");

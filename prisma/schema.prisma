@@ -23,7 +23,7 @@ model User {
 
 model Event {
   id              Int           @id @default(autoincrement())
-  title           String        @unique @db.VarChar(100)
+  title           String       
   description     String        @db.VarChar(250)
   content         String?       @db.VarChar(5000)
   dateOfEvent     DateTime      @default(now())
@@ -34,6 +34,7 @@ model Event {
   isArchived      Boolean       @default(false)
   organisationId  Int?
   organisation    Organisation? @relation(fields: [organisationId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  @@unique([title, organisationId], name: "unique_title_organisation")
 }
 
 model Tag {

@@ -14,7 +14,7 @@ CREATE TABLE `User` (
 -- CreateTable
 CREATE TABLE `Event` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `title` VARCHAR(100) NOT NULL,
+    `title` VARCHAR(191) NOT NULL,
     `description` VARCHAR(250) NOT NULL,
     `content` VARCHAR(5000) NULL,
     `dateOfEvent` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
@@ -22,7 +22,7 @@ CREATE TABLE `Event` (
     `isArchived` BOOLEAN NOT NULL DEFAULT false,
     `organisationId` INTEGER NULL,
 
-    UNIQUE INDEX `Event_title_key`(`title`),
+    UNIQUE INDEX `Event_title_organisationId_key`(`title`, `organisationId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -40,11 +40,13 @@ CREATE TABLE `Tag` (
 CREATE TABLE `Multimedia` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `eventId` INTEGER NOT NULL,
+    `path` VARCHAR(191) NOT NULL,
     `multimedia` VARCHAR(191) NULL,
     `description` VARCHAR(500) NULL,
     `transcript` TEXT NULL,
     `alt` VARCHAR(100) NULL,
 
+    UNIQUE INDEX `Multimedia_path_key`(`path`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 

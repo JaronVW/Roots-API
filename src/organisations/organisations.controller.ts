@@ -3,6 +3,7 @@ import { OrganisationsService } from './organisations.service';
 import { Organisation, Prisma } from '@prisma/client';
 import { UpdateDomainNameDto } from './dto/UpdateDomainNameDto';
 import { JwtAuthGuard } from 'src/authentication/guards/jwt-auth.guard';
+import { Public } from 'src/decorators/Public';
 
 @Controller('organisations')
 
@@ -10,6 +11,7 @@ export class OrganisationsController {
   constructor(private readonly organisationsService: OrganisationsService) {}
 
   @Post()
+  @Public()
   async create(@Body() orgnisation: Prisma.OrganisationCreateInput): Promise<Organisation> {
     return await this.organisationsService.create(orgnisation);
   }

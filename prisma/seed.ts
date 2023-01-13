@@ -92,15 +92,12 @@ async function main() {
                 },
               ],
             },
-            // multimediaItems: {
-            //   create: [
-            //     {
-            //       description: 'Team work',
-            //       alt: 'Imagge representing team work',
-            //       url: './images/teamwork.jpg',
-            //     },
-            //   ],
-            // },
+            organisation: {
+              connectOrCreate: {
+                where: { name: 'JJMTTL' },
+                create: { name: 'JJMTTL', domainName: domainName },
+              },
+            },
           },
         ],
       },
@@ -142,6 +139,12 @@ async function main() {
                 },
               ],
             },
+            organisation: {
+              connectOrCreate: {
+                where: { name: 'JJMTTL' },
+                create: { name: 'JJMTTL', domainName: domainName },
+              },
+            },
           },
           {
             title: 'New office',
@@ -160,6 +163,12 @@ async function main() {
                   create: { subject: 'New office' },
                 },
               ],
+            },
+            organisation: {
+              connectOrCreate: {
+                where: { name: 'JJMTTL' },
+                create: { name: 'JJMTTL', domainName: domainName },
+              },
             },
           },
         ],
@@ -201,6 +210,12 @@ async function main() {
                   create: { subject: 'Work environment' },
                 },
               ],
+            },
+            organisation: {
+              connectOrCreate: {
+                where: { name: 'JJMTTL' },
+                create: { name: 'JJMTTL', domainName: domainName },
+              },
             },
           },
         ],

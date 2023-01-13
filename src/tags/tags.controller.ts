@@ -1,6 +1,5 @@
 import { Controller, Get, Request } from '@nestjs/common';
 import { TagsService } from './tags.service';
-import { JwtAuthGuard } from 'src/authentication/guards/jwt-auth.guard';
 import { JwtService } from '@nestjs/jwt';
 
 @Controller('tags')
@@ -9,7 +8,9 @@ export class TagsController {
 
   @Get()
   findAll(@Request() req) {
-    const decodedJwt = this.jwtService.decode(req.headers.authorization.split(' ')[1]) as any;
+    const decodedJwt = (this.jwtService.decode(req.headers.authorization.split(' ')[1]) as any) || {
+      organisationId: null,
+    };
     return this.tagsService.findAll();
   }
 }

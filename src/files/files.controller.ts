@@ -3,10 +3,12 @@ import { join } from 'path';
 import { readFileSync } from 'fs';
 import { FileNameDto } from 'src/FileNameDto';
 import { Response } from 'express';
+import { Public } from 'src/decorators/Public';
 
 @Controller('file')
 export class FilesController {
   @Get(':encryptedFileName')
+  @Public()
   getFile(
     @Param('encryptedFileName') encryptedFileName: string,
     @Res() response: Response,

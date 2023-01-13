@@ -28,7 +28,6 @@ export class EventsService {
         },
       });
     } catch (e) {
-      console.log(e);
       throw new BadRequestException("Can't create event");
     }
   }
@@ -84,7 +83,6 @@ export class EventsService {
         };
       return await this.prisma.event.findMany(prismaQuery);
     } catch (error) {
-      console.log(error);
       throw new BadRequestException("Can't retrieve events");
     }
   }

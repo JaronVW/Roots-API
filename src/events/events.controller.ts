@@ -43,7 +43,6 @@ export class EventsController {
       event.organisationId = decodedJwt.organisationId;
       return await this.eventsService.create(event);
     } catch (e) {
-      console.log(e);
       throw new BadRequestException(e.message);
     }
   }
@@ -55,7 +54,6 @@ export class EventsController {
       const decodedJwt = this.jwtService.decode(req.headers.authorization.split(' ')[1]) as any;
       return await this.eventsService.findAll(queryDto, decodedJwt.organisationId);
     } catch (e) {
-      console.log(e);
       throw new BadRequestException(e.message);
     }
   }

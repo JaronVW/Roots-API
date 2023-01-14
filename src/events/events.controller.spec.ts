@@ -120,7 +120,10 @@ describe('EventsController', () => {
       getArchivedItems: false,
     };
     it('should get an array of Events', async () => {
-      const req = { headers: { authorization: 'Bearer token  ' } };
+      const req = {
+        headers: { authorization: 'Bearer token  ' },
+        user: { userId: 1, organisationId: 1, username: '' },
+      };
       await expect(controller.findAll(dto, req)).resolves.toEqual([
         {
           userId: 1,
@@ -167,7 +170,7 @@ describe('EventsController', () => {
   });
 
   describe('get event by id', () => {
-    const req = { headers: { authorization: 'Bearer token  ' } };
+    const req = { headers: { authorization: 'Bearer token  ' }, user: { userId: 1, organisationId: 1, username: '' } };
     it('should get a single Event', async () => {
       await expect(controller.findOne('1', req)).resolves.toEqual(eventArray[0]);
     });
@@ -185,7 +188,10 @@ describe('EventsController', () => {
         tags: [],
         organisationId: 1,
       };
-      const req = { headers: { authorization: 'Bearer token  ' } };
+      const req = {
+        headers: { authorization: 'Bearer token  ' },
+        user: { userId: 1, organisationId: 1, username: '' },
+      };
       await expect(controller.create(newEventDto, undefined, req)).resolves.toEqual({
         id: 5,
         ...createdEvent,
@@ -195,7 +201,10 @@ describe('EventsController', () => {
 
   describe('update event', () => {
     it('should update an Event', async () => {
-      const req = { headers: { authorization: 'Bearer token  ' } };
+      const req = {
+        headers: { authorization: 'Bearer token  ' },
+        user: { userId: 1, organisationId: 1, username: '' },
+      };
       await expect(controller.update('5', updatedEvent, undefined, req)).resolves.toEqual({
         id: 5,
         ...updatedEvent,
@@ -205,7 +214,10 @@ describe('EventsController', () => {
 
   describe('archive event', () => {
     it('should archive an Event', async () => {
-      const req = { headers: { authorization: 'Bearer token  ' } };
+      const req = {
+        headers: { authorization: 'Bearer token  ' },
+        user: { userId: 1, organisationId: 1, username: '' },
+      };
       await expect(controller.archive('1', req)).resolves.toEqual({
         ...testEvent1,
       });
@@ -214,7 +226,10 @@ describe('EventsController', () => {
 
   describe('unarchive event', () => {
     it('should unarchive an Event', async () => {
-      const req = { headers: { authorization: 'Bearer token  ' } };
+      const req = {
+        headers: { authorization: 'Bearer token  ' },
+        user: { userId: 1, organisationId: 1, username: '' },
+      };
       await expect(controller.unarchive('1', req)).resolves.toEqual({
         ...testEvent1,
       });
@@ -223,12 +238,18 @@ describe('EventsController', () => {
 
   describe('delete event', () => {
     it('should return that deleted Event', async () => {
-      const req = { headers: { authorization: 'Bearer token  ' } };
+      const req = {
+        headers: { authorization: 'Bearer token  ' },
+        user: { userId: 1, organisationId: 1, username: '' },
+      };
       await expect(controller.remove('5', req)).resolves.toEqual(updatedEvent);
     });
 
     it('should return that it did not delete the event', async () => {
-      const req = { headers: { authorization: 'Bearer token  ' } };
+      const req = {
+        headers: { authorization: 'Bearer token  ' },
+        user: { userId: 1, organisationId: 1, username: '' },
+      };
       jest.spyOn(eventsService, 'remove').mockRejectedValueOnce({ errorCode: 404, message: 'Not found' });
       await expect(controller.remove('1000', req)).rejects.toEqual({ errorCode: 404, message: 'Not found' });
     });

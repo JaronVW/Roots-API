@@ -17,8 +17,8 @@ model User {
   firstName      String        @db.VarChar(100)
   lastName       String        @db.VarChar(100)
   events         Event[]
-  organisationId Int?
-  organisation   Organisation? @relation(fields: [organisationId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  organisationId Int
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }
 
 model Event {
@@ -32,17 +32,18 @@ model Event {
   user            User?         @relation(fields: [userId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   userId          Int?
   isArchived      Boolean       @default(false)
-  organisationId  Int?
-  organisation    Organisation? @relation(fields: [organisationId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  organisationId  Int          // organisation verplicht maken?
+  organisation    Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   @@unique([title, organisationId], name: "unique_title_organisation")
 }
 
 model Tag {
   id             Int           @id @default(autoincrement())
-  subject        String        @unique @db.VarChar(50)
+  subject        String        @db.VarChar(50)
   Events         Event[]
-  organisationId Int?
-  organisation   Organisation? @relation(fields: [organisationId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  organisationId Int
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade, onUpdate: Cascade) 
+  @@unique([subject, organisationId], name: "unique_tag_organisation")
 }
 
 model Multimedia {

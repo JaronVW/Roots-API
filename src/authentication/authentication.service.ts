@@ -29,7 +29,7 @@ export class AuthenticationService {
   async generateUser(signUpDto: SignUpDto): Promise<{ id: number; username: string; organisationId: number }> {
     try {
       const organisation = await this.organisationsService
-        .findOne({ domainName: signUpDto.username.split('@').pop() })
+        .findOne({ domainName: signUpDto.username.split('@').pop().toLowerCase() })
         .catch(() => {
           throw new NotFoundException('Organisation not found');
         });

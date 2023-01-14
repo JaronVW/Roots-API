@@ -19,17 +19,23 @@ export class OrganisationsService {
   }
 
   public async create(data: Prisma.OrganisationCreateInput) {
+    data.domainName = data.domainName.toLowerCase();
     if (!data.domainName.match(/\w+([\.-]?\w+)*(\.\w{2,})+$/)) throw new BadRequestException('Invalid domain name');
     try {
-      return await this.prisma.organisation.create({
+      const organisation = await this.prisma.organisation.create({
         data: data,
       });
+      if (organisation) {
+        await this.addStandardTags(organisation.id);
+      }
+      return organisation;
     } catch (error) {
       let errorMessage = 'error already exists';
       if (error.meta != undefined) {
         if ((error.meta.target = 'organisation_domain_name_key'))
           errorMessage = 'Organisation with that name already exists';
-        if ((error.meta.target = 'organisation_name_key')) errorMessage = 'An organisation is already using that domain name';
+        if ((error.meta.target = 'organisation_name_key'))
+          errorMessage = 'An organisation is already using that domain name';
       }
       if (error.code == 'P2002') throw new BadRequestException(errorMessage);
       throw new BadRequestException("Can't create organisation");
@@ -54,5 +60,36 @@ export class OrganisationsService {
         if (error.code == 'P2002') throw new BadRequestException(errorMessage);
         throw new BadRequestException("Can't update organisation name");
       });
+  }
+
+  private async addStandardTags(organisationId: number) {
+    const tag1 = {
+      subject: 'Finances',
+      organisationId: organisationId,
+    };
+
+    const tag2 = {
+      subject: 'Work culture',
+      organisationId: organisationId,
+    };
+
+    const tag3 = {
+      subject: 'Adminstration',
+      organisationId: organisationId,
+    };
+
+    const tag4 = {
+      subject: 'Infrastructure',
+      organisationId: organisationId,
+    };
+
+    const tag5 = {
+      subject: 'Relocation',
+      organisationId: organisationId,
+    };
+
+    await this.prisma.tag.createMany({
+      data: [tag1, tag2, tag3, tag4, tag5],
+    });
   }
 }

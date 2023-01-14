@@ -16,6 +16,7 @@ jobs:
       DB_PASSWORD: root
       APP_ENV: test
       DATABASE_URL: mysql://root:root@127.0.0.1:3306/roots_test_db
+      JWT_SECRET: keyForTesting
     steps:
       - name: Set up MySQL
         run: |
@@ -29,12 +30,14 @@ jobs:
         with:
           node-version: 18.x
           cache: 'npm'
-      - name: install npm
+      - name: Install npm dependencies
         run: |
           npm ci
-      - name: run tests
+      - name: Run unit tests
+        run: |
+          npm run test
+      - name: Run e2e tests
         run: |
           npx prisma generate
           npx prisma migrate deploy
-          npm run test
           npm run test:e2e

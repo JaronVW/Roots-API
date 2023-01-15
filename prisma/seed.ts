@@ -131,7 +131,7 @@ async function main() {
             },
           },
           {
-            title: 'Nieuw kantoorkantoor',
+            title: 'Nieuw kantoor',
             description: 'We zijn verhuisd naar een nieuwe locatie, het nieuwe kantoor is in Breda.',
             content:
               '<p>Nulla nec metus sit amet tortor fermentum faucibus. Pellentesque rhoncus eros a elit venenatis, a facilisis augue venenatis. Phasellus ante erat, lacinia id odio lacinia, condimentum finibus magna. Pellentesque viverra, leo in accumsan tincidunt, lacus odio sagittis nibh, vulputate posuere nisl justo ut eros. Ut mattis arcu eget semper tempor. Cras feugiat quis sem at efficitur. Nulla facilisi.</p>',
@@ -175,7 +175,7 @@ async function main() {
       events: {
         create: [
           {
-            title: 'Twitig mensen per team is de nieuwe norm',
+            title: 'Twintig mensen per team is de nieuwe norm',
             description:
               'We gaan het aantal mensen per team verminderen naar twintig mensen. Dit zal de communicatie tussen de teams en de efficiëntie van de organisatie verbeteren.',
             content:

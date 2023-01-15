@@ -108,7 +108,7 @@ async function main() {
           {
             title: 'Meer teams in een BV',
             description:
-              'Om de teams te laten groeien, gaan we meer teams in een BV toestaan. Dit is een proef, we kijken of dit goed werkt.',
+              'We gaan meer teams in een BV toestaan. Dit is een experiment om te kijken of dit de productiviteit verhoogt.',
             content:
               '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque egestas orci a urna vestibulum, vel blandit felis aliquet. Pellentesque posuere turpis ut ultrices fringilla. Donec interdum nisl quis sem mattis, ac finibus elit ultrices. Duis efficitur faucibus luctus. Nam porta scelerisque urna, ut eleifend leo facilisis vel. Maecenas non quam pellentesque, maximus libero quis, gravida elit. Pellentesque ac ornare nisl, sit amet consequat eros. Mauris lorem justo, ullamcorper nec pretium id, eleifend vel leo. \nVivamus nec sagittis lorem. Mauris vitae suscipit lectus. Duis tortor ipsum, fermentum id ante non, ullamcorper hendrerit lectus. Vivamus semper velit sit amet libero ultricies aliquam. Integer a dictum ex, et gravida tortor. Integer cursus neque sed consectetur tincidunt. In porttitor aliquet lorem vitae rhoncus. Vivamus non libero cursus, accumsan dolor a, pharetra risus. Duis dignissim metus ut lorem consequat, ac sodales libero cursus. Fusce pharetra maximus fringilla. Sed tempus dignissim odio ut molestie. In sit amet bibendum urna, at euismod risus. Duis hendrerit velit ac tellus placerat, et sodales ex sollicitudin.</p>',
             dateOfEvent: new Date('2021-01-01T00:00:00.000Z'),

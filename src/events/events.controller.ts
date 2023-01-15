@@ -52,7 +52,7 @@ export class EventsController {
   @UsePipes(new ValidationPipe({ transform: true }))
   async findAll(@Query() queryDto: EventQueryParamsDto, @Request() req) {
     try {
-      const decodedJwt = (this.jwtService.decode(req.headers.authorization.split('b')[1]) as any) || {
+      const decodedJwt = (this.jwtService.decode(req.headers.authorization.split(' ')[1]) as any) || {
         organisationId: null,
       };
       return await this.eventsService.findAll(queryDto, decodedJwt.organisationId);

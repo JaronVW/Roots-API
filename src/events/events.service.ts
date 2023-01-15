@@ -147,6 +147,7 @@ export class EventsService {
       });
       return updatedEvent;
     } catch (error) {
+      if (error.status == 401) throw new UnauthorizedException();
       if (error.code == 'P2025' || error.status == 404) throw new NotFoundException("Event doesn't exist");
       throw new BadRequestException();
     }
@@ -175,6 +176,7 @@ export class EventsService {
       if (eventToDelete == null) throw new UnauthorizedException();
       return await this.prisma.event.update({ where, data: { isArchived: true } });
     } catch (error) {
+      if (error.status == 401) throw new UnauthorizedException();
       if (error.code == 'P2025') throw new NotFoundException("Event doesn't exist");
       throw new BadRequestException("Can't archive event");
     }
@@ -188,6 +190,7 @@ export class EventsService {
       if (eventToDelete == null) throw new UnauthorizedException();
       return await this.prisma.event.update({ where, data: { isArchived: false } });
     } catch (error) {
+      if (error.status == 401) throw new UnauthorizedException();
       if (error.code == 'P2025') throw new NotFoundException("Event doesn't exist");
       throw new BadRequestException("Can't unarchive event");
     }

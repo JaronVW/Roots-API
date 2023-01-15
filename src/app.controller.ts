@@ -23,7 +23,6 @@ export class AppController {
   @Post('auth/login')
   @Public()
   async login(@Request() req: any) {
-    console.log(req);
     return this.authenticationService.login(req.user);
   }
 

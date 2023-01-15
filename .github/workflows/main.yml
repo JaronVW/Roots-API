@@ -42,6 +42,16 @@ jobs:
           npx prisma migrate deploy
           npm run test:e2e
           
+  deploy:
+    runs-on: ubuntu-latest
+    env: 
+      DATABASE_URL: ${{ secret.RAILWAY_DATABASE_URL }} 
+    steps:
+      - name: Update database
+        run: |
+          npx prisma generate
+          npx prisma migrate deploy
+          
       - name: Install Railway
         run: npm i -g @railway/cli
 

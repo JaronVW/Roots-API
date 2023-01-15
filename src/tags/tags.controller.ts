@@ -7,6 +7,6 @@ export class TagsController {
 
   @Get()
   findAll(@Request() req) {
-    return this.tagsService.findAll(req.organisationId);
+    return this.tagsService.findAll(req.user.organisationId);
   }
 }

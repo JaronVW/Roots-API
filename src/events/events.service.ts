@@ -44,7 +44,7 @@ export class EventsService {
     throw new NotFoundException("Can't find event");
   }
 
-  async findAll(queryDto: EventQueryParamsDto, origanisationId: number): Promise<Event[]> {
+  async findAll(queryDto: EventQueryParamsDto, organisationId: number): Promise<Event[]> {
     try {
       let prismaQuery = {};
       if (queryDto.searchQuery != undefined)
@@ -58,7 +58,7 @@ export class EventsService {
             AND: {
               OR: [{ isArchived: false }, { isArchived: queryDto.getArchivedItems }],
             },
-            organisationId: origanisationId,
+            organisationId,
           },
           orderBy: { dateOfEvent: queryDto.order } as any,
           skip: Number(queryDto.min),
@@ -71,7 +71,7 @@ export class EventsService {
         prismaQuery = {
           where: {
             OR: [{ isArchived: false }, { isArchived: queryDto.getArchivedItems }],
-            organisationId: origanisationId,
+            organisationId,
           },
 
           orderBy: { dateOfEvent: queryDto.order } as any,
@@ -148,7 +148,6 @@ export class EventsService {
       return updatedEvent;
     } catch (error) {
       if (error.code == 'P2025' || error.status == 404) throw new NotFoundException("Event doesn't exist");
-      console.log(error);
       throw new BadRequestException();
     }
   }

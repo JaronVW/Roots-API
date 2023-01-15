@@ -45,7 +45,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     env: 
-      DATABASE_URL: ${{ secret.RAILWAY_DATABASE_URL }} 
+      DATABASE_URL: ${{ secrets.RAILWAY_DATABASE_URL }} 
     steps:
       - name: Update database
         run: |

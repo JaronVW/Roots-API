@@ -1,9 +1,9 @@
 import { Controller, Get, Param, Query, Res } from '@nestjs/common';
 import { join } from 'path';
 import { readFileSync } from 'fs';
-import { FileNameDto } from '../FileNameDto';
+import { FileNameDto } from './FileNameDto';
 import { Response } from 'express';
-import { Public } from '..//decorators/Public';
+import { Public } from '../../src/decorators/Public';
 
 @Controller('file')
 export class FilesController {

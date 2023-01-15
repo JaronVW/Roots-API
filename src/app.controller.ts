@@ -7,7 +7,7 @@ import { Public } from './decorators/Public';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { Response } from 'express';
-import { FileNameDto } from './FileNameDto';
+import { FileNameDto } from './files/FileNameDto';
 
 @Controller()
 export class AppController {

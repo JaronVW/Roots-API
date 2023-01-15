@@ -12,7 +12,7 @@ describe('FilesController', () => {
     controller = module.get<FilesController>(FilesController);
   });
 
-  it.skip('should be defined', () => {
+  it('should be defined', () => {
     expect(controller).toBeDefined();
   });
 });

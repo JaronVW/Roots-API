@@ -38,9 +38,7 @@ export class EventsController {
       }
     }
     try {
-      const decodedJwt = (this.jwtService.decode(req.headers.authorization.split(' ')[1]) as any) || {
-        organisationId: null,
-      };
+      
       event.organisationId = req.user.organisationId;
       return await this.eventsService.create(event);
     } catch (e) {
@@ -52,8 +50,7 @@ export class EventsController {
   @UsePipes(new ValidationPipe({ transform: true }))
   async findAll(@Query() queryDto: EventQueryParamsDto, @Request() req) {
     try {
-      const decodedJwt = (this.jwtService.decode(req.headers.authorization.split(' ')[1]) as any)
-      return await this.eventsService.findAll(queryDto, decodedJwt.organisationId);
+      return await this.eventsService.findAll(queryDto, req.user.organisationId);
     } catch (e) {
       throw new BadRequestException(e.message);
     }

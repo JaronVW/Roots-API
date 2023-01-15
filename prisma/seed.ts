@@ -175,7 +175,7 @@ async function main() {
       events: {
         create: [
           {
-            title: 'Twitig mensen per team is de nieuwe norm',
+            title: 'Twintig mensen per team is de nieuwe norm',
             description:
               'We gaan het aantal mensen per team verminderen naar twintig mensen. Dit zal de communicatie tussen de teams en de efficiëntie van de organisatie verbeteren.',
             content:

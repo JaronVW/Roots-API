@@ -15,27 +15,27 @@ async function main() {
 
   // Tags
   const tag1 = {
-    subject: 'Finances',
+    subject: 'Financiën',
     organisationId: organisation1.id,
   };
 
   const tag2 = {
-    subject: 'Work culture',
+    subject: 'Werk cultuur',
     organisationId: organisation1.id,
   };
 
   const tag3 = {
-    subject: 'Adminstration',
+    subject: 'Administratie',
     organisationId: organisation1.id,
   };
 
   const tag4 = {
-    subject: 'Infrastructure',
+    subject: 'Infrastructuur',
     organisationId: organisation1.id,
   };
 
   const tag5 = {
-    subject: 'Relocation',
+    subject: 'Verhuizing',
     organisationId: organisation1.id,
   };
 

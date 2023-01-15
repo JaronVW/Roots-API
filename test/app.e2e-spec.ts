@@ -6,6 +6,7 @@ import { PrismaClientService } from 'src/prisma-client/prisma-client.service';
 import { User, Event, Tag, Organisation, Prisma } from '@prisma/client';
 import { useContainer } from 'class-validator';
 import { SignUpDto } from 'src/authentication/dto/signUpDto';
+import argon2 = require('argon2');
 
 describe('AppController (e2e)', () => {
   // delete local testdb, then run locally using npm run test:prisma:deploy && npm run test:e2e
@@ -154,13 +155,13 @@ describe('AppController (e2e)', () => {
     await prisma.multimedia.deleteMany();
   });
 
-  it('/ (GET)', () => {
+  it('/ (GET) should give Hello World!', () => {
     return request(app.getHttpServer()).get('/').expect(200).expect('Hello World!');
   });
 
   //should add standard tags per organisation with count of events 0
 
-  describe('You can create an organisation and create an account for this organisation', () => {
+  describe('You can create an organisation and register an account for this organisation', () => {
     let organisation: Prisma.OrganisationCreateInput;
     let user: SignUpDto;
 
@@ -399,10 +400,12 @@ describe('AppController (e2e)', () => {
     });
   });
 
-  // test that other domains cannot acces events of domain
+  // test that other domains cannot access events of domain
   // multiple users can change the same information
   // title needs to be unique inside organisation, not out
   // tags different per organisation
+
+  // test searching of events
 
   describe('A user can add, edit and archive events for their organisation', () => {
     let organisation: Organisation;
@@ -429,7 +432,7 @@ describe('AppController (e2e)', () => {
       user = await prisma.user.create({
         data: {
           email: 'user@exampledomain.com',
-          password: 'examplePassword',
+          password: await argon2.hash('examplePassword'),
           firstName: 'exampleFirstName',
           lastName: 'exampleLastName',
           organisationId: organisation.id,
@@ -439,7 +442,7 @@ describe('AppController (e2e)', () => {
       user2 = await prisma.user.create({
         data: {
           email: 'user2@exampledomain.com',
-          password: 'examplePassword',
+          password: await argon2.hash('examplePassword'),
           firstName: 'exampleFirstName',
           lastName: 'exampleLastName',
           organisationId: organisation.id,
@@ -449,7 +452,7 @@ describe('AppController (e2e)', () => {
       userOfOtherOrganisation = await prisma.user.create({
         data: {
           email: 'user@otherorganisation.com',
-          password: 'examplePassword',
+          password: await argon2.hash('examplePassword'),
           firstName: 'exampleFirstName',
           lastName: 'exampleLastName',
           organisationId: otherOrganisation.id,
@@ -509,6 +512,39 @@ describe('AppController (e2e)', () => {
       expect(eventBody).toEqual({
         statusCode: 401,
         message: 'Unauthorized',
+      });
+    });
+
+    it('should create an event for the organisation of the user', async () => {
+      console.log(await prisma.user.findMany());
+      const { body: loginBody } = await request(app.getHttpServer()).post('/auth/login').send({
+        username: user.email,
+        password: user.password,
+      });
+      console.log(user);
+      console.log(loginBody);
+
+      const { status: eventStatus, body: eventBody } = await request(app.getHttpServer())
+        .post('/events')
+        .set('Authorization', `Bearer ${loginBody.access_token}`)
+        .send({
+          title: 'Example event',
+          dateOfEvent: new Date(),
+          description: 'Example description',
+          tags: [{ subject: 'Example tag1' }, { subject: 'Example tag2' }],
+        });
+
+      expect(eventStatus).toBe(201);
+      expect(eventBody).toEqual({
+        id: expect.any(Number),
+        title: 'Example event',
+        dateOfEvent: expect.any(String),
+        description: 'Example description',
+        tags: [
+          { id: expect.any(Number), subject: 'Example tag1' },
+          { id: expect.any(Number), subject: 'Example tag2' },
+        ],
+        organisationId: organisation.id,
       });
     });
   });

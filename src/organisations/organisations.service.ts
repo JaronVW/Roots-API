@@ -64,27 +64,27 @@ export class OrganisationsService {
 
   private async addStandardTags(organisationId: number) {
     const tag1 = {
-      subject: 'Finances',
+      subject: 'Financiën',
       organisationId: organisationId,
     };
 
     const tag2 = {
-      subject: 'Work culture',
+      subject: 'Werk cultuur',
       organisationId: organisationId,
     };
 
     const tag3 = {
-      subject: 'Adminstration',
+      subject: 'Administratie',
       organisationId: organisationId,
     };
 
     const tag4 = {
-      subject: 'Infrastructure',
+      subject: 'Infrastructuur',
       organisationId: organisationId,
     };
 
     const tag5 = {
-      subject: 'Relocation',
+      subject: 'Verhuizing',
       organisationId: organisationId,
     };
 

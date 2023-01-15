@@ -9,7 +9,6 @@ import {
   Query,
   UsePipes,
   ValidationPipe,
-  HttpException,
   UploadedFiles,
   UseInterceptors,
   Patch,
@@ -38,9 +37,6 @@ export class EventsController {
       }
     }
     try {
-      const decodedJwt = (this.jwtService.decode(req.headers.authorization.split(' ')[1]) as any) || {
-        organisationId: null,
-      };
       event.organisationId = req.user.organisationId;
       return await this.eventsService.create(event);
     } catch (e) {
@@ -52,8 +48,7 @@ export class EventsController {
   @UsePipes(new ValidationPipe({ transform: true }))
   async findAll(@Query() queryDto: EventQueryParamsDto, @Request() req) {
     try {
-      const decodedJwt = (this.jwtService.decode(req.headers.authorization.split(' ')[1]) as any)
-      return await this.eventsService.findAll(queryDto, decodedJwt.organisationId);
+      return await this.eventsService.findAll(queryDto, req.user.organisationId);
     } catch (e) {
       throw new BadRequestException(e.message);
     }
@@ -61,7 +56,6 @@ export class EventsController {
 
   @Get(':id')
   async findOne(@Param('id') id: string, @Request() req): Promise<Event | null> {
-   
     if (Number.isNaN(Number(id))) throw new BadRequestException('Invalid id');
     return this.eventsService.findOne(Number(id), req.user.organisationId);
   }
@@ -75,7 +69,6 @@ export class EventsController {
     @UploadedFiles() files: Array<Express.Multer.File>,
     @Request() req,
   ) {
-   
     event.organisationId = req.user.organisationId;
     if (files && event.multimediaItems) {
       for (let i = 0; i < files.length; i++) {
@@ -91,20 +84,17 @@ export class EventsController {
 
   @Delete(':id')
   async remove(@Param('id') id: string, @Request() req): Promise<Event> {
-   
     if (Number.isNaN(Number(id))) throw new BadRequestException('Invalid id');
     return this.eventsService.remove({ id: Number(id) }, req.user.organisationId);
   }
 
   @Patch(':id/archive')
   async archive(@Param('id') id: string, @Request() req): Promise<Event> {
-   
     return this.eventsService.archive({ id: Number(id) }, req.user.organisationId);
   }
 
   @Patch(':id/unarchive')
   async unarchive(@Param('id') id: string, @Request() req): Promise<Event> {
-   
     return this.eventsService.unarchive({ id: Number(id) }, req.user.organisationId);
   }
 }

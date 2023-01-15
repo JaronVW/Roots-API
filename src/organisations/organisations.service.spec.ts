@@ -25,6 +25,11 @@ describe('OrganisationsService', () => {
       save: jest.fn(),
       update: jest.fn().mockResolvedValue(updatedOrganisation),
     },
+    tag: {
+      createMany: jest.fn().mockResolvedValue({
+        count: 1,
+      }),
+    },
   };
 
   beforeEach(async () => {
@@ -48,13 +53,13 @@ describe('OrganisationsService', () => {
 
   describe('getOne', () => {
     it('should get a single Event', async () => {
-      const organisation = await service.findOne({id: 1});
+      const organisation = await service.findOne({ id: 1 });
       expect(organisation).toEqual(organisation);
     });
 
     it('wrong id, should return a Not found exception', async () => {
       jest.spyOn(prisma.organisation, 'findUnique').mockRejectedValueOnce(new NotFoundException());
-      expect(service.findOne({id: 5})).rejects.toThrowError(NotFoundException);
+      expect(service.findOne({ id: 5 })).rejects.toThrowError(NotFoundException);
     });
   });
 
@@ -92,9 +97,7 @@ describe('OrganisationsService', () => {
       const updateDomainNameDto: UpdateDomainNameDto = {
         domainName: 'email@email.com',
       };
-      expect(
-        service.updateDomainName(5,updateDomainNameDto),
-      ).rejects.toThrowError(NotFoundException);
+      expect(service.updateDomainName(5, updateDomainNameDto)).rejects.toThrowError(NotFoundException);
     });
   });
 });

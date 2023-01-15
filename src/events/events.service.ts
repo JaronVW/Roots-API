@@ -17,8 +17,8 @@ export class EventsService {
           ...event,
           tags: {
             connectOrCreate: event.tags.map((tag) => ({
-              where: { subject: tag.subject },
-              create: { subject: tag.subject },
+              where: { unique_tag_organisation: { subject: tag.subject, organisationId: event.organisationId } },
+              create: { subject: tag.subject, organisationId: event.organisationId },
             })),
           },
           multimediaItems: {
@@ -127,8 +127,8 @@ export class EventsService {
           ...event,
           tags: {
             connectOrCreate: event.tags.map((tag) => ({
-              where: { subject: tag.subject },
-              create: { subject: tag.subject },
+              where: { unique_tag_organisation: { subject: tag.subject, organisationId: event.organisationId } },
+              create: { subject: tag.subject, organisationId: event.organisationId },
             })),
           },
           multimediaItems: {

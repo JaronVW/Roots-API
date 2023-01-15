@@ -4,26 +4,39 @@ const prisma = new PrismaClient();
 
 async function main() {
   // should be runnable with 'npx prisma db seed'
+  const domainName1 = 'jjmttl.nl';
+
+  const organisation1 = await prisma.organisation.create({
+    data: {
+      name: 'JJMTTL',
+      domainName: domainName1,
+    },
+  });
 
   // Tags
   const tag1 = {
     subject: 'Finances',
+    organisationId: organisation1.id,
   };
 
   const tag2 = {
     subject: 'Work culture',
+    organisationId: organisation1.id,
   };
 
   const tag3 = {
     subject: 'Adminstration',
+    organisationId: organisation1.id,
   };
 
   const tag4 = {
     subject: 'Infrastructure',
+    organisationId: organisation1.id,
   };
 
   const tag5 = {
     subject: 'Relocation',
+    organisationId: organisation1.id,
   };
 
   await prisma.tag.createMany({
@@ -31,46 +44,18 @@ async function main() {
   });
 
   // Users with events
-  const domainName = 'jjmttl.nl';
-
-  await prisma.organisation.upsert({
-    where: { name: 'JJMTTL' },
-    update: {},
-    create: {
-      name: 'JJMTTL',
-      domainName: domainName,
-    },
-  });
 
   await prisma.user.upsert({
-    where: { email: `adminmail@${domainName}` },
+    where: { email: `jaron@${domainName1}` },
     update: {},
     create: {
-      email: `adminmail@${domainName}`,
-      password: await argon2.hash('Secret12#'),
-      firstName: 'A',
-      lastName: 'Admin',
-      organisation: {
-        connectOrCreate: {
-          where: { name: 'JJMTTL' },
-          create: { name: 'JJMTTL', domainName: domainName },
-        },
-      },
-    },
-  });
-
-  await prisma.user.upsert({
-    where: { email: `jaron@${domainName}` },
-    update: {},
-    create: {
-      email: `jaron@${domainName}`,
+      email: `jaron@${domainName1}`,
       password: await argon2.hash('Secret12#'),
       firstName: 'Jaron',
       lastName: 'van Well',
       organisation: {
-        connectOrCreate: {
-          where: { name: 'JJMTTL' },
-          create: { name: 'JJMTTL', domainName: domainName },
+        connect: {
+          id: organisation1.id,
         },
       },
       events: {
@@ -83,19 +68,20 @@ async function main() {
             tags: {
               connectOrCreate: [
                 {
-                  where: { subject: 'Changing team sizes' },
-                  create: { subject: 'Changing team sizes' },
+                  where: {
+                    unique_tag_organisation: { subject: 'Changing team sizes', organisationId: organisation1.id },
+                  },
+                  create: { subject: 'Changing team sizes', organisation: { connect: { id: organisation1.id } } },
                 },
                 {
-                  where: { subject: 'Work environment' },
-                  create: { subject: 'Work environment' },
+                  where: { unique_tag_organisation: { subject: 'Work environment', organisationId: organisation1.id } },
+                  create: { subject: 'Work environment', organisation: { connect: { id: organisation1.id } } },
                 },
               ],
             },
             organisation: {
-              connectOrCreate: {
-                where: { name: 'JJMTTL' },
-                create: { name: 'JJMTTL', domainName: domainName },
+              connect: {
+                id: organisation1.id,
               },
             },
           },
@@ -105,17 +91,16 @@ async function main() {
   });
 
   await prisma.user.upsert({
-    where: { email: `joy@${domainName}` },
+    where: { email: `joy@${domainName1}` },
     update: {},
     create: {
-      email: `joy@${domainName}`,
+      email: `joy@${domainName1}`,
       password: await argon2.hash('Secret12#'),
       firstName: 'Joy',
       lastName: 'Boellaard',
       organisation: {
-        connectOrCreate: {
-          where: { name: 'JJMTTL' },
-          create: { name: 'JJMTTL', domainName: domainName },
+        connect: {
+          id: organisation1.id,
         },
       },
       events: {
@@ -130,19 +115,18 @@ async function main() {
             tags: {
               connectOrCreate: [
                 {
-                  where: { subject: 'Smaller teams' },
-                  create: { subject: 'Smaller teams' },
+                  where: { unique_tag_organisation: { subject: 'Smaller teams', organisationId: organisation1.id } },
+                  create: { subject: 'Smaller teams', organisation: { connect: { id: organisation1.id } } },
                 },
                 {
-                  where: { subject: 'Splitting teams' },
-                  create: { subject: 'Splitting teams' },
+                  where: { unique_tag_organisation: { subject: 'Splitting teams', organisationId: organisation1.id } },
+                  create: { subject: 'Splitting teams', organisation: { connect: { id: organisation1.id } } },
                 },
               ],
             },
             organisation: {
-              connectOrCreate: {
-                where: { name: 'JJMTTL' },
-                create: { name: 'JJMTTL', domainName: domainName },
+              connect: {
+                id: organisation1.id,
               },
             },
           },
@@ -155,19 +139,18 @@ async function main() {
             tags: {
               connectOrCreate: [
                 {
-                  where: { subject: 'Moving' },
-                  create: { subject: 'Moving' },
+                  where: { unique_tag_organisation: { subject: 'Moving', organisationId: organisation1.id } },
+                  create: { subject: 'Moving', organisation: { connect: { id: organisation1.id } } },
                 },
                 {
-                  where: { subject: 'New office' },
-                  create: { subject: 'New office' },
+                  where: { unique_tag_organisation: { subject: 'New office', organisationId: organisation1.id } },
+                  create: { subject: 'New office', organisation: { connect: { id: organisation1.id } } },
                 },
               ],
             },
             organisation: {
-              connectOrCreate: {
-                where: { name: 'JJMTTL' },
-                create: { name: 'JJMTTL', domainName: domainName },
+              connect: {
+                id: organisation1.id,
               },
             },
           },
@@ -177,17 +160,16 @@ async function main() {
   });
 
   await prisma.user.upsert({
-    where: { email: `lucas@${domainName}` },
+    where: { email: `lucas@${domainName1}` },
     update: {},
     create: {
-      email: `lucas@${domainName}`,
+      email: `lucas@${domainName1}`,
       password: await argon2.hash('Secret12#'),
       firstName: 'Lucas',
       lastName: 'de Kleijn',
       organisation: {
-        connectOrCreate: {
-          where: { name: 'JJMTTL' },
-          create: { name: 'JJMTTL', domainName: domainName },
+        connect: {
+          id: organisation1.id,
         },
       },
       events: {
@@ -202,19 +184,23 @@ async function main() {
             tags: {
               connectOrCreate: [
                 {
-                  where: { subject: 'Changing team sizes' },
-                  create: { subject: 'Changing team sizes' },
+                  where: {
+                    unique_tag_organisation: { subject: 'Changing team sizes', organisationId: organisation1.id },
+                  },
+                  create: { subject: 'Changing team sizes', organisation: { connect: { id: organisation1.id } } },
                 },
                 {
-                  where: { subject: 'Work environment' },
-                  create: { subject: 'Work environment' },
+                  where: { unique_tag_organisation: { subject: 'Work environment', organisationId: organisation1.id } },
+                  create: {
+                    subject: 'Work environment',
+                    organisation: { connect: { id: organisation1.id } },
+                  },
                 },
               ],
             },
             organisation: {
-              connectOrCreate: {
-                where: { name: 'JJMTTL' },
-                create: { name: 'JJMTTL', domainName: domainName },
+              connect: {
+                id: organisation1.id,
               },
             },
           },
@@ -224,51 +210,48 @@ async function main() {
   });
 
   await prisma.user.upsert({
-    where: { email: `matthijs@${domainName}` },
+    where: { email: `matthijs@${domainName1}` },
     update: {},
     create: {
-      email: `matthijs@${domainName}`,
+      email: `matthijs@${domainName1}`,
       password: await argon2.hash('Secret12#'),
       firstName: 'Matthijs',
       lastName: 'Feringa',
       organisation: {
-        connectOrCreate: {
-          where: { name: 'JJMTTL' },
-          create: { name: 'JJMTTL', domainName: domainName },
+        connect: {
+          id: organisation1.id,
         },
       },
     },
   });
 
   await prisma.user.upsert({
-    where: { email: `thomas@${domainName}` },
+    where: { email: `thomas@${domainName1}` },
     update: {},
     create: {
-      email: `thomas@${domainName}`,
+      email: `thomas@${domainName1}`,
       password: await argon2.hash('Secret12#'),
       firstName: 'Thomas',
       lastName: 'van Otterloo',
       organisation: {
-        connectOrCreate: {
-          where: { name: 'JJMTTL' },
-          create: { name: 'JJMTTL', domainName: domainName },
+        connect: {
+          id: organisation1.id,
         },
       },
     },
   });
 
   await prisma.user.upsert({
-    where: { email: `timothy@${domainName}` },
+    where: { email: `timothy@${domainName1}` },
     update: {},
     create: {
-      email: `timothy@${domainName}`,
+      email: `timothy@${domainName1}`,
       password: await argon2.hash('Secret12#'),
       firstName: 'Timothy',
       lastName: 'Borghouts',
       organisation: {
-        connectOrCreate: {
-          where: { name: 'JJMTTL' },
-          create: { name: 'JJMTTL', domainName: domainName },
+        connect: {
+          id: organisation1.id,
         },
       },
     },

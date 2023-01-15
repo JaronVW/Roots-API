@@ -6,14 +6,13 @@ import { JwtAuthGuard } from 'src/authentication/guards/jwt-auth.guard';
 import { Public } from '../decorators/Public';
 
 @Controller('organisations')
-
 export class OrganisationsController {
   constructor(private readonly organisationsService: OrganisationsService) {}
 
   @Post()
   @Public()
-  async create(@Body() orgnisation: Prisma.OrganisationCreateInput): Promise<Organisation> {
-    return await this.organisationsService.create(orgnisation);
+  async create(@Body() organisation: Prisma.OrganisationCreateInput): Promise<Organisation> {
+    return await this.organisationsService.create(organisation);
   }
 
   @Patch(':id')
@@ -26,6 +25,6 @@ export class OrganisationsController {
 
   @Get(':id')
   async findOne(@Param('id') id: number): Promise<Organisation> {
-    return await this.organisationsService.findOne({id: Number(id)});
+    return await this.organisationsService.findOne({ id: Number(id) });
   }
 }

@@ -47,6 +47,7 @@ export class UsersService {
           email: true,
           firstName: true,
           lastName: true,
+          isActive: true,
         },
       });
     } catch (error) {

@@ -1158,7 +1158,99 @@ describe('AppController (e2e)', () => {
       expect(body2).toHaveLength(4);
     });
 
-    // describe('')
+    it('should return events where the title, description or the tags contain the search string', async () => {
+      const { body: newEvent } = await request(app.getHttpServer())
+        .post('/events')
+        .set('Authorization', `Bearer ${user1Token}`)
+        .send({
+          title: 'a word in the title',
+          description: 'a different word in the description',
+          dateOfEvent: new Date('2022-01-01'),
+          tags: [{ subject: 'tagName1' }, { subject: 'tagName2' }],
+        });
+
+      const { body: all } = await request(app.getHttpServer())
+        .get('/events?searchQuery=')
+        .set('Authorization', `Bearer ${user1Token}`);
+      expect(all).toHaveLength(6);
+
+      const { body } = await request(app.getHttpServer())
+        .get('/events?searchQuery=title')
+        .set('Authorization', `Bearer ${user1Token}`);
+      expect(body).toHaveLength(1);
+      expect(body[0].id).toBe(newEvent.id);
+
+      const { body: body2 } = await request(app.getHttpServer())
+        .get('/events?searchQuery=tle')
+        .set('Authorization', `Bearer ${user1Token}`);
+      expect(body2).toHaveLength(1);
+      expect(body2[0].id).toBe(newEvent.id);
+
+      const { body: body3 } = await request(app.getHttpServer())
+        .get('/events?searchQuery=tagName1')
+        .set('Authorization', `Bearer ${user1Token}`);
+      expect(body3).toHaveLength(1);
+      expect(body3[0].id).toBe(newEvent.id);
+
+      const { body: body4 } = await request(app.getHttpServer())
+        .get('/events?searchQuery=different')
+        .set('Authorization', `Bearer ${user1Token}`);
+      expect(body4).toHaveLength(1);
+      expect(body4[0].id).toBe(newEvent.id);
+
+      const { body: newEvent2 } = await request(app.getHttpServer())
+        .post('/events')
+        .set('Authorization', `Bearer ${user1Token}`)
+        .send({
+          title: 'another word in the title',
+          description: 'another different word in the description',
+          dateOfEvent: new Date('2021-01-01'),
+          tags: [{ subject: 'tagName1' }, { subject: 'tagName2' }, { subject: 'Tag for event2' }],
+        });
+
+      const { body: body5 } = await request(app.getHttpServer())
+        .get('/events?searchQuery=different')
+        .set('Authorization', `Bearer ${user1Token}`);
+      expect(body5).toHaveLength(2);
+      expect(body5[0].id).toBe(newEvent.id);
+      expect(body5[1].id).toBe(newEvent2.id);
+
+      const { body: body6 } = await request(app.getHttpServer())
+        .get('/events?searchQuery=tagName1')
+        .set('Authorization', `Bearer ${user1Token}`);
+      expect(body6).toHaveLength(2);
+      expect(body6[0].id).toBe(newEvent.id);
+      expect(body6[1].id).toBe(newEvent2.id);
+
+      const { body: body7 } = await request(app.getHttpServer())
+        .get('/events?searchQuery=tag for event2')
+        .set('Authorization', `Bearer ${user1Token}`);
+      expect(body7).toHaveLength(1);
+      expect(body7[0].id).toBe(newEvent2.id);
+    });
+
+    it('should only return events where the tagname matches the search string', async () => {
+      const { body: newEvent } = await request(app.getHttpServer())
+        .post('/events')
+        .set('Authorization', `Bearer ${user1Token}`)
+        .send({
+          title: 'title',
+          description: 'description',
+          dateOfEvent: new Date('2022-01-01'),
+          tags: [{ subject: 'tagName1' }, { subject: 'tagName2' }],
+        });
+
+      const { body } = await request(app.getHttpServer())
+        .get('/events?searchQuery=tagName1')
+        .set('Authorization', `Bearer ${user1Token}`);
+      expect(body).toHaveLength(1);
+      expect(body[0].id).toBe(newEvent.id);
+
+      const { body: body2 } = await request(app.getHttpServer())
+        .get('/events?searchQuery=Name1')
+        .set('Authorization', `Bearer ${user1Token}`);
+      expect(body2).toHaveLength(0);
+    });
   });
 
   // check for get tags, count and only of organisation (so count of other organisation same tag is different)

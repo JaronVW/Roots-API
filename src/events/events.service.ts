@@ -198,6 +198,4 @@ export class EventsService {
       throw new BadRequestException("Can't unarchive event");
     }
   }
-
- 
 }

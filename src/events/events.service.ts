@@ -1,5 +1,5 @@
-import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
-import { Event, Prisma } from '@prisma/client';
+import { BadRequestException, Injectable, NotFoundException, Request, UnauthorizedException } from '@nestjs/common';
+import { Event, Prisma, User } from '@prisma/client';
 import { PrismaClientService } from '../../src/prisma-client/prisma-client.service';
 import { EventsCreateDto, EventsUpdateDto } from './dto/events.dto';
 import { EventQueryParamsDto } from './dto/events.query.params.dto';
@@ -198,4 +198,6 @@ export class EventsService {
       throw new BadRequestException("Can't unarchive event");
     }
   }
+
+ 
 }

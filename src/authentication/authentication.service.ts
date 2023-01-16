@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../../src/users/users.service';
 import argon2 = require('argon2');
@@ -14,16 +14,13 @@ export class AuthenticationService {
   ) {}
 
   async validateUser(username: string, password: string): Promise<any> {
-    try {
-      const user = await this.userService.findOne(username);
-      if (user && (await argon2.verify(user.password, password))) {
-        const result = { id: user.id, username: user.email, organisationId: user.organisationId };
-        return result;
-      }
-      return null;
-    } catch (error) {
-      return null;
+    const user = await this.userService.findOne(username);
+    if (user && (await argon2.verify(user.password, password))) {
+      if (!user.isActive) throw new UnauthorizedException('Account is inactive');
+      const result = { id: user.id, username: user.email, organisationId: user.organisationId };
+      return result;
     }
+    throw new UnauthorizedException('Invalid credentials');
   }
 
   async generateUser(signUpDto: SignUpDto): Promise<{ id: number; username: string; organisationId: number }> {

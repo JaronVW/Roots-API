@@ -1,13 +1,10 @@
-import { Controller, Request, Get, Post, UseGuards, Body, Res, Param, Query } from '@nestjs/common';
+import { Controller, Request, Get, Post, UseGuards, Body} from '@nestjs/common';
 import { AppService } from './app.service';
 import { LocalAuthGuard } from './authentication/guards/local-auth-guard';
 import { AuthenticationService } from './authentication/authentication.service';
 import { SignUpDto } from './authentication/dto/signUpDto';
 import { Public } from './decorators/Public';
-import { readFileSync } from 'fs';
-import { join } from 'path';
-import { Response } from 'express';
-import { FileNameDto } from './files/FileNameDto';
+
 
 @Controller()
 export class AppController {

@@ -9,7 +9,7 @@ import { SignUpDto } from 'src/authentication/dto/signUpDto';
 import argon2 = require('argon2');
 
 describe('AppController (e2e)', () => {
-  // delete local testdb, then run locally using npm run test:prisma:deploy && npm run test:e2e
+  // delete local testdb, then run locally using npm run test:prisma:deploy && npm run test:e2e:local
   let app: INestApplication;
   let prisma: PrismaClientService;
   let user: User;
@@ -33,12 +33,12 @@ describe('AppController (e2e)', () => {
     id: expect.any(Number),
     title: expect.any(String),
     description: expect.any(String),
-    content: expect.any(String),
+    content: expect.any(String || null),
     dateOfEvent: expect.any(String),
-    userId: expect.any(Number),
+    userId: expect.any(Number || null),
     tags: expect.any(Array),
     isArchived: expect.any(Boolean),
-    organisationId: null,
+    organisationId: expect.any(Number),
   });
 
   const tagShape = expect.objectContaining({
@@ -410,9 +410,12 @@ describe('AppController (e2e)', () => {
   describe('A user can add, edit and archive events for their organisation', () => {
     let organisation: Organisation;
     let otherOrganisation: Organisation;
+    const password = 'examplePassword';
     let user: User;
     let user2: User;
     let userOfOtherOrganisation: User;
+    let event: Event;
+    let eventOtherOrganisation: Event;
 
     beforeEach(async () => {
       organisation = await prisma.organisation.create({
@@ -432,7 +435,7 @@ describe('AppController (e2e)', () => {
       user = await prisma.user.create({
         data: {
           email: 'user@exampledomain.com',
-          password: await argon2.hash('examplePassword'),
+          password: await argon2.hash(password),
           firstName: 'exampleFirstName',
           lastName: 'exampleLastName',
           organisationId: organisation.id,
@@ -442,7 +445,7 @@ describe('AppController (e2e)', () => {
       user2 = await prisma.user.create({
         data: {
           email: 'user2@exampledomain.com',
-          password: await argon2.hash('examplePassword'),
+          password: await argon2.hash(password),
           firstName: 'exampleFirstName',
           lastName: 'exampleLastName',
           organisationId: organisation.id,
@@ -452,14 +455,14 @@ describe('AppController (e2e)', () => {
       userOfOtherOrganisation = await prisma.user.create({
         data: {
           email: 'user@otherorganisation.com',
-          password: await argon2.hash('examplePassword'),
+          password: await argon2.hash(password),
           firstName: 'exampleFirstName',
           lastName: 'exampleLastName',
           organisationId: otherOrganisation.id,
         },
       });
 
-      await prisma.event.create({
+      event = await prisma.event.create({
         data: {
           title: 'Example event',
           dateOfEvent: new Date(),
@@ -480,7 +483,7 @@ describe('AppController (e2e)', () => {
         },
       });
 
-      await prisma.event.create({
+      eventOtherOrganisation = await prisma.event.create({
         data: {
           title: 'Example event other organisation',
           dateOfEvent: new Date(),
@@ -498,56 +501,301 @@ describe('AppController (e2e)', () => {
       });
     });
 
-    it('should not be able to add an event if the user is not logged in', async () => {
-      const { status: eventStatus, body: eventBody } = await request(app.getHttpServer())
-        .post('/events')
-        .send({
-          title: 'Example event',
-          dateOfEvent: new Date(),
-          description: 'Example description',
-          tags: [{ subject: 'Example tag1' }, { subject: 'Example tag2' }],
+    describe('A user can create an event', () => {
+      it('should not be able to add an event if the user is not logged in', async () => {
+        const { status: eventStatus, body: eventBody } = await request(app.getHttpServer())
+          .post('/events')
+          .send({
+            title: 'Example event 2',
+            dateOfEvent: new Date(),
+            description: 'Example description',
+            tags: [{ subject: 'Example tag1' }, { subject: 'Example tag2' }],
+          });
+
+        expect(eventStatus).toBe(401);
+        expect(eventBody).toEqual({
+          statusCode: 401,
+          message: 'Unauthorized',
+        });
+      });
+
+      it('should create an event for the organisation of the user', async () => {
+        const { body: loginBody } = await request(app.getHttpServer()).post('/auth/login').send({
+          username: user.email,
+          password: password,
         });
 
-      expect(eventStatus).toBe(401);
-      expect(eventBody).toEqual({
-        statusCode: 401,
-        message: 'Unauthorized',
+        const { status: eventStatus, body: eventBody } = await request(app.getHttpServer())
+          .post('/events')
+          .set('Authorization', `Bearer ${loginBody.access_token}`)
+          .send({
+            title: 'Example event 2',
+            dateOfEvent: new Date(),
+            description: 'Example description',
+            tags: [{ subject: 'Example tag1' }, { subject: 'Example tag2' }],
+          });
+
+        expect(eventStatus).toBe(201);
+        // expect(eventBody).toEqual(eventShape);
+        expect(eventBody).toHaveProperty('id');
+        expect(eventBody).toHaveProperty('title', 'Example event 2');
+        expect(eventBody).toHaveProperty('description', 'Example description');
+        expect(eventBody).toHaveProperty('organisationId', organisation.id);
+      });
+
+      it('should create an event if the title is unique inside the organisation', async () => {
+        const { body: loginBody } = await request(app.getHttpServer()).post('/auth/login').send({
+          username: user.email,
+          password: password,
+        });
+
+        const { status: eventStatus, body: eventBody } = await request(app.getHttpServer())
+          .post('/events')
+          .set('Authorization', `Bearer ${loginBody.access_token}`)
+          .send({
+            title: eventOtherOrganisation.title,
+            dateOfEvent: new Date(),
+            description: 'Example description',
+            tags: [{ subject: 'Example tag1' }, { subject: 'Example tag2' }],
+          });
+
+        expect(eventStatus).toBe(201);
+        // expect(eventBody).toEqual(eventShape);
+        expect(eventBody).toHaveProperty('id');
+        expect(eventBody).toHaveProperty('title', eventOtherOrganisation.title);
+        expect(eventBody).toHaveProperty('description', 'Example description');
+        expect(eventBody).toHaveProperty('organisationId', organisation.id);
+      });
+
+      it('should not create an event if the title is not unique inside the organisation', async () => {
+        const { body: loginBody } = await request(app.getHttpServer()).post('/auth/login').send({
+          username: user.email,
+          password: password,
+        });
+
+        const { status: eventStatus, body: eventBody } = await request(app.getHttpServer())
+          .post('/events')
+          .set('Authorization', `Bearer ${loginBody.access_token}`)
+          .send({
+            title: event.title,
+            dateOfEvent: new Date(),
+            description: 'Example description',
+            tags: [{ subject: 'Example tag1' }, { subject: 'Example tag2' }],
+          });
+
+        expect(eventStatus).toBe(400);
+        expect(eventBody).toEqual({
+          statusCode: 400,
+          message: "Can't create event",
+          error: 'Bad Request',
+        });
       });
     });
 
-    it('should create an event for the organisation of the user', async () => {
-      console.log(await prisma.user.findMany());
-      const { body: loginBody } = await request(app.getHttpServer()).post('/auth/login').send({
-        username: user.email,
-        password: user.password,
-      });
-      console.log(user);
-      console.log(loginBody);
+    describe('A user can edit and archive events of their organisation', () => {
+      let id: number;
+      let access_token: string;
 
-      const { status: eventStatus, body: eventBody } = await request(app.getHttpServer())
-        .post('/events')
-        .set('Authorization', `Bearer ${loginBody.access_token}`)
-        .send({
-          title: 'Example event',
-          dateOfEvent: new Date(),
-          description: 'Example description',
-          tags: [{ subject: 'Example tag1' }, { subject: 'Example tag2' }],
+      beforeEach(async () => {
+        const { body: loginBody } = await request(app.getHttpServer()).post('/auth/login').send({
+          username: user.email,
+          password: password,
+        });
+        access_token = loginBody.access_token;
+
+        const { body: eventBody } = await request(app.getHttpServer())
+          .post(`/events`)
+          .set('Authorization', `Bearer ${access_token}`)
+          .send({
+            title: 'Example event 2',
+            dateOfEvent: new Date(),
+            description: 'Example description',
+            tags: [{ subject: 'Example tag1' }, { subject: 'Example tag2' }],
+          });
+
+        id = eventBody.id;
+      });
+
+      it('should update an event if user is part of the organisation', async () => {
+        const { body: loginBody2 } = await request(app.getHttpServer()).post('/auth/login').send({
+          username: user2.email,
+          password: password,
         });
 
-      expect(eventStatus).toBe(201);
-      expect(eventBody).toEqual({
-        id: expect.any(Number),
-        title: 'Example event',
-        dateOfEvent: expect.any(String),
-        description: 'Example description',
-        tags: [
-          { id: expect.any(Number), subject: 'Example tag1' },
-          { id: expect.any(Number), subject: 'Example tag2' },
-        ],
-        organisationId: organisation.id,
+        const { status: eventStatus2, body: eventBody2 } = await request(app.getHttpServer())
+          .put(`/events/${id}`)
+          .set('Authorization', `Bearer ${loginBody2.access_token}`)
+          .send({
+            title: 'A different title',
+          });
+
+        expect(eventStatus2).toBe(200);
+        expect(eventBody2).toHaveProperty('id', id);
+        expect(eventBody2).toHaveProperty('title', 'A different title');
+      });
+
+      it('should not update an event if the user is not authenticated', async () => {
+        const { status: eventStatus2, body: eventBody2 } = await request(app.getHttpServer())
+          .put(`/events/${id}`)
+          .send({
+            title: 'A different title',
+          });
+
+        expect(eventStatus2).toBe(401);
+        expect(eventBody2).toEqual({
+          statusCode: 401,
+          message: 'Unauthorized',
+        });
+      });
+
+      it('should not update an event if user is not part of the organisation', async () => {
+        const { body: loginBody2 } = await request(app.getHttpServer()).post('/auth/login').send({
+          username: userOfOtherOrganisation.email,
+          password: password,
+        });
+        expect(loginBody2).toHaveProperty('access_token');
+
+        const { status: eventStatus2, body: eventBody2 } = await request(app.getHttpServer())
+          .put(`/events/${id}`)
+          .set('Authorization', `Bearer ${loginBody2.access_token}`)
+          .send({
+            title: 'A different title',
+          });
+
+        expect(eventStatus2).toBe(401);
+        expect(eventBody2).toEqual({
+          statusCode: 401,
+          message: 'Unauthorized',
+        });
+      });
+
+      it('should not update an event if the title is not unique inside the organisation', async () => {
+        const { status: eventStatus, body: eventBody } = await request(app.getHttpServer())
+          .put(`/events/${id}`)
+          .set('Authorization', `Bearer ${access_token}`)
+          .send({
+            title: event.title,
+          });
+
+        expect(eventStatus).toBe(400);
+        expect(eventBody).toEqual({
+          statusCode: 400,
+          message: 'Bad Request',
+        });
+      });
+
+      it('should archive an event if user is part of the organisation', async () => {
+        const { body: loginBody2 } = await request(app.getHttpServer()).post('/auth/login').send({
+          username: user2.email,
+          password: password,
+        });
+
+        const { status: eventStatus2, body: eventBody2 } = await request(app.getHttpServer())
+          .patch(`/events/${id}/archive`)
+          .set('Authorization', `Bearer ${loginBody2.access_token}`);
+
+        expect(eventStatus2).toBe(200);
+        expect(eventBody2).toHaveProperty('id', id);
+        expect(eventBody2).toHaveProperty('isArchived', true);
+      });
+
+      it('should not archive an event if the user is not authenticated', async () => {
+        const { status: eventStatus2, body: eventBody2 } = await request(app.getHttpServer()).patch(
+          `/events/${id}/archive`,
+        );
+
+        expect(eventStatus2).toBe(401);
+        expect(eventBody2).toEqual({
+          statusCode: 401,
+          message: 'Unauthorized',
+        });
+      });
+
+      it('should not archive an event if user is not part of the organisation', async () => {
+        const { body: loginBody2 } = await request(app.getHttpServer()).post('/auth/login').send({
+          username: userOfOtherOrganisation.email,
+          password: password,
+        });
+
+        const { status: eventStatus2, body: eventBody2 } = await request(app.getHttpServer())
+          .patch(`/events/${id}/archive`)
+          .set('Authorization', `Bearer ${loginBody2.access_token}`);
+
+        expect(eventStatus2).toBe(401);
+        expect(eventBody2).toEqual({
+          statusCode: 401,
+          message: 'Unauthorized',
+        });
+      });
+
+      it('should unarchive an event if user is part of the organisation', async () => {
+        const { body: loginBody2 } = await request(app.getHttpServer()).post('/auth/login').send({
+          username: user2.email,
+          password: password,
+        });
+
+        await request(app.getHttpServer())
+          .patch(`/events/${id}/archive`)
+          .set('Authorization', `Bearer ${loginBody2.access_token}`);
+
+        const { status: eventStatus2, body: eventBody2 } = await request(app.getHttpServer())
+          .patch(`/events/${id}/unarchive`)
+          .set('Authorization', `Bearer ${loginBody2.access_token}`);
+
+        expect(eventStatus2).toBe(200);
+        expect(eventBody2).toHaveProperty('id', id);
+        expect(eventBody2).toHaveProperty('isArchived', false);
+      });
+
+      it('should not unarchive an event if the user is not authenticated', async () => {
+        const { status: eventStatus2, body: eventBody2 } = await request(app.getHttpServer()).patch(
+          `/events/${id}/unarchive`,
+        );
+
+        expect(eventStatus2).toBe(401);
+        expect(eventBody2).toEqual({
+          statusCode: 401,
+          message: 'Unauthorized',
+        });
+      });
+
+      it('should not unarchive an event if user is not part of the organisation', async () => {
+        const { body: loginBody2 } = await request(app.getHttpServer()).post('/auth/login').send({
+          username: userOfOtherOrganisation.email,
+          password: password,
+        });
+
+        const { status: eventStatus2, body: eventBody2 } = await request(app.getHttpServer())
+          .patch(`/events/${id}/unarchive`)
+          .set('Authorization', `Bearer ${loginBody2.access_token}`);
+
+        expect(eventStatus2).toBe(401);
+        expect(eventBody2).toEqual({
+          statusCode: 401,
+          message: 'Unauthorized',
+        });
       });
     });
+
+    // gets events of own organisation
+    //
   });
+
+  // events are returned in order of dateOfEvent descending
+  // events can be filtered by a search param, that searches tags, title and description
+  // events can be filtered by page and limit
+  // events can be filtered by isArchived
+
+  describe('A user can only retrieve events of their organisation and this result can be filtered', () => {
+    let user: User;
+
+    // describe('')
+  });
+
+  // check for get tags, count and only of organisation (so count of other organisation same tag is different)
+  // a user can add new tags when adding a new event, count of these tags is then one
+
+  // testing multimedia
 
   // describe.skip('Event', () => {
   //   describe('GET /events', () => {

@@ -3,7 +3,7 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from './../src/app.module';
 import { PrismaClientService } from 'src/prisma-client/prisma-client.service';
-import { User, Event, Tag, Organisation, Prisma } from '@prisma/client';
+import { User, Event, Organisation, Prisma } from '@prisma/client';
 import { useContainer } from 'class-validator';
 import { SignUpDto } from 'src/authentication/dto/signUpDto';
 import argon2 = require('argon2');
@@ -12,14 +12,6 @@ describe('AppController (e2e)', () => {
   // delete local testdb, then run locally using npm run test:prisma:deploy && npm run test:e2e:local
   let app: INestApplication;
   let prisma: PrismaClientService;
-  let user: User;
-  let event1: Event;
-  let event2: Event;
-  let event3: Event;
-  let eventArray: Event[];
-  let tag1: Tag;
-  let tag2: Tag;
-  let tag3: Tag;
 
   const userShape = expect.objectContaining({
     id: expect.any(Number),
@@ -33,9 +25,9 @@ describe('AppController (e2e)', () => {
     id: expect.any(Number),
     title: expect.any(String),
     description: expect.any(String),
-    content: expect.any(String || null),
+    content: expect.any(String) || null,
     dateOfEvent: expect.any(String),
-    userId: expect.any(Number || null),
+    userId: null,
     tags: expect.any(Array),
     isArchived: expect.any(Boolean),
     organisationId: expect.any(Number),
@@ -786,8 +778,385 @@ describe('AppController (e2e)', () => {
   // events can be filtered by page and limit
   // events can be filtered by isArchived
 
+  // tag connected or created
+
   describe('A user can only retrieve events of their organisation and this result can be filtered', () => {
+    let organisation: Organisation;
+    let otherOrganisation: Organisation;
     let user: User;
+    let user1Token: string;
+    let user2: User;
+    let userOfOtherOrganisation: User;
+    let userOfOtherOrganisationToken: string;
+    let eventArray = [];
+    let event: Event;
+    let event2: Event;
+    let event3: Event;
+    let event4: Event;
+    let event5: Event;
+    let eventArrayOtherOrganisation = [];
+    let eventOtherOrganisation: Event;
+    let eventOtherOrganisation2: Event;
+    let eventOtherOrganisation3: Event;
+
+    const password = 'password';
+
+    beforeEach(async () => {
+      organisation = await prisma.organisation.create({
+        data: {
+          domainName: 'exampledomain.com',
+          name: 'Example organisation',
+        },
+      });
+
+      otherOrganisation = await prisma.organisation.create({
+        data: {
+          domainName: 'otherOrganisation.com',
+          name: 'Other organisation',
+        },
+      });
+
+      user = await prisma.user.create({
+        data: {
+          email: 'user@exampledomain.com',
+          password: await argon2.hash(password),
+          firstName: 'exampleFirstName',
+          lastName: 'exampleLastName',
+          organisationId: organisation.id,
+        },
+      });
+
+      user2 = await prisma.user.create({
+        data: {
+          email: 'user2@exampledomain.com',
+          password: await argon2.hash(password),
+          firstName: 'exampleFirstName',
+          lastName: 'exampleLastName',
+          organisationId: organisation.id,
+        },
+      });
+
+      userOfOtherOrganisation = await prisma.user.create({
+        data: {
+          email: 'user@otherorganisation.com',
+          password: await argon2.hash(password),
+          firstName: 'exampleFirstName',
+          lastName: 'exampleLastName',
+          organisationId: otherOrganisation.id,
+        },
+      });
+
+      event = await prisma.event.create({
+        data: {
+          title: 'Example event',
+          dateOfEvent: new Date('2020-01-01'),
+          description: 'Example description',
+          tags: {
+            create: [
+              {
+                subject: 'Example tag1',
+                organisationId: organisation.id,
+              },
+              {
+                subject: 'Example tag2',
+                organisationId: organisation.id,
+              },
+            ],
+          },
+          organisationId: organisation.id,
+        },
+      });
+
+      event2 = await prisma.event.create({
+        data: {
+          title: 'Example event2',
+          dateOfEvent: new Date('2019-01-02'),
+          description: 'Example description',
+          tags: {
+            connectOrCreate: [
+              {
+                where: { unique_tag_organisation: { subject: 'Example tag1', organisationId: organisation.id } },
+                create: { subject: 'Example tag1', organisationId: organisation.id },
+              },
+            ],
+          },
+          organisationId: organisation.id,
+        },
+      });
+
+      event3 = await prisma.event.create({
+        data: {
+          title: 'Example event3',
+          dateOfEvent: new Date('2023-01-01'),
+          description: 'Example description',
+          tags: {
+            connectOrCreate: [
+              {
+                where: { unique_tag_organisation: { subject: 'Example tag1', organisationId: organisation.id } },
+                create: { subject: 'Example tag1', organisationId: organisation.id },
+              },
+            ],
+          },
+          organisationId: organisation.id,
+        },
+      });
+
+      event4 = await prisma.event.create({
+        data: {
+          title: 'Example event4',
+          dateOfEvent: new Date('2020-01-01'),
+          description: 'Example description',
+          tags: {
+            connectOrCreate: [
+              {
+                where: { unique_tag_organisation: { subject: 'Example tag1', organisationId: organisation.id } },
+                create: { subject: 'Example tag1', organisationId: organisation.id },
+              },
+            ],
+          },
+          organisationId: organisation.id,
+        },
+      });
+
+      event5 = await prisma.event.create({
+        data: {
+          title: 'Example event5',
+          dateOfEvent: new Date('2022-01-01'),
+          description: 'Example description',
+          tags: {
+            connectOrCreate: [
+              {
+                where: { unique_tag_organisation: { subject: 'Example tag1', organisationId: organisation.id } },
+                create: { subject: 'Example tag1', organisationId: organisation.id },
+              },
+            ],
+          },
+          organisationId: organisation.id,
+        },
+      });
+      eventArray = [event, event2, event3, event4, event5];
+
+      eventOtherOrganisation = await prisma.event.create({
+        data: {
+          title: 'Example event other organisation',
+          dateOfEvent: new Date('2020-01-01'),
+          description: 'Example description',
+          tags: {
+            create: [
+              {
+                subject: 'Example tag1',
+                organisationId: otherOrganisation.id,
+              },
+            ],
+          },
+          organisationId: otherOrganisation.id,
+        },
+      });
+
+      eventOtherOrganisation2 = await prisma.event.create({
+        data: {
+          title: 'Example event other organisation2',
+          dateOfEvent: new Date('2022-01-01'),
+          description: 'Example description',
+          tags: {
+            connectOrCreate: [
+              {
+                where: { unique_tag_organisation: { subject: 'Example tag1', organisationId: otherOrganisation.id } },
+                create: { subject: 'Example tag1', organisationId: otherOrganisation.id },
+              },
+            ],
+          },
+          organisationId: otherOrganisation.id,
+        },
+      });
+
+      eventOtherOrganisation3 = await prisma.event.create({
+        data: {
+          title: 'Example event other organisation3',
+          dateOfEvent: new Date(),
+          description: 'Example description',
+          tags: {
+            connectOrCreate: [
+              {
+                where: { unique_tag_organisation: { subject: 'Example tag1', organisationId: otherOrganisation.id } },
+                create: { subject: 'Example tag1', organisationId: otherOrganisation.id },
+              },
+            ],
+          },
+          organisationId: otherOrganisation.id,
+        },
+      });
+      eventArrayOtherOrganisation = [eventOtherOrganisation, eventOtherOrganisation2, eventOtherOrganisation3];
+
+      const { body: loginBody } = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({ username: user.email, password: password });
+      user1Token = loginBody.access_token;
+
+      const { body: loginBody2 } = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({ username: userOfOtherOrganisation.email, password: password });
+      userOfOtherOrganisationToken = loginBody2.access_token;
+    });
+
+    it('should return the events of your organisation', async () => {
+      const { status, body } = await request(app.getHttpServer())
+        .get('/events')
+        .set('Authorization', `Bearer ${user1Token}`);
+      expect(status).toBe(200);
+      expect(body).toHaveLength(5);
+      body.forEach((event: Event) => {
+        expect(event.organisationId).toBe(organisation.id);
+      });
+
+      const { status: status2, body: body2 } = await request(app.getHttpServer())
+        .get('/events')
+        .set('Authorization', `Bearer ${userOfOtherOrganisationToken}`);
+      expect(status2).toBe(200);
+      expect(body2).toHaveLength(3);
+      body2.forEach((event: Event) => {
+        expect(event.organisationId).toBe(otherOrganisation.id);
+      });
+    });
+
+    it('should not return any events if there are no events in your organisation', async () => {
+      await prisma.event.deleteMany();
+      const { status, body } = await request(app.getHttpServer())
+        .get('/events')
+        .set('Authorization', `Bearer ${user1Token}`);
+      expect(status).toBe(200);
+      expect(body).toHaveLength(0);
+    });
+
+    it('should return the events of your organisation by date descending', async () => {
+      const { status, body } = await request(app.getHttpServer())
+        .get('/events')
+        .set('Authorization', `Bearer ${user1Token}`);
+      expect(status).toBe(200);
+      expect(body).toHaveLength(5);
+
+      const sortedEvents = eventArray.sort((a, b) => b.dateOfEvent.getTime() - a.dateOfEvent.getTime());
+      body.forEach((event: Event, index: number) => {
+        expect(event.id).toBe(sortedEvents[index].id);
+        expect(event.organisationId).toBe(organisation.id);
+      });
+
+      const { status: status2, body: body2 } = await request(app.getHttpServer())
+        .get('/events')
+        .set('Authorization', `Bearer ${userOfOtherOrganisationToken}`);
+      expect(status2).toBe(200);
+      expect(body2).toHaveLength(3);
+
+      const sortedEvents2 = eventArrayOtherOrganisation.sort(
+        (a, b) => b.dateOfEvent.getTime() - a.dateOfEvent.getTime(),
+      );
+      body2.forEach((event: Event, index: number) => {
+        expect(event.id).toBe(sortedEvents2[index].id);
+        expect(event.organisationId).toBe(otherOrganisation.id);
+      });
+    });
+
+    it('should return the events of your organisation by date ascending', async () => {
+      const { status, body } = await request(app.getHttpServer())
+        .get('/events?order=asc')
+        .set('Authorization', `Bearer ${user1Token}`);
+      expect(status).toBe(200);
+      expect(body).toHaveLength(5);
+
+      const sortedEvents = eventArray.sort((a, b) => a.dateOfEvent.getTime() - b.dateOfEvent.getTime());
+      body.forEach((event: Event, index: number) => {
+        expect(event.id).toBe(sortedEvents[index].id);
+        expect(event.organisationId).toBe(organisation.id);
+      });
+    });
+
+    it('should return the events of your organisation by date ascending and skip 2', async () => {
+      const { status, body } = await request(app.getHttpServer())
+        .get('/events?order=asc&min=2')
+        .set('Authorization', `Bearer ${user1Token}`);
+      expect(status).toBe(200);
+      expect(body).toHaveLength(3);
+
+      const sortedEvents = eventArray.sort((a, b) => a.dateOfEvent.getTime() - b.dateOfEvent.getTime());
+      body.forEach((event: Event, index: number) => {
+        expect(event.id).toBe(sortedEvents[index + 2].id);
+        expect(event.organisationId).toBe(organisation.id);
+      });
+    });
+
+    it('should return the events of your organisation by date ascending and skip 1 and take 2', async () => {
+      const { status, body } = await request(app.getHttpServer())
+        .get('/events?order=asc&min=1&max=3')
+        .set('Authorization', `Bearer ${user1Token}`);
+      expect(status).toBe(200);
+      expect(body).toHaveLength(2);
+
+      const sortedEvents = eventArray.sort((a, b) => a.dateOfEvent.getTime() - b.dateOfEvent.getTime());
+      body.forEach((event: Event, index: number) => {
+        expect(event.id).toBe(sortedEvents[index + 1].id);
+        expect(event.organisationId).toBe(organisation.id);
+      });
+    });
+
+    it('should return the events of your organisation by date descending and return max 10 events', async () => {
+      await prisma.event.createMany({
+        data: [
+          {
+            title: 'Event 6',
+            description: 'Event 6',
+            dateOfEvent: new Date('2021-01-01'),
+            organisationId: organisation.id,
+          },
+          {
+            title: 'Event 7',
+            description: 'Event 7',
+            dateOfEvent: new Date('2021-01-01'),
+            organisationId: organisation.id,
+          },
+          {
+            title: 'Event 8',
+            description: 'Event 8',
+            dateOfEvent: new Date('2021-01-01'),
+            organisationId: organisation.id,
+          },
+          {
+            title: 'Event 9',
+            description: 'Event 9',
+            dateOfEvent: new Date('2021-01-01'),
+            organisationId: organisation.id,
+          },
+          {
+            title: 'Event 10',
+            description: 'Event 10',
+            dateOfEvent: new Date('2021-01-01'),
+            organisationId: organisation.id,
+          },
+          {
+            title: 'Event 11',
+            description: 'Event 11',
+            dateOfEvent: new Date('2021-01-01'),
+            organisationId: organisation.id,
+          },
+          {
+            title: 'Event 12',
+            description: 'Event 12',
+            dateOfEvent: new Date('2021-01-01'),
+            organisationId: organisation.id,
+          },
+        ],
+      });
+      const { status, body } = await request(app.getHttpServer())
+        .get('/events')
+        .set('Authorization', `Bearer ${user1Token}`);
+      expect(status).toBe(200);
+      expect(body).toHaveLength(10);
+
+      const { status: status2, body: body2 } = await request(app.getHttpServer())
+        .get('/events?min=6')
+        .set('Authorization', `Bearer ${user1Token}`);
+      expect(status2).toBe(200);
+      expect(body2).toHaveLength(4);
+    });
 
     // describe('')
   });

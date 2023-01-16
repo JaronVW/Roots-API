@@ -16,7 +16,7 @@ export class UsersService {
 
   async setInactive(userId: number): Promise<any> {
     try {
-      await this.prisma.user.update({ where: { id: userId }, data: { isAtive: false } });
+      await this.prisma.user.update({ where: { id: userId }, data: { isActive: false } });
       return { statusCode: 200, message: 'set inactive' };
     } catch (e) {
       throw new BadRequestException("Can't set user inactive");
@@ -25,7 +25,7 @@ export class UsersService {
 
   async setActive(userId: number): Promise<any> {
     try {
-      await this.prisma.user.update({ where: { id: userId }, data: { isAtive: true } });
+      await this.prisma.user.update({ where: { id: userId }, data: { isActive: true } });
       return { statusCode: 200, message: 'set active' };
     } catch (e) {
       throw new BadRequestException("Can't set user admin");

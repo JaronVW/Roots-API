@@ -20,6 +20,7 @@ export class AuthenticationService {
         const result = { id: user.id, username: user.email, organisationId: user.organisationId };
         return result;
       }
+      if(!user.isActive)
       return null;
     } catch (error) {
       return null;

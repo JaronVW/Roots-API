@@ -19,7 +19,7 @@ export class EventQueryParamsDto {
 
   @IsOptional()
   @IsString()
-  searchQuery: string;
+  searchQuery = '';
 
   @IsOptional()
   @Type(() => Boolean)

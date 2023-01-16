@@ -54,6 +54,16 @@ export class EventsController {
     }
   }
 
+  @Get('count')
+  @UsePipes(new ValidationPipe({ transform: true }))
+  async getCount(@Query() queryDto: EventQueryParamsDto, @Request() req) {
+    try {
+      return await this.eventsService.getCount(queryDto, req.user.organisationId);
+    } catch (e) {
+      throw new BadRequestException(e.message);
+    }
+  }
+
   @Get(':id')
   async findOne(@Param('id') id: string, @Request() req): Promise<Event | null> {
     if (Number.isNaN(Number(id))) throw new BadRequestException('Invalid id');

@@ -12,18 +12,20 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './authentication/guards/jwt-auth.guard';
 import { FilesController } from './files/files.controller';
 import { UsersController } from './users/users.controller';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
     EventsModule,
     PrismaClientModule,
     TagsModule,
     OrganisationsModule,
-    ConfigModule.forRoot(),
     UsersModule,
     authenticationModule,
+    CloudinaryModule,
   ],
-  controllers: [AppController, FilesController,UsersController],
+  controllers: [AppController, FilesController, UsersController],
   providers: [
     AppService,
     {

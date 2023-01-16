@@ -21,10 +21,15 @@ import { EventsCreateDto, EventsUpdateDto } from './dto/events.dto';
 import { EventQueryParamsDto } from './dto/events.query.params.dto';
 import { EventsService } from './events.service';
 import { JwtService } from '@nestjs/jwt';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 
 @Controller('events')
 export class EventsController {
-  constructor(private readonly eventsService: EventsService, private readonly jwtService: JwtService) {}
+  constructor(
+    private readonly eventsService: EventsService,
+    private readonly jwtService: JwtService,
+    private cloudinary: CloudinaryService,
+  ) {}
 
   @Post()
   @UseInterceptors(FilesInterceptor('files'))
@@ -32,7 +37,9 @@ export class EventsController {
   async create(@Body() event: EventsCreateDto, @UploadedFiles() files: Array<Express.Multer.File>, @Request() req) {
     if (files && event.multimediaItems) {
       for (let i = 0; i < files.length; i++) {
+        // const result = await this.cloudinary.uploadFile(files[i]);
         event.multimediaItems[i].multimedia = files[i].originalname;
+        console.log(files[i]);
         event.multimediaItems[i].path = files[i].filename;
       }
     }
@@ -107,6 +114,4 @@ export class EventsController {
   async unarchive(@Param('id') id: string, @Request() req): Promise<Event> {
     return this.eventsService.unarchive({ id: Number(id) }, req.user.organisationId);
   }
-
-
 }

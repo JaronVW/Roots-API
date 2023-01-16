@@ -19,6 +19,7 @@ model User {
   events         Event[]
   organisationId Int
   organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  isAtive        Boolean       @default(true)
 }
 
 model Event {

@@ -46,44 +46,47 @@ export class EventsService {
 
   async findAll(queryDto: EventQueryParamsDto, organisationId: number): Promise<Event[]> {
     try {
-      let prismaQuery = {};
-      if (queryDto.searchQuery != undefined)
-        prismaQuery = {
-          where: {
-            OR: [
-              { title: { contains: queryDto.searchQuery } },
-              { tags: { some: { subject: { equals: queryDto.searchQuery } } } },
-              { description: { contains: queryDto.searchQuery } },
-            ],
-            AND: {
-              OR: [{ isArchived: false }, { isArchived: queryDto.getArchivedItems }],
-            },
-            organisationId,
-          },
-          orderBy: { dateOfEvent: queryDto.order } as any,
-          skip: Number(queryDto.min),
-          take: Number(queryDto.max),
-          include: {
-            tags: true,
-          },
-        };
-      else
-        prismaQuery = {
-          where: {
+      return await this.prisma.event.findMany({
+        where: {
+          OR: [
+            { title: { contains: queryDto.searchQuery } },
+            { tags: { some: { subject: { equals: queryDto.searchQuery } } } },
+            { description: { contains: queryDto.searchQuery } },
+          ],
+          AND: {
             OR: [{ isArchived: false }, { isArchived: queryDto.getArchivedItems }],
-            organisationId,
           },
-
-          orderBy: { dateOfEvent: queryDto.order } as any,
-          skip: Number(queryDto.min),
-          take: Number(queryDto.max),
-          include: {
-            tags: true,
-          },
-        };
-      return await this.prisma.event.findMany(prismaQuery);
+          organisationId,
+        },
+        orderBy: { dateOfEvent: queryDto.order } as any,
+        skip: Number(queryDto.min),
+        take: Number(queryDto.max - queryDto.min),
+        include: {
+          tags: true,
+        },
+      });
     } catch (error) {
       throw new BadRequestException("Can't retrieve events");
+    }
+  }
+
+  async getCount(queryDto: EventQueryParamsDto, organisationId: number): Promise<number> {
+    try {
+      return await this.prisma.event.count({
+        where: {
+          OR: [
+            { title: { contains: queryDto.searchQuery } },
+            { tags: { some: { subject: { equals: queryDto.searchQuery } } } },
+            { description: { contains: queryDto.searchQuery } },
+          ],
+          AND: {
+            OR: [{ isArchived: false }, { isArchived: queryDto.getArchivedItems }],
+          },
+          organisationId,
+        },
+      });
+    } catch (error) {
+      throw new BadRequestException("Can't get event count");
     }
   }
 

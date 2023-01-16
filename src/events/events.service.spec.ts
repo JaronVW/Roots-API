@@ -12,7 +12,7 @@ const testEvent1: EventsCreateDto = {
   dateOfEvent: new Date(),
   multimediaItems: [],
   tags: [],
-  organisationId: 1
+  organisationId: 1,
 };
 
 const eventArray = [
@@ -25,8 +25,7 @@ const eventArray = [
     multimediaItems: [],
     tags: [],
     paragraphs: [],
-    organisationId: 1
-
+    organisationId: 1,
   },
   {
     userId: 1,
@@ -37,8 +36,7 @@ const eventArray = [
     multimediaItems: [],
     tags: [],
     paragraphs: [],
-    organisationId: 1
-
+    organisationId: 1,
   },
   {
     userId: 1,
@@ -49,8 +47,7 @@ const eventArray = [
     multimediaItems: [],
     tags: [],
     paragraphs: [],
-    organisationId: 1
-
+    organisationId: 1,
   },
   {
     userId: 1,
@@ -61,8 +58,7 @@ const eventArray = [
     multimediaItems: [],
     tags: [],
     paragraphs: [],
-    organisationId: 1
-
+    organisationId: 1,
   },
 ];
 
@@ -77,6 +73,7 @@ const db = {
     save: jest.fn(),
     update: jest.fn().mockResolvedValue(oneEvent),
     delete: jest.fn().mockResolvedValue(oneEvent),
+    count: jest.fn().mockResolvedValue(4),
   },
 };
 
@@ -106,20 +103,23 @@ describe('EventsService', () => {
 
   describe('getAll', () => {
     it('should return an array of Events', async () => {
-      const events = await service.findAll({
-        min: 0,
-        max: 0,
-        order: '',
-        searchQuery: '',
-        getArchivedItems: false,
-      },1);
+      const events = await service.findAll(
+        {
+          min: 0,
+          max: 0,
+          order: '',
+          searchQuery: '',
+          getArchivedItems: false,
+        },
+        1,
+      );
       expect(events).toEqual(eventArray);
     });
   });
 
   describe('getOne', () => {
     it('should get a single Event', async () => {
-      const event = await service.findOne(1,1);
+      const event = await service.findOne(1, 1);
       expect(event).toEqual(oneEvent);
     });
   });
@@ -153,13 +153,13 @@ describe('EventsService', () => {
 
   describe('deleteOne', () => {
     it('should return {deleted: true}', async () => {
-      const event = await service.remove({ id: Number(1) },1);
+      const event = await service.remove({ id: Number(1) }, 1);
       expect(event).toEqual(oneEvent);
     });
 
     it('should return a notfound exception', async () => {
       jest.spyOn(prisma.event, 'delete').mockRejectedValueOnce({ code: 'P2025', message: 'Bad Delete Method.' });
-      expect(service.remove({ id: Number(1) },1)).rejects.toThrowError(NotFoundException);
+      expect(service.remove({ id: Number(1) }, 1)).rejects.toThrowError(NotFoundException);
     });
   });
 });

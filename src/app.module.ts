@@ -12,18 +12,21 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './authentication/guards/jwt-auth.guard';
 import { FilesController } from './files/files.controller';
 import { UsersController } from './users/users.controller';
-
+import { MailerModule } from '@nestjs-modules/mailer';
+import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
+import { MailModule } from './mail/mail.module';
 @Module({
   imports: [
+    ConfigModule.forRoot(),
     EventsModule,
     PrismaClientModule,
     TagsModule,
     OrganisationsModule,
-    ConfigModule.forRoot(),
     UsersModule,
     authenticationModule,
+    MailModule,
   ],
-  controllers: [AppController, FilesController,UsersController],
+  controllers: [AppController, FilesController, UsersController],
   providers: [
     AppService,
     {
@@ -33,8 +36,3 @@ import { UsersController } from './users/users.controller';
   ],
 })
 export class AppModule {}
-
-/*{
-    provide: APP_GUARD,
-    useClass: JwtAuthGuard,
-  },*/

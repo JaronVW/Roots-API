@@ -1,14 +1,19 @@
-import { Controller, Request, Get, Post, UseGuards, Body} from '@nestjs/common';
+import { Controller, Request, Get, Post, UseGuards, Body } from '@nestjs/common';
 import { AppService } from './app.service';
 import { LocalAuthGuard } from './authentication/guards/local-auth-guard';
 import { AuthenticationService } from './authentication/authentication.service';
 import { SignUpDto } from './authentication/dto/signUpDto';
 import { Public } from './decorators/Public';
-
+import { MailerService } from '@nestjs-modules/mailer';
+import { MailService } from './mail/mail.service';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService, private readonly authenticationService: AuthenticationService) {}
+  constructor(
+    private readonly appService: AppService,
+    private readonly authenticationService: AuthenticationService,
+    private readonly mail: MailService,
+  ) {}
 
   @Get()
   @Public()
@@ -32,5 +37,11 @@ export class AppController {
     } catch (error) {
       throw error;
     }
+  }
+
+  @Post('testmail')
+  @Public()
+  testmail() {
+    return this.mail.sendMail();
   }
 }

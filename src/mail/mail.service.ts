@@ -1,21 +1,24 @@
 import { MailerService } from '@nestjs-modules/mailer';
 import { Injectable } from '@nestjs/common';
+import { VerificationMailDto } from './verificationMailDto';
 
 @Injectable()
 export class MailService {
   constructor(private readonly mailerService: MailerService) {}
 
-  async sendMail() {
+  async sendVerificationMail(dto: VerificationMailDto) {
     try {
       await this.mailerService.sendMail({
-        to: 'jaron.do14@gmail.com',
+        to: dto.to,
         from: 'noreply@Roots.com',
-        subject: 'Testing Nest MailerModule ✔',
+        subject: 'Verifiëer uw account',
         template: './welcome',
         context: {
-          message: 'Welcome to Roots!',
+          to: dto.to,
+          verificationCode: dto.verificationCode,
         },
       });
+      return "Mail sent!"
     } catch (error) {
       throw error;
     }

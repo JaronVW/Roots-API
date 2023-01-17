@@ -6,6 +6,7 @@ import { SignUpDto } from './authentication/dto/signUpDto';
 import { Public } from './decorators/Public';
 import { MailerService } from '@nestjs-modules/mailer';
 import { MailService } from './mail/mail.service';
+import { VerificationMailDto } from './mail/verificationMailDto';
 
 @Controller()
 export class AppController {
@@ -41,7 +42,7 @@ export class AppController {
 
   @Post('testmail')
   @Public()
-  testmail() {
-    return this.mail.sendMail();
+  testmail(@Body() dto: VerificationMailDto) {
+    return this.mail.sendVerificationMail(dto);
   }
 }

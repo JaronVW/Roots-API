@@ -4,6 +4,8 @@ import { UsersService } from '../../src/users/users.service';
 import argon2 = require('argon2');
 import { OrganisationsService } from '../../src/organisations/organisations.service';
 import { SignUpDto } from './dto/signUpDto';
+import { PrismaClientService } from 'src/prisma-client/prisma-client.service';
+import randomString = require('randomstring');
 
 @Injectable()
 export class AuthenticationService {
@@ -11,6 +13,7 @@ export class AuthenticationService {
     private readonly userService: UsersService,
     private readonly organisationsService: OrganisationsService,
     private jwtService: JwtService,
+    private readonly Prisma: PrismaClientService,
   ) {}
 
   async validateUser(username: string, password: string): Promise<any> {
@@ -38,8 +41,17 @@ export class AuthenticationService {
         lastName: signUpDto.lastName,
         organisation: { connect: { id: organisation.id } },
       });
+      if (data != null) {
+        await this.Prisma.verificationRequest.create({
+          data: {
+            email: data.email,
+            token: randomString.generate({ length: 128 }),
+          },
+        });
+      }
       return { id: data.id, username: data.email, organisationId: data.organisationId };
     } catch (error) {
+      console.log(error);
       if (error.code == 'P2002') throw new BadRequestException('email is already in use');
       if (error instanceof NotFoundException) throw error;
       throw new BadRequestException('Something went wrong');

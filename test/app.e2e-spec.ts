@@ -7,7 +7,6 @@ import { User, Event, Organisation, Prisma } from '@prisma/client';
 import { useContainer } from 'class-validator';
 import { SignUpDto } from 'src/authentication/dto/signUpDto';
 import argon2 = require('argon2');
-import * as fs from 'fs';
 import { join } from 'path';
 
 describe('AppController (e2e)', () => {

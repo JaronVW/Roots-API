@@ -50,10 +50,10 @@ jobs:
       #     npx prisma migrate deploy
       #     npx prisma db seed
 
-      - name: Install Railway
-        run: npm i -g @railway/cli
+      # - name: Install Railway
+      #   run: npm i -g @railway/cli
 
-      - name: Deploy
-        run: railway up
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      # - name: Deploy
+      #   run: railway up
+      #   env:
+      #     RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}

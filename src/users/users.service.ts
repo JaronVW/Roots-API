@@ -4,7 +4,6 @@ import { PrismaClientService } from '../../src/prisma-client/prisma-client.servi
 
 @Injectable()
 export class UsersService {
-  
   constructor(private readonly prisma: PrismaClientService) {}
 
   async findOne(username: string): Promise<User> {
@@ -56,7 +55,14 @@ export class UsersService {
     }
   }
 
-  update(arg0: { where: { email: string; }; data: { isActive: boolean; }; }) {
-    throw new Error('Method not implemented.');
+  async update(email: string): Promise<boolean> {
+    return this.prisma.user
+      .update({ where: { email }, data: { isActive: true } })
+      .then(() => {
+        return true;
+      })
+      .catch(() => {
+        return false;
+      });
   }
 }

@@ -15,6 +15,8 @@ import { UsersController } from './users/users.controller';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { MailModule } from './mail/mail.module';
+import { VerificationRequestService } from './verification-request/verification-request.service';
+import { VerificationRequestModule } from './verification-request/verification-request.module';
 @Module({
   imports: [
     ConfigModule.forRoot(),
@@ -25,6 +27,7 @@ import { MailModule } from './mail/mail.module';
     UsersModule,
     AuthenticationModule,
     MailModule,
+    VerificationRequestModule,
   ],
   controllers: [AppController, FilesController, UsersController],
   providers: [
@@ -33,6 +36,7 @@ import { MailModule } from './mail/mail.module';
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
     },
+    VerificationRequestService,
   ],
 })
 export class AppModule {}

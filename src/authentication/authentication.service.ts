@@ -8,6 +8,7 @@ import { PrismaClientService } from 'src/prisma-client/prisma-client.service';
 import randomString = require('randomstring');
 import { MailService } from 'src/mail/mail.service';
 import { VerificationMailDto } from 'src/mail/verificationMailDto';
+import { VerificationRequestService } from 'src/verification-request/verification-request.service';
 
 @Injectable()
 export class AuthenticationService {
@@ -17,6 +18,7 @@ export class AuthenticationService {
     private jwtService: JwtService,
     private readonly Prisma: PrismaClientService,
     private readonly mailService: MailService,
+    private readonly verificationRequestService: VerificationRequestService,
   ) {}
 
   async validateUser(username: string, password: string): Promise<any> {
@@ -69,11 +71,13 @@ export class AuthenticationService {
     };
   }
 
-  verifyAccount(token: string) {
-    this.Prisma.verificationRequest.findFirst({ where: { token } }).then((data) => {
+  async verifyAccount(token: string) {
+    this.verificationRequestService.getEmail(token).then((data) => {
       if (data == null) throw new NotFoundException('Verification token not found');
-      if (data.expires < new Date()) throw new BadRequestException('Verification token expired');
-      this.userService.update({ where: { email: data.email }, data: { isActive: true } });
+      // if (data.expires < new Date()) throw new BadRequestException('Verification token expired');
+      if (this.userService.update(data.email)) {
+        this.verificationRequestService.deleteRequest(data.email);
+      }
     });
   }
 

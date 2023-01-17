@@ -9,12 +9,14 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { OrganisationsModule } from 'src/organisations/organisations.module';
 import { MailModule } from 'src/mail/mail.module';
 import { AuthenticationController } from './authentication.controller';
+import { VerificationRequestModule } from 'src/verification-request/verification-request.module';
 
 @Module({
   imports: [
     UsersModule,
     OrganisationsModule,
     PassportModule,
+    VerificationRequestModule,
     JwtModule.register({
       secret: jwtConstants.secret,
       signOptions: { expiresIn: '1d' },

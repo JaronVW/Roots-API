@@ -6,6 +6,8 @@ import { OrganisationsService } from '../../src/organisations/organisations.serv
 import { SignUpDto } from './dto/signUpDto';
 import { PrismaClientService } from 'src/prisma-client/prisma-client.service';
 import randomString = require('randomstring');
+import { MailService } from 'src/mail/mail.service';
+import { VerificationMailDto } from 'src/mail/verificationMailDto';
 
 @Injectable()
 export class AuthenticationService {
@@ -14,6 +16,7 @@ export class AuthenticationService {
     private readonly organisationsService: OrganisationsService,
     private jwtService: JwtService,
     private readonly Prisma: PrismaClientService,
+    private readonly mailService: MailService,
   ) {}
 
   async validateUser(username: string, password: string): Promise<any> {
@@ -26,7 +29,7 @@ export class AuthenticationService {
     throw new UnauthorizedException('Invalid credentials');
   }
 
-  async generateUser(signUpDto: SignUpDto): Promise<{ id: number; username: string; organisationId: number }> {
+  async generateUser(signUpDto: SignUpDto): Promise<string> {
     try {
       const organisation = await this.organisationsService
         .findOne({ domainName: signUpDto.username.split('@').pop().toLowerCase() })
@@ -42,14 +45,15 @@ export class AuthenticationService {
         organisation: { connect: { id: organisation.id } },
       });
       if (data != null) {
+        const token = randomString.generate({ length: 128 });
         await this.Prisma.verificationRequest.create({
-          data: {
-            email: data.email,
-            token: randomString.generate({ length: 128 }),
-          },
+          data: { email: data.email, token },
+        });
+        return await this.mailService.sendVerificationMail({
+          to: data.email,
+          verificationCode: token,
         });
       }
-      return { id: data.id, username: data.email, organisationId: data.organisationId };
     } catch (error) {
       console.log(error);
       if (error.code == 'P2002') throw new BadRequestException('email is already in use');

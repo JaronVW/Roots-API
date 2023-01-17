@@ -34,7 +34,8 @@ export class AppController {
   async register(@Body() signUpDto: SignUpDto) {
     try {
       const user = await this.authenticationService.generateUser(signUpDto);
-      return this.authenticationService.login(user);
+      console.log(user);
+      // return this.authenticationService.login(user);
     } catch (error) {
       throw error;
     }

@@ -15,7 +15,7 @@ export class MailService {
         template: './welcome',
         context: {
           to: dto.to,
-          verificationCode: dto.verificationCode,
+          verificationCode: `${process.env.BASE_URL}/${dto.verificationCode}`,
         },
       });
       return "Mail sent!"

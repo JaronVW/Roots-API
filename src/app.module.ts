@@ -7,7 +7,7 @@ import { TagsModule } from './tags/tags.module';
 import { OrganisationsModule } from './organisations/organisations.module';
 import { UsersModule } from './users/users.module';
 import { ConfigModule } from '@nestjs/config';
-import { authenticationModule } from './authentication/authentication.module';
+import { AuthenticationModule } from './authentication/authentication.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './authentication/guards/jwt-auth.guard';
 import { FilesController } from './files/files.controller';
@@ -23,7 +23,7 @@ import { MailModule } from './mail/mail.module';
     TagsModule,
     OrganisationsModule,
     UsersModule,
-    authenticationModule,
+    AuthenticationModule,
     MailModule,
   ],
   controllers: [AppController, FilesController, UsersController],

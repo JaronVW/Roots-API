@@ -12,10 +12,10 @@ export class MailService {
         to: dto.to,
         from: 'noreply@Roots.com',
         subject: 'Verifiëer uw account',
-        template: './welcome',
+        template: './verificationEmailTemplate',
         context: {
           to: dto.to,
-          verificationCode: `${process.env.BASE_URL}/${dto.verificationCode}`,
+          verificationLink: `${process.env.BASE_URL}/auth/verify/${dto.verificationCode}`,
         },
       });
       return "Mail sent!"

@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Post, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Render, Request, UseGuards } from '@nestjs/common';
 import { Public } from 'src/decorators/Public';
 import { SignUpDto } from './dto/signUpDto';
 import { LocalAuthGuard } from './guards/local-auth-guard';
@@ -7,10 +7,7 @@ import { AuthenticationService } from './authentication.service';
 
 @Controller('auth')
 export class AuthenticationController {
-  constructor(
-    private readonly authenticationService: AuthenticationService,
-    private readonly mail: MailService,
-  ) {}
+  constructor(private readonly authenticationService: AuthenticationService, private readonly mail: MailService) {}
 
   @UseGuards(LocalAuthGuard)
   @Post('login')
@@ -31,14 +28,21 @@ export class AuthenticationController {
     }
   }
 
-    @Post('verify/:token')
-    @Public()
-    async verify(@Param() token: string) {
-      try {
-        const user = await this.authenticationService.verifyAccount(token);
-        return this.authenticationService.login(user);
-      } catch (error) {
-        throw error;
-      }
+  @Get('verify/:token')
+  @Public()
+  @Render('verification')
+  async verify(@Param() token: { token: string }) {
+    try {
+      await this.authenticationService
+        .verifyAccount(token.token)
+        .then(() => {
+          return { message: 'Account verified!' };
+        })
+        .catch(() => {
+          return { message: 'Something went wrong while verifying your account' };
+        });
+    } catch (error) {
+      throw error;
     }
+  }
 }

@@ -4,6 +4,7 @@ import { PrismaClientService } from '../../src/prisma-client/prisma-client.servi
 
 @Injectable()
 export class UsersService {
+  
   constructor(private readonly prisma: PrismaClientService) {}
 
   async findOne(username: string): Promise<User> {
@@ -53,5 +54,9 @@ export class UsersService {
     } catch (error) {
       throw new BadRequestException("Can't retrieve users");
     }
+  }
+
+  update(arg0: { where: { email: string; }; data: { isActive: boolean; }; }) {
+    throw new Error('Method not implemented.');
   }
 }

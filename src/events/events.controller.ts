@@ -107,6 +107,4 @@ export class EventsController {
   async unarchive(@Param('id') id: string, @Request() req): Promise<Event> {
     return this.eventsService.unarchive({ id: Number(id) }, req.user.organisationId);
   }
-
-
 }

@@ -69,6 +69,14 @@ export class AuthenticationService {
     };
   }
 
+  verifyAccount(token: string) {
+    this.Prisma.verificationRequest.findFirst({ where: { token } }).then((data) => {
+      if (data == null) throw new NotFoundException('Verification token not found');
+      if (data.expires < new Date()) throw new BadRequestException('Verification token expired');
+      this.userService.update({ where: { email: data.email }, data: { isActive: true } });
+    });
+  }
+
   decodeToken(token: string) {
     const decodedJwt = this.jwtService.decode(token.split(' ')[1]) as any;
     return decodedJwt;

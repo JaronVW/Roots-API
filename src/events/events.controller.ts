@@ -80,10 +80,15 @@ export class EventsController {
     @Request() req,
   ) {
     event.organisationId = req.user.organisationId;
+    const multimediaItems = event.multimediaItems.filter((multimediaItem) => !multimediaItem.path);
     if (files && event.multimediaItems) {
       for (let i = 0; i < files.length; i++) {
-        event.multimediaItems.filter((multimediaItem) => !multimediaItem.path)[i].multimedia = files[i].originalname;
-        event.multimediaItems.filter((multimediaItem) => !multimediaItem.path)[i].path = files[i].filename;
+        event.multimediaItems.find(
+          (multimediaItem) => multimediaItem.multimedia == multimediaItems[i].multimedia,
+        ).multimedia = files[i].originalname;
+        event.multimediaItems.find(
+          (multimediaItem) => multimediaItem.multimedia == multimediaItems[i].multimedia,
+        ).path = files[i].filename;
       }
     }
     return this.eventsService.update({
@@ -107,6 +112,4 @@ export class EventsController {
   async unarchive(@Param('id') id: string, @Request() req): Promise<Event> {
     return this.eventsService.unarchive({ id: Number(id) }, req.user.organisationId);
   }
-
-
 }

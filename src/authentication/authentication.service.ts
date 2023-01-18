@@ -9,6 +9,8 @@ import randomString = require('randomstring');
 import { MailService } from 'src/mail/mail.service';
 import { VerificationMailDto } from 'src/mail/verificationMailDto';
 import { VerificationRequestService } from 'src/verification-request/verification-request.service';
+import { DateTime } from 'luxon';
+import { ResetPasswordRequestService } from 'src/reset-password-request/reset-password-request.service';
 
 @Injectable()
 export class AuthenticationService {
@@ -19,6 +21,7 @@ export class AuthenticationService {
     private readonly Prisma: PrismaClientService,
     private readonly mailService: MailService,
     private readonly verificationRequestService: VerificationRequestService,
+    private readonly resetPasswordRequestService: ResetPasswordRequestService,
   ) {}
 
   async validateUser(username: string, password: string): Promise<any> {
@@ -48,9 +51,11 @@ export class AuthenticationService {
       });
       if (data != null) {
         const token = randomString.generate({ length: 128 });
-        await this.Prisma.verificationRequest.create({
-          data: { email: data.email, token },
-        });
+        await this.verificationRequestService.createRequest(
+          data.email,
+          token,
+          DateTime.now().plus({ minutes: 30 }).toJSDate(),
+        );
         return await this.mailService.sendVerificationMail({
           to: data.email,
           verificationCode: token,
@@ -72,7 +77,7 @@ export class AuthenticationService {
   }
 
   async verifyAccount(token: string) {
-    this.verificationRequestService.getEmail(token).then((data) => {
+    this.verificationRequestService.getPasswordRequest(token).then((data) => {
       if (data == null) throw new NotFoundException('Verification token not found');
       // if (data.expires < new Date()) throw new BadRequestException('Verification token expired');
       if (this.userService.update(data.email)) {
@@ -81,8 +86,35 @@ export class AuthenticationService {
     });
   }
 
-  decodeToken(token: string) {
-    const decodedJwt = this.jwtService.decode(token.split(' ')[1]) as any;
-    return decodedJwt;
+  async resetPasswordSendMail(email: string) {
+    try {
+      const token = randomString.generate({ length: 128 });
+      // console.log(token);
+      await this.resetPasswordRequestService.generatePasswordRequest(
+        email,
+        token,
+        DateTime.now().plus({ minutes: 30 }).toJSDate(),
+      );
+      await this.mailService.sendPasswordResetMail({ to: email, verificationCode: token });
+      return { statucCode: 200, message: 'Mail sent' };
+    } catch (error) {
+      console.log(error);
+      throw new BadRequestException('Something went wrong');
+    }
+  }
+
+  async resetPassword(token: string, password: string) {
+    try {
+      const data = await this.resetPasswordRequestService.getEmail(token);
+      if (data == null) throw new NotFoundException('Token not found');
+      if (data.expires < new Date()) throw new BadRequestException('Token expired');
+      const hash = await argon2.hash(password);
+      await this.userService.updatePassword(data.email, hash);
+      await this.resetPasswordRequestService.deleteRequest(data.email);
+      return { statucCode: 200, message: 'Password changed' };
+    } catch (error) {
+      console.log(error);
+      throw new BadRequestException('Something went wrong');
+    }
   }
 }

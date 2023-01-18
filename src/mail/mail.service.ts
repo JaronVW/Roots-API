@@ -18,7 +18,24 @@ export class MailService {
           verificationLink: `${process.env.BASE_URL}/auth/verify/${dto.verificationCode}`,
         },
       });
-      return "Mail sent!"
+      return 'Mail sent!';
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async sendPasswordResetMail(dto: VerificationMailDto) {
+    try {
+      await this.mailerService.sendMail({
+        to: dto.to,
+        from: 'noreply@Roots.com',
+        subject: 'Reset uw wachtwoord',
+        template: './passwordResetEmailTemplate',
+        context: {
+          to: dto.to,
+          verificationLink: `${process.env.BASE_URL_CLIENT}/passwordreset/${dto.verificationCode}`,
+        },
+      });
     } catch (error) {
       throw error;
     }

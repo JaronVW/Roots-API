@@ -6,7 +6,7 @@ CREATE TABLE `User` (
     `firstName` VARCHAR(100) NOT NULL,
     `lastName` VARCHAR(100) NOT NULL,
     `organisationId` INTEGER NOT NULL,
-    `isActive` BOOLEAN NOT NULL DEFAULT true,
+    `isActive` BOOLEAN NOT NULL DEFAULT false,
 
     UNIQUE INDEX `User_email_key`(`email`),
     PRIMARY KEY (`id`)
@@ -63,6 +63,30 @@ CREATE TABLE `Organisation` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
+CREATE TABLE `verificationRequest` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `email` VARCHAR(191) NOT NULL,
+    `token` VARCHAR(191) NOT NULL,
+    `expires` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    UNIQUE INDEX `verificationRequest_email_key`(`email`),
+    UNIQUE INDEX `verificationRequest_token_key`(`token`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `ResetPasswordRequest` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `email` VARCHAR(191) NOT NULL,
+    `token` VARCHAR(191) NOT NULL,
+    `expires` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    UNIQUE INDEX `ResetPasswordRequest_email_key`(`email`),
+    UNIQUE INDEX `ResetPasswordRequest_token_key`(`token`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
 CREATE TABLE `_EventToTag` (
     `A` INTEGER NOT NULL,
     `B` INTEGER NOT NULL,
@@ -85,6 +109,12 @@ ALTER TABLE `Tag` ADD CONSTRAINT `Tag_organisationId_fkey` FOREIGN KEY (`organis
 
 -- AddForeignKey
 ALTER TABLE `Multimedia` ADD CONSTRAINT `Multimedia_eventId_fkey` FOREIGN KEY (`eventId`) REFERENCES `Event`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `verificationRequest` ADD CONSTRAINT `verificationRequest_email_fkey` FOREIGN KEY (`email`) REFERENCES `User`(`email`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `ResetPasswordRequest` ADD CONSTRAINT `ResetPasswordRequest_email_fkey` FOREIGN KEY (`email`) REFERENCES `User`(`email`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `_EventToTag` ADD CONSTRAINT `_EventToTag_A_fkey` FOREIGN KEY (`A`) REFERENCES `Event`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;

@@ -4,6 +4,9 @@ import { SignUpDto } from './dto/signUpDto';
 import { LocalAuthGuard } from './guards/local-auth-guard';
 import { MailService } from 'src/mail/mail.service';
 import { AuthenticationService } from './authentication.service';
+import { IsDateString, IsNotEmpty, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
+import { emailDto } from './dto/emailDto';
+import { resetPasswordDto } from './dto/resetPasswordDto';
 
 @Controller('auth')
 export class AuthenticationController {
@@ -41,6 +44,26 @@ export class AuthenticationController {
         .catch(() => {
           return { message: 'Something went wrong while verifying your account' };
         });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @Get('reset-password')
+  @Public()
+  async resetPassword(@Body() dto: emailDto) {
+    try {
+      return await this.authenticationService.resetPasswordSendMail(dto.email);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @Post('reset-password/:token')
+  @Public()
+  async resetPasswordWithToken(@Param() token: { token: string }, @Body() dto: resetPasswordDto) {
+    try {
+      return await this.authenticationService.resetPassword(token.token, dto.password);
     } catch (error) {
       throw error;
     }

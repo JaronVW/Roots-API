@@ -10,6 +10,7 @@ import { OrganisationsModule } from 'src/organisations/organisations.module';
 import { MailModule } from 'src/mail/mail.module';
 import { AuthenticationController } from './authentication.controller';
 import { VerificationRequestModule } from 'src/verification-request/verification-request.module';
+import { ResetPasswordRequestModule } from 'src/reset-password-request/reset-password-request.module';
 
 @Module({
   imports: [
@@ -21,7 +22,8 @@ import { VerificationRequestModule } from 'src/verification-request/verification
       secret: jwtConstants.secret,
       signOptions: { expiresIn: '1d' },
     }),
-    MailModule
+    MailModule,
+    ResetPasswordRequestModule
   ],
   providers: [AuthenticationService, LocalStrategy, JwtStrategy],
   exports: [AuthenticationService],

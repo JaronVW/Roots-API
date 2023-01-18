@@ -17,6 +17,7 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
 import { MailModule } from './mail/mail.module';
 import { VerificationRequestService } from './verification-request/verification-request.service';
 import { VerificationRequestModule } from './verification-request/verification-request.module';
+import { ResetPasswordRequestModule } from './reset-password-request/reset-password-request.module';
 @Module({
   imports: [
     ConfigModule.forRoot(),
@@ -28,6 +29,7 @@ import { VerificationRequestModule } from './verification-request/verification-r
     AuthenticationModule,
     MailModule,
     VerificationRequestModule,
+    ResetPasswordRequestModule,
   ],
   controllers: [AppController, FilesController, UsersController],
   providers: [

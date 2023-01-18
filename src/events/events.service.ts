@@ -129,6 +129,7 @@ export class EventsService {
         data: {
           ...event,
           tags: {
+            set: [],
             connectOrCreate: event.tags.map((tag) => ({
               where: { unique_tag_organisation: { subject: tag.subject, organisationId: event.organisationId } },
               create: { subject: tag.subject, organisationId: event.organisationId },

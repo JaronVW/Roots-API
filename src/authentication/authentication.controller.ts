@@ -1,5 +1,5 @@
-import { Body, Controller, Get, Param, Patch, Post, Render, Request, UseGuards } from '@nestjs/common';
-import { Public } from 'src/decorators/Public';
+import { Body, Controller, Param, Patch, Post, Request, UseGuards } from '@nestjs/common';
+import { Public } from '../decorators/Public';
 import { SignUpDto } from './dto/signUpDto';
 import { LocalAuthGuard } from './guards/local-auth-guard';
 import { MailService } from '../mail/mail.service';

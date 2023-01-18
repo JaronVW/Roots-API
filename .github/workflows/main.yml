@@ -2,7 +2,7 @@ name: Roots API CI
 
 on:
   push:
-    branches: ['main']
+    branches: ['main', 'development']
   pull_request:
     branches: ['main']
 
@@ -24,6 +24,18 @@ jobs:
           mysql -e 'CREATE DATABASE $DB_DATABASE;' -u$DB_USER -p$DB_PASSWORD
 
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
+      - uses: sonarsource/sonarqube-scan-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+      # If you wish to fail your job when the Quality Gate is red, uncomment the
+      # following lines. This would typically be used to fail a deployment.
+      # - uses: sonarsource/sonarqube-quality-gate-action@master
+      #   timeout-minutes: 5
+      #   env:
+      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
       - name: Set up Node.js version
         uses: actions/setup-node@v3
@@ -42,17 +54,18 @@ jobs:
           npx prisma migrate deploy
           npm run test:e2e:workflow
 
-      - name: Update cloud database
-        env:
-          DATABASE_URL: ${{ secrets.RAILWAY_DATABASE_URL }}
-        run: |
-          npx prisma generate
-          npx prisma migrate deploy
+      # - name: Update cloud database
+      #   env:
+      #     DATABASE_URL: ${{ secrets.RAILWAY_DATABASE_URL }}
+      #   run: |
+      #     npx prisma generate
+      #     npx prisma migrate deploy
+      #     npx prisma db seed
 
-      - name: Install Railway
-        run: npm i -g @railway/cli
+      # - name: Install Railway
+      #   run: npm i -g @railway/cli
 
-      - name: Deploy
-        run: railway up
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      # - name: Deploy
+      #   run: railway up
+      #   env:
+      #     RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}

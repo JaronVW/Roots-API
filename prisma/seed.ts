@@ -110,7 +110,7 @@ async function main() {
             description:
               'We gaan meer teams in een BV toestaan. Dit is een experiment om te kijken of dit de productiviteit verhoogt.',
             content:
-              '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque egestas orci a urna vestibulum, vel blandit felis aliquet. Pellentesque posuere turpis ut ultrices fringilla. Donec interdum nisl quis sem mattis, ac finibus elit ultrices. Duis efficitur faucibus luctus. Nam porta scelerisque urna, ut eleifend leo facilisis vel. Maecenas non quam pellentesque, maximus libero quis, gravida elit. Pellentesque ac ornare nisl, sit amet consequat eros. Mauris lorem justo, ullamcorper nec pretium id, eleifend vel leo. \nVivamus nec sagittis lorem. Mauris vitae suscipit lectus. Duis tortor ipsum, fermentum id ante non, ullamcorper hendrerit lectus. Vivamus semper velit sit amet libero ultricies aliquam. Integer a dictum ex, et gravida tortor. Integer cursus neque sed consectetur tincidunt. In porttitor aliquet lorem vitae rhoncus. Vivamus non libero cursus, accumsan dolor a, pharetra risus. Duis dignissim metus ut lorem consequat, ac sodales libero cursus. Fusce pharetra maximus fringilla. Sed tempus dignissim odio ut molestie. In sit amet bibendum urna, at euismod risus. Duis hendrerit velit ac tellus placerat, et sodales ex sollicitudin.</p>',
+              '<p>Naar aanleiding van de iets lagere productiviteit dan gewent in 2020, gaan we experimenteren met het aantal teams. Als begin staan we een aantal meer teams toe (ongeveer 5-8) in een BV. Als dit negatief effect heeft op de efficiëntie, dan zal dit terug verlaagt worden.</p><p>Als mensen hier bezwaar tegen hebben kunnen ze bij een leidinggevende hun mening laten weten. Dit zal dan in consideratie genomen worden.</p>',
             dateOfEvent: new Date('2021-01-01T00:00:00.000Z'),
             tags: {
               connectOrCreate: [
@@ -134,7 +134,7 @@ async function main() {
             title: 'Nieuw kantoor',
             description: 'We zijn verhuisd naar een nieuwe locatie, het nieuwe kantoor is in Breda.',
             content:
-              '<p>Nulla nec metus sit amet tortor fermentum faucibus. Pellentesque rhoncus eros a elit venenatis, a facilisis augue venenatis. Phasellus ante erat, lacinia id odio lacinia, condimentum finibus magna. Pellentesque viverra, leo in accumsan tincidunt, lacus odio sagittis nibh, vulputate posuere nisl justo ut eros. Ut mattis arcu eget semper tempor. Cras feugiat quis sem at efficitur. Nulla facilisi.</p>',
+              '<p>De oude locatie in Etten-Leur zal nog toegankelijk zijn voor een aantal dagen, check of je al je bezittingen mee hebt genomen!</p>',
             dateOfEvent: new Date('2019-05-01T00:00:00.000Z'),
             tags: {
               connectOrCreate: [
@@ -179,7 +179,7 @@ async function main() {
             description:
               'We gaan het aantal mensen per team verminderen naar twintig mensen. Dit zal de communicatie tussen de teams en de efficiëntie van de organisatie verbeteren.',
             content:
-              '</p>Proin rhoncus dapibus quam, at tempus ante semper sit amet. Suspendisse pretium sed nunc sed tempor. Phasellus sagittis posuere tempor. In commodo eros sed massa blandit, eu volutpat metus ornare. Etiam libero nisi, facilisis vitae ante sodales, faucibus fermentum neque. Ut et eleifend turpis. Donec vehicula mi purus, sit amet efficitur nibh molestie quis. Proin quis lectus quis odio sagittis vehicula. Cras a purus eget dui efficitur suscipit. Sed a velit leo. \nUt ut urna risus. In eleifend lectus sit amet facilisis consequat. Phasellus malesuada faucibus turpis, a ornare quam consectetur ut. Donec egestas aliquet dui, ac eleifend tellus imperdiet at. Quisque rhoncus tincidunt ipsum. Maecenas nec imperdiet libero, ut iaculis mauris. Sed ac gravida magna, semper elementum neque. Interdum et malesuada fames ac ante ipsum primis in faucibus. Fusce non imperdiet magna, vitae lobortis sapien. Duis sodales eu justo quis feugiat. Vestibulum massa magna, malesuada ut nisi eget, feugiat maximus urna. Sed maximus tellus sit amet est porttitor, vitae efficitur arcu iaculis. Curabitur porttitor mi interdum mauris scelerisque rutrum. Curabitur nec mauris tempus, bibendum est in, pulvinar mauris. Nulla commodo nibh diam, a hendrerit turpis faucibus ut.</p>',
+              '</p>Uit vorig onderzoek blijkt dat mensen het als chaotisch en ongeorganiseerd ervaren wanneer er te veel mensen in een team zitten. Hierom hebben we het aantal mensen per team verlaagt naar twintig mensen.</p>',
             dateOfEvent: new Date('2008-12-11T00:00:00.000Z'),
             tags: {
               connectOrCreate: [

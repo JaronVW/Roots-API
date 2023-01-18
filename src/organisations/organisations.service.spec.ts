@@ -1,6 +1,6 @@
 import { Test } from '@nestjs/testing';
 import { OrganisationsService } from './organisations.service';
-import { PrismaClientService } from '../../src/prisma-client/prisma-client.service';
+import { PrismaClientService } from '../prisma-client/prisma-client.service';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { UpdateDomainNameDto } from './dto/UpdateDomainNameDto';

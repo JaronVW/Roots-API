@@ -20,6 +20,7 @@ export class MailService {
       });
       return { statusCode: 200, message: 'Mail sent' };
     } catch (error) {
+      // console.log(error);
       throw error;
     }
   }

@@ -1,16 +1,15 @@
 import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { UsersService } from '../../src/users/users.service';
+import { UsersService } from '../users/users.service';
 import argon2 = require('argon2');
-import { OrganisationsService } from '../../src/organisations/organisations.service';
+import { OrganisationsService } from '../organisations/organisations.service';
 import { SignUpDto } from './dto/signUpDto';
-import { PrismaClientService } from 'src/prisma-client/prisma-client.service';
+import { PrismaClientService } from '../prisma-client/prisma-client.service';
 import randomString = require('randomstring');
-import { MailService } from 'src/mail/mail.service';
-import { VerificationMailDto } from 'src/mail/verificationMailDto';
-import { VerificationRequestService } from 'src/verification-request/verification-request.service';
+import { MailService } from '../mail/mail.service';
+import { VerificationRequestService } from '../verification-request/verification-request.service';
 import { DateTime } from 'luxon';
-import { ResetPasswordRequestService } from 'src/reset-password-request/reset-password-request.service';
+import { ResetPasswordRequestService } from '../reset-password-request/reset-password-request.service';
 
 @Injectable()
 export class AuthenticationService {
@@ -62,7 +61,7 @@ export class AuthenticationService {
         });
       }
     } catch (error) {
-      console.log(error);
+      // console.log(error);
       if (error.code == 'P2002') throw new BadRequestException('email is already in use');
       if (error instanceof NotFoundException) throw error;
       throw new BadRequestException('Something went wrong');

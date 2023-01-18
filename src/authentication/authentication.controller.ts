@@ -1,8 +1,8 @@
-import { Body, Controller,  Param, Patch, Post,  Request, UseGuards } from '@nestjs/common';
-import { Public } from 'src/decorators/Public';
+import { Body, Controller, Param, Patch, Post, Request, UseGuards } from '@nestjs/common';
+import { Public } from '../decorators/Public';
 import { SignUpDto } from './dto/signUpDto';
 import { LocalAuthGuard } from './guards/local-auth-guard';
-import { MailService } from 'src/mail/mail.service';
+import { MailService } from '../mail/mail.service';
 import { AuthenticationService } from './authentication.service';
 import { emailDto } from './dto/emailDto';
 import { resetPasswordDto } from './dto/resetPasswordDto';

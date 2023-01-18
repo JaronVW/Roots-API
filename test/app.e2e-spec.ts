@@ -1,18 +1,20 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
-import { AppModule } from './../src/app.module';
+import { AppModule } from '../src/app.module';
 import { PrismaClientService } from 'src/prisma-client/prisma-client.service';
 import { User, Event, Organisation, Prisma } from '@prisma/client';
 import { useContainer } from 'class-validator';
 import { SignUpDto } from 'src/authentication/dto/signUpDto';
 import argon2 = require('argon2');
 import { join } from 'path';
+import { MailService } from 'src/mail/mail.service';
 
 describe('AppController (e2e)', () => {
   // delete local testdb, then run locally using npm run test:prisma:deploy && npm run test:e2e:local
   let app: INestApplication;
   let prisma: PrismaClientService;
+  let mailService: MailService;
 
   // TODO: rewrite tests with verification needed (create or update user manually (set to active), can verification email be tested?) ;-;
   // TODO: testing activating and deactivating users
@@ -20,10 +22,24 @@ describe('AppController (e2e)', () => {
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
+      // providers: [
+      //   {
+      //     provide: MailService,
+      //     useValue: {
+      //       sendVerificationMail() {
+      //         return 'Mail sent!';
+      //       },
+      //     },
+      //   },
+      // ],
     }).compile();
 
     app = moduleFixture.createNestApplication();
     prisma = app.get<PrismaClientService>(PrismaClientService);
+    mailService = app.get<MailService>(MailService);
+
+    jest.mock('src/mail/mail.service');
+    mailService.sendVerificationMail = jest.fn().mockResolvedValue('Mail sent!');
 
     useContainer(app.select(AppModule), { fallbackOnErrors: true });
     app.useGlobalPipes(new ValidationPipe());
@@ -132,9 +148,7 @@ describe('AppController (e2e)', () => {
         .send(user);
 
       expect(registerStatus).toBe(201);
-      expect(registerBody).toEqual({
-        access_token: expect.any(String),
-      });
+      expect(registerBody).toEqual({});
     });
 
     it('should create an account if the email domain is not case sensitive', async () => {
@@ -161,9 +175,7 @@ describe('AppController (e2e)', () => {
         });
 
       expect(registerStatus).toBe(201);
-      expect(registerBody).toEqual({
-        access_token: expect.any(String),
-      });
+      expect(registerBody).toEqual({});
     });
 
     it('should create an account if there is another account with the same first and last name', async () => {
@@ -182,9 +194,7 @@ describe('AppController (e2e)', () => {
         .send(user);
 
       expect(registerStatus).toBe(201);
-      expect(registerBody).toEqual({
-        access_token: expect.any(String),
-      });
+      expect(registerBody).toEqual({});
 
       const { status: registerStatus2, body: registerBody2 } = await request(app.getHttpServer())
         .post('/auth/register')
@@ -196,9 +206,10 @@ describe('AppController (e2e)', () => {
         });
 
       expect(registerStatus2).toBe(201);
-      expect(registerBody2).toEqual({
-        access_token: expect.any(String),
-      });
+      expect(registerBody2).toEqual({});
+
+      const count = await prisma.user.count({ where: { firstName: user.firstName, lastName: user.lastName } });
+      expect(count).toBe(2);
     });
 
     it('should not create an account if there are no organisations', async () => {
@@ -271,8 +282,11 @@ describe('AppController (e2e)', () => {
         .send(user);
 
       expect(registerStatus).toBe(201);
-      expect(registerBody).toEqual({
-        access_token: expect.any(String),
+      expect(registerBody).toEqual({});
+
+      await prisma.user.update({
+        where: { email: user.username },
+        data: { isActive: true },
       });
 
       const { status: loginStatus, body: loginBody } = await request(app.getHttpServer()).post('/auth/login').send({
@@ -319,6 +333,7 @@ describe('AppController (e2e)', () => {
           firstName: 'exampleFirstName',
           lastName: 'exampleLastName',
           organisationId: organisation.id,
+          isActive: true,
         },
       });
 
@@ -329,6 +344,7 @@ describe('AppController (e2e)', () => {
           firstName: 'exampleFirstName',
           lastName: 'exampleLastName',
           organisationId: organisation.id,
+          isActive: true,
         },
       });
 
@@ -339,6 +355,7 @@ describe('AppController (e2e)', () => {
           firstName: 'exampleFirstName',
           lastName: 'exampleLastName',
           organisationId: otherOrganisation.id,
+          isActive: true,
         },
       });
 
@@ -845,6 +862,7 @@ describe('AppController (e2e)', () => {
           firstName: 'exampleFirstName',
           lastName: 'exampleLastName',
           organisationId: organisation.id,
+          isActive: true,
         },
       });
 
@@ -855,6 +873,7 @@ describe('AppController (e2e)', () => {
           firstName: 'exampleFirstName',
           lastName: 'exampleLastName',
           organisationId: organisation.id,
+          isActive: true,
         },
       });
 
@@ -865,6 +884,7 @@ describe('AppController (e2e)', () => {
           firstName: 'exampleFirstName',
           lastName: 'exampleLastName',
           organisationId: otherOrganisation.id,
+          isActive: true,
         },
       });
 
@@ -1456,6 +1476,7 @@ describe('AppController (e2e)', () => {
           firstName: 'exampleFirstName',
           lastName: 'exampleLastName',
           organisationId: organisation.id,
+          isActive: true,
         },
       });
 
@@ -1466,6 +1487,7 @@ describe('AppController (e2e)', () => {
           firstName: 'exampleFirstName',
           lastName: 'exampleLastName',
           organisationId: otherOrganisation.id,
+          isActive: true,
         },
       });
 
@@ -1709,6 +1731,7 @@ describe('AppController (e2e)', () => {
           },
           firstName: 'newUser',
           lastName: 'newUser',
+          isActive: true,
         },
       });
 

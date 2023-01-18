@@ -1,5 +1,5 @@
 import { Test } from '@nestjs/testing';
-import { PrismaClientService } from '../../src/prisma-client/prisma-client.service';
+import { PrismaClientService } from '../prisma-client/prisma-client.service';
 import { EventsService } from './events.service';
 import { EventsCreateDto } from './dto/events.dto';
 import { NotFoundException } from '@nestjs/common/exceptions';

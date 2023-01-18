@@ -63,14 +63,14 @@ CREATE TABLE `Organisation` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `verificationRequest` (
+CREATE TABLE `VerificationRequest` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `email` VARCHAR(191) NOT NULL,
     `token` VARCHAR(191) NOT NULL,
     `expires` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
-    UNIQUE INDEX `verificationRequest_email_key`(`email`),
-    UNIQUE INDEX `verificationRequest_token_key`(`token`),
+    UNIQUE INDEX `VerificationRequest_email_key`(`email`),
+    UNIQUE INDEX `VerificationRequest_token_key`(`token`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -111,7 +111,7 @@ ALTER TABLE `Tag` ADD CONSTRAINT `Tag_organisationId_fkey` FOREIGN KEY (`organis
 ALTER TABLE `Multimedia` ADD CONSTRAINT `Multimedia_eventId_fkey` FOREIGN KEY (`eventId`) REFERENCES `Event`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `verificationRequest` ADD CONSTRAINT `verificationRequest_email_fkey` FOREIGN KEY (`email`) REFERENCES `User`(`email`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `VerificationRequest` ADD CONSTRAINT `VerificationRequest_email_fkey` FOREIGN KEY (`email`) REFERENCES `User`(`email`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `ResetPasswordRequest` ADD CONSTRAINT `ResetPasswordRequest_email_fkey` FOREIGN KEY (`email`) REFERENCES `User`(`email`) ON DELETE CASCADE ON UPDATE CASCADE;

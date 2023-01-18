@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { verificationRequest } from '@prisma/client';
-import { PrismaClientService } from 'src/prisma-client/prisma-client.service';
+import { VerificationRequest } from '@prisma/client';
+import { PrismaClientService } from '../prisma-client/prisma-client.service';
 
 @Injectable()
 export class VerificationRequestService {
   constructor(private readonly prismaClient: PrismaClientService) {}
 
-  async getPasswordRequest(token: string): Promise<verificationRequest> {
+  async getPasswordRequest(token: string): Promise<VerificationRequest> {
     return this.prismaClient.verificationRequest.findFirst({ where: { token } });
   }
 
@@ -23,7 +23,7 @@ export class VerificationRequestService {
 
   async createRequest(email: string, token: string, expires: Date): Promise<boolean> {
     return this.prismaClient.verificationRequest
-      .create({ data: { email, token,expires } })
+      .create({ data: { email, token, expires } })
       .then(() => {
         return true;
       })

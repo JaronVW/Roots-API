@@ -80,7 +80,8 @@ export class AuthenticationService {
       if (data == null) throw new NotFoundException('Verification token not found');
       // if (data.expires < new Date()) throw new BadRequestException('Verification token expired');
       if (this.userService.update(data.email)) {
-        this.verificationRequestService.deleteRequest(data.email);
+        return;
+        // this.verificationRequestService.deleteRequest(data.email);
       }
     });
   }

@@ -53,6 +53,7 @@ async function main() {
       password: await argon2.hash('Secret12#'),
       firstName: 'Jaron',
       lastName: 'van Well',
+      isActive: true,
       organisation: {
         connect: {
           id: organisation1.id,
@@ -98,6 +99,8 @@ async function main() {
       password: await argon2.hash('Secret12#'),
       firstName: 'Joy',
       lastName: 'Boellaard',
+      isActive: true,
+
       organisation: {
         connect: {
           id: organisation1.id,
@@ -167,6 +170,8 @@ async function main() {
       password: await argon2.hash('Secret12#'),
       firstName: 'Lucas',
       lastName: 'de Kleijn',
+      isActive: true,
+
       organisation: {
         connect: {
           id: organisation1.id,
@@ -217,6 +222,8 @@ async function main() {
       password: await argon2.hash('Secret12#'),
       firstName: 'Matthijs',
       lastName: 'Feringa',
+      isActive: true,
+
       organisation: {
         connect: {
           id: organisation1.id,
@@ -233,6 +240,8 @@ async function main() {
       password: await argon2.hash('Secret12#'),
       firstName: 'Thomas',
       lastName: 'van Otterloo',
+      isActive: true,
+
       organisation: {
         connect: {
           id: organisation1.id,
@@ -249,6 +258,8 @@ async function main() {
       password: await argon2.hash('Secret12#'),
       firstName: 'Timothy',
       lastName: 'Borghouts',
+      isActive: true,
+
       organisation: {
         connect: {
           id: organisation1.id,

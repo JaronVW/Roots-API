@@ -6,20 +6,19 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
 @Module({
   imports: [
     MailerModule.forRoot({
-        
       transport: {
         host: process.env.EMAIL_HOST,
         port: Number(process.env.EMAIL_PORT),
         ignoreTLS: true,
         secure: true,
         auth: {
-            user: process.env.EMAIL_ID,
-            pass: process.env.EMAIL_PASS
+          user: process.env.EMAIL_ID,
+          pass: process.env.EMAIL_PASS,
         },
       },
       // preview: true,
       template: {
-        dir:  './templates',
+        dir: './templates',
         adapter: new HandlebarsAdapter(),
         options: {
           strict: true,
@@ -28,6 +27,6 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
     }),
   ],
   providers: [MailService],
-  exports: [MailService]
+  exports: [MailService],
 })
 export class MailModule {}

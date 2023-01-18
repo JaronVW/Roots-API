@@ -1,10 +1,9 @@
 import { Body, Controller, Get, Param, Post, Render, Request, UseGuards } from '@nestjs/common';
-import { Public } from 'src/decorators/Public';
+import { Public } from '../decorators/Public';
 import { SignUpDto } from './dto/signUpDto';
 import { LocalAuthGuard } from './guards/local-auth-guard';
-import { MailService } from 'src/mail/mail.service';
+import { MailService } from '../mail/mail.service';
 import { AuthenticationService } from './authentication.service';
-import { IsDateString, IsNotEmpty, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { emailDto } from './dto/emailDto';
 import { resetPasswordDto } from './dto/resetPasswordDto';
 

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Render, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Render, Request, UseGuards } from '@nestjs/common';
 import { Public } from 'src/decorators/Public';
 import { SignUpDto } from './dto/signUpDto';
 import { LocalAuthGuard } from './guards/local-auth-guard';
@@ -31,12 +31,11 @@ export class AuthenticationController {
     }
   }
 
-  @Get('verify/:token')
+  @Patch('verify/:token')
   @Public()
-  @Render('verification')
   async verify(@Param() token: { token: string }) {
     try {
-      await this.authenticationService
+      return await this.authenticationService
         .verifyAccount(token.token)
         .then(() => {
           return { message: 'Account verified!' };

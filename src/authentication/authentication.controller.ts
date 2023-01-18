@@ -49,7 +49,7 @@ export class AuthenticationController {
     }
   }
 
-  @Get('reset-password')
+  @Post('reset-password')
   @Public()
   async resetPassword(@Body() dto: emailDto) {
     try {

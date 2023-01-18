@@ -1,8 +1,8 @@
 import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { UsersService } from '../../src/users/users.service';
+import { UsersService } from '../users/users.service';
 import argon2 = require('argon2');
-import { OrganisationsService } from '../../src/organisations/organisations.service';
+import { OrganisationsService } from '../organisations/organisations.service';
 import { SignUpDto } from './dto/signUpDto';
 import { PrismaClientService } from '../prisma-client/prisma-client.service';
 import randomString = require('randomstring');
@@ -61,7 +61,7 @@ export class AuthenticationService {
         });
       }
     } catch (error) {
-      console.log(error);
+      // console.log(error);
       if (error.code == 'P2002') throw new BadRequestException('email is already in use');
       if (error instanceof NotFoundException) throw error;
       throw new BadRequestException('Something went wrong');

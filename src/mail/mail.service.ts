@@ -20,6 +20,7 @@ export class MailService {
       });
       return 'Mail sent!';
     } catch (error) {
+      // console.log(error);
       throw error;
     }
   }

@@ -23,7 +23,8 @@ export class AuthenticationController {
   async register(@Body() signUpDto: SignUpDto) {
     try {
       const user = await this.authenticationService.generateUser(signUpDto);
-      console.log(user);
+      // console.log('register result:', user);
+      return user;
       // return this.authenticationService.login(user);
     } catch (error) {
       throw error;

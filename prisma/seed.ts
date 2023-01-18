@@ -113,7 +113,7 @@ async function main() {
             description:
               'We gaan meer teams in een BV toestaan. Dit is een experiment om te kijken of dit de productiviteit verhoogt.',
             content:
-              '<p>Naar aanleiding van de iets lagere productiviteit dan gewent in 2020, gaan we experimenteren met het aantal teams. Als begin staan we een aantal meer teams toe (ongeveer 5-8) in een BV. Als dit negatief effect heeft op de efficiëntie, dan zal dit terug verlaagt worden.</p><p>Als mensen hier bezwaar tegen hebben kunnen ze bij een leidinggevende hun mening laten weten. Dit zal dan in consideratie genomen worden.</p>',
+              '<p>Naar aanleiding van de iets lagere productiviteit dan gewend in 2020, gaan we experimenteren met het aantal teams. Als begin staan we een aantal meer teams toe (ongeveer 5-8) in een BV. Als dit negatief effect heeft op de efficiëntie, dan zal dit terug verlaagd worden.</p><p>Als mensen hier bezwaar tegen hebben kunnen ze bij een leidinggevende hun mening laten weten. Dit zal dan in consideratie genomen worden.</p>',
             dateOfEvent: new Date('2021-01-01T00:00:00.000Z'),
             tags: {
               connectOrCreate: [
@@ -184,7 +184,7 @@ async function main() {
             description:
               'We gaan het aantal mensen per team verminderen naar twintig mensen. Dit zal de communicatie tussen de teams en de efficiëntie van de organisatie verbeteren.',
             content:
-              '</p>Uit vorig onderzoek blijkt dat mensen het als chaotisch en ongeorganiseerd ervaren wanneer er te veel mensen in een team zitten. Hierom hebben we het aantal mensen per team verlaagt naar twintig mensen.</p>',
+              '</p>Uit vorig onderzoek blijkt dat mensen het als chaotisch en ongeorganiseerd ervaren wanneer er te veel mensen in een team zitten. Hierom hebben we het aantal mensen per team verlaagd naar twintig mensen.</p>',
             dateOfEvent: new Date('2008-12-11T00:00:00.000Z'),
             tags: {
               connectOrCreate: [

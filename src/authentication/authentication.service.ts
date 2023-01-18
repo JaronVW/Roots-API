@@ -4,6 +4,13 @@ import { UsersService } from '../../src/users/users.service';
 import argon2 = require('argon2');
 import { OrganisationsService } from '../../src/organisations/organisations.service';
 import { SignUpDto } from './dto/signUpDto';
+import { PrismaClientService } from 'src/prisma-client/prisma-client.service';
+import randomString = require('randomstring');
+import { MailService } from 'src/mail/mail.service';
+import { VerificationMailDto } from 'src/mail/verificationMailDto';
+import { VerificationRequestService } from 'src/verification-request/verification-request.service';
+import { DateTime } from 'luxon';
+import { ResetPasswordRequestService } from 'src/reset-password-request/reset-password-request.service';
 
 @Injectable()
 export class AuthenticationService {
@@ -11,6 +18,10 @@ export class AuthenticationService {
     private readonly userService: UsersService,
     private readonly organisationsService: OrganisationsService,
     private jwtService: JwtService,
+    private readonly Prisma: PrismaClientService,
+    private readonly mailService: MailService,
+    private readonly verificationRequestService: VerificationRequestService,
+    private readonly resetPasswordRequestService: ResetPasswordRequestService,
   ) {}
 
   async validateUser(username: string, password: string): Promise<any> {
@@ -23,7 +34,7 @@ export class AuthenticationService {
     throw new UnauthorizedException('Invalid credentials');
   }
 
-  async generateUser(signUpDto: SignUpDto): Promise<{ id: number; username: string; organisationId: number }> {
+  async generateUser(signUpDto: SignUpDto): Promise<string> {
     try {
       const organisation = await this.organisationsService
         .findOne({ domainName: signUpDto.username.split('@').pop().toLowerCase() })
@@ -38,8 +49,20 @@ export class AuthenticationService {
         lastName: signUpDto.lastName,
         organisation: { connect: { id: organisation.id } },
       });
-      return { id: data.id, username: data.email, organisationId: data.organisationId };
+      if (data != null) {
+        const token = randomString.generate({ length: 128 });
+        await this.verificationRequestService.createRequest(
+          data.email,
+          token,
+          DateTime.now().plus({ minutes: 30 }).toJSDate(),
+        );
+        return await this.mailService.sendVerificationMail({
+          to: data.email,
+          verificationCode: token,
+        });
+      }
     } catch (error) {
+      console.log(error);
       if (error.code == 'P2002') throw new BadRequestException('email is already in use');
       if (error instanceof NotFoundException) throw error;
       throw new BadRequestException('Something went wrong');
@@ -53,8 +76,45 @@ export class AuthenticationService {
     };
   }
 
-  decodeToken(token: string) {
-    const decodedJwt = this.jwtService.decode(token.split(' ')[1]) as any;
-    return decodedJwt;
+  async verifyAccount(token: string) {
+    this.verificationRequestService.getPasswordRequest(token).then((data) => {
+      if (data == null) throw new NotFoundException('Verification token not found');
+      // if (data.expires < new Date()) throw new BadRequestException('Verification token expired');
+      if (this.userService.update(data.email)) {
+        this.verificationRequestService.deleteRequest(data.email);
+      }
+    });
+  }
+
+  async resetPasswordSendMail(email: string) {
+    try {
+      const token = randomString.generate({ length: 128 });
+      // console.log(token);
+      await this.resetPasswordRequestService.generatePasswordRequest(
+        email,
+        token,
+        DateTime.now().plus({ minutes: 30 }).toJSDate(),
+      );
+      await this.mailService.sendPasswordResetMail({ to: email, verificationCode: token });
+      return { statucCode: 200, message: 'Mail sent' };
+    } catch (error) {
+      console.log(error);
+      throw new BadRequestException('Something went wrong');
+    }
+  }
+
+  async resetPassword(token: string, password: string) {
+    try {
+      const data = await this.resetPasswordRequestService.getEmail(token);
+      if (data == null) throw new NotFoundException('Token not found');
+      if (data.expires < new Date()) throw new BadRequestException('Token expired');
+      const hash = await argon2.hash(password);
+      await this.userService.updatePassword(data.email, hash);
+      await this.resetPasswordRequestService.deleteRequest(data.email);
+      return { statucCode: 200, message: 'Password changed' };
+    } catch (error) {
+      console.log(error);
+      throw new BadRequestException('Something went wrong');
+    }
   }
 }

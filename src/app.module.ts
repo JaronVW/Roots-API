@@ -7,34 +7,38 @@ import { TagsModule } from './tags/tags.module';
 import { OrganisationsModule } from './organisations/organisations.module';
 import { UsersModule } from './users/users.module';
 import { ConfigModule } from '@nestjs/config';
-import { authenticationModule } from './authentication/authentication.module';
+import { AuthenticationModule } from './authentication/authentication.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './authentication/guards/jwt-auth.guard';
 import { FilesController } from './files/files.controller';
 import { UsersController } from './users/users.controller';
-
+import { MailerModule } from '@nestjs-modules/mailer';
+import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
+import { MailModule } from './mail/mail.module';
+import { VerificationRequestService } from './verification-request/verification-request.service';
+import { VerificationRequestModule } from './verification-request/verification-request.module';
+import { ResetPasswordRequestModule } from './reset-password-request/reset-password-request.module';
 @Module({
   imports: [
+    ConfigModule.forRoot(),
     EventsModule,
     PrismaClientModule,
     TagsModule,
     OrganisationsModule,
-    ConfigModule.forRoot(),
     UsersModule,
-    authenticationModule,
+    AuthenticationModule,
+    MailModule,
+    VerificationRequestModule,
+    ResetPasswordRequestModule,
   ],
-  controllers: [AppController, FilesController,UsersController],
+  controllers: [AppController, FilesController, UsersController],
   providers: [
     AppService,
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
     },
+    VerificationRequestService,
   ],
 })
 export class AppModule {}
-
-/*{
-    provide: APP_GUARD,
-    useClass: JwtAuthGuard,
-  },*/

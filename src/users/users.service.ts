@@ -4,6 +4,16 @@ import { PrismaClientService } from '../../src/prisma-client/prisma-client.servi
 
 @Injectable()
 export class UsersService {
+  async updatePassword(email: string, hash: string) {
+    return this.prisma.user
+      .update({ where: { email }, data: { password: hash } })
+      .then(() => {
+        return true;
+      })
+      .catch(() => {
+        return false;
+      });
+  }
   constructor(private readonly prisma: PrismaClientService) {}
 
   async findOne(username: string): Promise<User> {
@@ -53,5 +63,16 @@ export class UsersService {
     } catch (error) {
       throw new BadRequestException("Can't retrieve users");
     }
+  }
+
+  async update(email: string): Promise<boolean> {
+    return this.prisma.user
+      .update({ where: { email }, data: { isActive: true } })
+      .then(() => {
+        return true;
+      })
+      .catch(() => {
+        return false;
+      });
   }
 }

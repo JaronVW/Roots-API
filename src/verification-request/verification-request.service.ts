@@ -7,7 +7,6 @@ export class VerificationRequestService {
   constructor(private readonly prismaClient: PrismaClientService) {}
 
   async getPasswordRequest(token: string): Promise<verificationRequest> {
-    console.log(token);
     return this.prismaClient.verificationRequest.findFirst({ where: { token } });
   }
 

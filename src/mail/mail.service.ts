@@ -15,10 +15,10 @@ export class MailService {
         template: './verificationEmailTemplate',
         context: {
           to: dto.to,
-          verificationLink: `${process.env.BASE_URL}/auth/verify/${dto.verificationCode}`,
+          verificationLink: `${process.env.BASE_URL_CLIENT}/verifyaccount/${dto.verificationCode}`,
         },
       });
-      return 'Mail sent!';
+      return { statusCode: 200, message: 'Mail sent' };
     } catch (error) {
       throw error;
     }

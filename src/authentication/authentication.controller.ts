@@ -1,10 +1,9 @@
-import { Body, Controller, Get, Param, Patch, Post, Render, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller,  Param, Patch, Post,  Request, UseGuards } from '@nestjs/common';
 import { Public } from 'src/decorators/Public';
 import { SignUpDto } from './dto/signUpDto';
 import { LocalAuthGuard } from './guards/local-auth-guard';
 import { MailService } from 'src/mail/mail.service';
 import { AuthenticationService } from './authentication.service';
-import { IsDateString, IsNotEmpty, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { emailDto } from './dto/emailDto';
 import { resetPasswordDto } from './dto/resetPasswordDto';
 
@@ -23,8 +22,7 @@ export class AuthenticationController {
   @Public()
   async register(@Body() signUpDto: SignUpDto) {
     try {
-      const user = await this.authenticationService.generateUser(signUpDto);
-      console.log(user);
+      return await this.authenticationService.generateUser(signUpDto);
       // return this.authenticationService.login(user);
     } catch (error) {
       throw error;
@@ -34,18 +32,14 @@ export class AuthenticationController {
   @Patch('verify/:token')
   @Public()
   async verify(@Param() token: { token: string }) {
-    try {
-      return await this.authenticationService
-        .verifyAccount(token.token)
-        .then(() => {
-          return { message: 'Account verified!' };
-        })
-        .catch(() => {
-          return { message: 'Something went wrong while verifying your account' };
-        });
-    } catch (error) {
-      throw error;
-    }
+    return await this.authenticationService
+      .verifyAccount(token.token)
+      .then(() => {
+        return { statusCode: 200, message: 'Account verified' };
+      })
+      .catch((error) => {
+        throw error;
+      });
   }
 
   @Post('reset-password')

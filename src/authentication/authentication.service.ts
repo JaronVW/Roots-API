@@ -34,7 +34,7 @@ export class AuthenticationService {
     throw new UnauthorizedException('Invalid credentials');
   }
 
-  async generateUser(signUpDto: SignUpDto): Promise<string> {
+  async generateUser(signUpDto: SignUpDto): Promise<any> {
     try {
       const organisation = await this.organisationsService
         .findOne({ domainName: signUpDto.username.split('@').pop().toLowerCase() })
@@ -77,20 +77,26 @@ export class AuthenticationService {
   }
 
   async verifyAccount(token: string) {
-    this.verificationRequestService.getPasswordRequest(token).then((data) => {
-      if (data == null) throw new NotFoundException('Verification token not found');
-      // if (data.expires < new Date()) throw new BadRequestException('Verification token expired');
-      if (this.userService.update(data.email)) {
-        return;
-        // this.verificationRequestService.deleteRequest(data.email);
-      }
-    });
+    return this.verificationRequestService
+      .getPasswordRequest(token)
+      .then((data) => {
+        if (data == null) throw new NotFoundException('Verification token not found');
+        if (data.expires < new Date()) throw new BadRequestException('Verification token expired');
+        if (this.userService.update(data.email)) {
+          this.verificationRequestService.deleteRequest(data.email).then;
+          return;
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+        if (error instanceof NotFoundException) throw error;
+        throw new BadRequestException(error.message);
+      });
   }
 
   async resetPasswordSendMail(email: string) {
     try {
       const token = randomString.generate({ length: 128 });
-      // console.log(token);
       await this.resetPasswordRequestService.generatePasswordRequest(
         email,
         token,
@@ -99,7 +105,6 @@ export class AuthenticationService {
       await this.mailService.sendPasswordResetMail({ to: email, verificationCode: token });
       return { statucCode: 200, message: 'Mail sent' };
     } catch (error) {
-      console.log(error);
       throw new BadRequestException('Something went wrong');
     }
   }
@@ -114,7 +119,6 @@ export class AuthenticationService {
       await this.resetPasswordRequestService.deleteRequest(data.email);
       return { statucCode: 200, message: 'Password changed' };
     } catch (error) {
-      console.log(error);
       throw new BadRequestException('Something went wrong');
     }
   }

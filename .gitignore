@@ -38,3 +38,4 @@ lerna-debug.log*
 .env.test
 upload/*
 !upload/.gitkeep 
+/.scannerwork

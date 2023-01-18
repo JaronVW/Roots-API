@@ -2,7 +2,7 @@ name: Roots API CI
 
 on:
   push:
-    branches: ['main', 'development']
+    branches: ['main']
   pull_request:
     branches: ['main']
 
@@ -53,13 +53,13 @@ jobs:
           npx prisma migrate deploy
           npm run test:e2e:workflow
 
-      - name: Update cloud database
-        env:
-          DATABASE_URL: ${{ secrets.RAILWAY_DATABASE_URL }}
-        run: |
-          npx prisma generate
-          npx prisma migrate deploy
-          npx prisma db seed
+      # - name: Update cloud database
+      #   env:
+      #     DATABASE_URL: ${{ secrets.RAILWAY_DATABASE_URL }}
+      #   run: |
+      #     npx prisma generate
+      #     npx prisma migrate deploy
+      #     npx prisma db seed
 
       - name: Install Railway
         run: npm i -g @railway/cli

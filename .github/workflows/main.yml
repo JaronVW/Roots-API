@@ -40,7 +40,7 @@ jobs:
         with:
           node-version: 18.x
           cache: 'npm'
-          cache-dependency-path: subdir/package-lock.json
+          cache-dependency-path: package-lock.json
       - name: Install npm dependencies
         run: |
           npm ci

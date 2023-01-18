@@ -1,6 +1,6 @@
 import { Test } from '@nestjs/testing';
 import { TagsService } from './tags.service';
-import { PrismaClientService } from '../../src/prisma-client/prisma-client.service';
+import { PrismaClientService } from '../prisma-client/prisma-client.service';
 
 const tagArray = [
   {

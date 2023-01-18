@@ -34,6 +34,10 @@ export class EventsCreateDto {
   @ValidateNested({ each: true })
   @Type(() => TagCreateDto)
   tags: TagCreateDto[] = [];
+
+  @IsOptional()
+  @IsNumber()
+  organisationId: number;
 }
 
 export class EventsUpdateDto extends PartialType(EventsCreateDto) {

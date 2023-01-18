@@ -11,19 +11,22 @@ datasource db {
 }
 
 model User {
-  id             Int          @id @default(autoincrement())
-  email          String       @unique @db.VarChar(256)
-  password       String       @db.VarChar(256)
-  firstName      String       @db.VarChar(100)
-  lastName       String       @db.VarChar(100)
-  events         Event[]
-  organisationId Int?
-  organisation   Organisation? @relation(fields: [organisationId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  id                   Int                   @id @default(autoincrement())
+  email                String                @unique @db.VarChar(256)
+  password             String                @db.VarChar(256)
+  firstName            String                @db.VarChar(100)
+  lastName             String                @db.VarChar(100)
+  events               Event[]
+  organisationId       Int
+  organisation         Organisation          @relation(fields: [organisationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  isActive             Boolean               @default(false)
+  verificationRequest  VerificationRequest?
+  resetPasswordRequest ResetPasswordRequest?
 }
 
 model Event {
   id              Int          @id @default(autoincrement())
-  title           String       @unique @db.VarChar(100)
+  title           String
   description     String       @db.VarChar(250)
   content         String?      @db.VarChar(5000)
   dateOfEvent     DateTime     @default(now())
@@ -32,22 +35,26 @@ model Event {
   user            User?        @relation(fields: [userId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   userId          Int?
   isArchived      Boolean      @default(false)
-  organisationId  Int?
-  organisation    Organisation? @relation(fields: [organisationId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  organisationId  Int // organisation verplicht maken?
+  organisation    Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([title, organisationId], name: "unique_title_organisation")
 }
 
 model Tag {
   id             Int          @id @default(autoincrement())
-  subject        String       @unique @db.VarChar(50)
+  subject        String       @db.VarChar(50)
   Events         Event[]
-  organisationId Int?
-  organisation   Organisation? @relation(fields: [organisationId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  organisationId Int
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  @@unique([subject, organisationId], name: "unique_tag_organisation")
 }
 
 model Multimedia {
   id          Int     @id @default(autoincrement())
   event       Event   @relation(fields: [eventId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   eventId     Int
+  path        String  @unique
   multimedia  String?
   description String? @db.VarChar(500)
   transcript  String? @db.Text
@@ -55,9 +62,26 @@ model Multimedia {
 }
 
 model Organisation {
-  id         Int          @id @default(autoincrement())
-  name       String       @unique @db.VarChar(100)
+  id         Int     @id @default(autoincrement())
+  domainName String  @unique
+  name       String  @unique @db.VarChar(100)
   event      Event[]
   tag        Tag[]
   user       User[]
+}
+
+model VerificationRequest {
+  id      Int      @id @default(autoincrement())
+  user    User     @relation(fields: [email], references: [email], onDelete: Cascade, onUpdate: Cascade)
+  email   String   @unique
+  token   String   @unique
+  expires DateTime @default(now())
+}
+
+model ResetPasswordRequest {
+  id      Int      @id @default(autoincrement())
+  user    User     @relation(fields: [email], references: [email], onDelete: Cascade, onUpdate: Cascade)
+  email   String   @unique
+  token   String   @unique
+  expires DateTime @default(now())
 }

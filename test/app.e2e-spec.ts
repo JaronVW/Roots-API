@@ -14,7 +14,7 @@ describe('AppController (e2e)', () => {
   let app: INestApplication;
   let prisma: PrismaClientService;
 
-  // TODO: rewrite tests with verification needed (create or update user manually (set to active), can email be tested?) ;-;
+  // TODO: rewrite tests with verification needed (create or update user manually (set to active), can verification email be tested?) ;-;
   // TODO: testing activating and deactivating users
 
   beforeAll(async () => {
@@ -808,7 +808,6 @@ describe('AppController (e2e)', () => {
     let otherOrganisation: Organisation;
     let user: User;
     let user1Token: string;
-    let user2: User;
     let userOfOtherOrganisation: User;
     let userOfOtherOrganisationToken: string;
     let eventArray = [];
@@ -849,7 +848,7 @@ describe('AppController (e2e)', () => {
         },
       });
 
-      user2 = await prisma.user.create({
+      await prisma.user.create({
         data: {
           email: 'user2@exampledomain.com',
           password: await argon2.hash(password),

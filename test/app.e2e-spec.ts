@@ -11,27 +11,14 @@ import { join } from 'path';
 import { MailService } from 'src/mail/mail.service';
 
 describe('AppController (e2e)', () => {
-  // delete local testdb, then run locally using npm run test:prisma:deploy && npm run test:e2e:local
+  // run database server (e.g. Apache and MySQL using Xampp), delete local testdb if it exists, then run locally using npm run test:prisma:deploy && npm run test:e2e:local
   let app: INestApplication;
   let prisma: PrismaClientService;
   let mailService: MailService;
 
-  // TODO: rewrite tests with verification needed (create or update user manually (set to active), can verification email be tested?) ;-;
-  // TODO: testing activating and deactivating users
-
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
-      // providers: [
-      //   {
-      //     provide: MailService,
-      //     useValue: {
-      //       sendVerificationMail() {
-      //         return 'Mail sent!';
-      //       },
-      //     },
-      //   },
-      // ],
     }).compile();
 
     app = moduleFixture.createNestApplication();
@@ -39,7 +26,8 @@ describe('AppController (e2e)', () => {
     mailService = app.get<MailService>(MailService);
 
     jest.mock('src/mail/mail.service');
-    mailService.sendVerificationMail = jest.fn().mockResolvedValue('Mail sent!');
+    mailService.sendVerificationMail = jest.fn().mockResolvedValue('Mail sent');
+    mailService.sendPasswordResetMail = jest.fn().mockResolvedValue('Mail sent');
 
     useContainer(app.select(AppModule), { fallbackOnErrors: true });
     app.useGlobalPipes(new ValidationPipe());
@@ -53,11 +41,11 @@ describe('AppController (e2e)', () => {
   });
 
   afterEach(async () => {
-    await prisma.event.deleteMany();
+    await prisma.multimedia.deleteMany();
     await prisma.tag.deleteMany();
+    await prisma.event.deleteMany();
     await prisma.user.deleteMany();
     await prisma.organisation.deleteMany();
-    await prisma.multimedia.deleteMany();
   });
 
   it('/ (GET) should give Hello World!', () => {
@@ -82,226 +70,669 @@ describe('AppController (e2e)', () => {
       };
     });
 
-    it('should create an organisation', async () => {
-      const { status, body } = await request(app.getHttpServer()).post('/organisations').send(organisation);
-      expect(status).toBe(201);
-      expect(body).toEqual({
-        id: expect.any(Number),
-        domainName: organisation.domainName,
-        name: organisation.name,
-      });
-
-      request(app.getHttpServer())
-        .get(`/organisations${body.id}`)
-        .expect(200)
-        .expect({
+    describe('You can create an organisation', () => {
+      it('should create an organisation', async () => {
+        const { status, body } = await request(app.getHttpServer()).post('/organisations').send(organisation);
+        expect(status).toBe(201);
+        expect(body).toEqual({
           id: expect.any(Number),
           domainName: organisation.domainName,
           name: organisation.name,
         });
-    });
 
-    it('should not create an organisation if the domain is not a valid email domain', async () => {
-      const result = await request(app.getHttpServer()).post('/organisations').send({
-        domainName: 'exampledomain',
-        name: 'Example organisation',
+        request(app.getHttpServer())
+          .get(`/organisations${body.id}`)
+          .expect(200)
+          .expect({
+            id: expect.any(Number),
+            domainName: organisation.domainName,
+            name: organisation.name,
+          });
       });
 
-      expect(result.status).toBe(400);
-      expect(result.body).toEqual({
-        statusCode: 400,
-        message: 'Invalid domain name',
-        error: 'Bad Request',
-      });
-    });
-
-    it('should not create an organisation if the domain is already taken', async () => {
-      const { status: organisationStatus } = await request(app.getHttpServer())
-        .post('/organisations')
-        .send(organisation);
-      expect(organisationStatus).toBe(201);
-
-      const { status: organisationStatus2, body: organisationBody2 } = await request(app.getHttpServer())
-        .post('/organisations')
-        .send(organisation);
-      expect(organisationStatus2).toBe(400);
-      expect(organisationBody2).toEqual({
-        statusCode: 400,
-        message: 'An organisation is already using that domain name',
-        error: 'Bad Request',
-      });
-    });
-
-    it('should create an account for an organisation based on email domain and return access token', async () => {
-      const { status: organisationStatus, body: organisationBody } = await request(app.getHttpServer())
-        .post('/organisations')
-        .send(organisation);
-      expect(organisationStatus).toBe(201);
-      expect(organisationBody).toEqual({
-        id: expect.any(Number),
-        domainName: organisation.domainName,
-        name: organisation.name,
-      });
-
-      const { status: registerStatus, body: registerBody } = await request(app.getHttpServer())
-        .post('/auth/register')
-        .send(user);
-
-      expect(registerStatus).toBe(201);
-      expect(registerBody).toEqual({});
-    });
-
-    it('should create an account if the email domain is not case sensitive', async () => {
-      const { status: organisationStatus, body: organisationBody } = await request(app.getHttpServer())
-        .post('/organisations')
-        .send({
-          domainName: 'EXAMPLEDOMAIN.COM',
+      it('should not create an organisation if the domain is not a valid email domain', async () => {
+        const result = await request(app.getHttpServer()).post('/organisations').send({
+          domainName: 'exampledomain',
           name: 'Example organisation',
         });
-      expect(organisationStatus).toBe(201);
-      expect(organisationBody).toEqual({
-        id: expect.any(Number),
-        domainName: 'exampledomain.com',
-        name: 'Example organisation',
+
+        expect(result.status).toBe(400);
+        expect(result.body).toEqual({
+          statusCode: 400,
+          message: 'Invalid domain name',
+          error: 'Bad Request',
+        });
       });
 
-      const { status: registerStatus, body: registerBody } = await request(app.getHttpServer())
-        .post('/auth/register')
-        .send({
-          username: 'mail@exampleDOMAIN.Com',
-          password: 'examplePassword',
-          firstName: 'exampleFirstName',
-          lastName: 'exampleLastName',
+      it('should not create an organisation if the domain is already taken', async () => {
+        const { status: organisationStatus } = await request(app.getHttpServer())
+          .post('/organisations')
+          .send(organisation);
+        expect(organisationStatus).toBe(201);
+
+        const { status: organisationStatus2, body: organisationBody2 } = await request(app.getHttpServer())
+          .post('/organisations')
+          .send(organisation);
+        expect(organisationStatus2).toBe(400);
+        expect(organisationBody2).toEqual({
+          statusCode: 400,
+          message: 'An organisation is already using that domain name',
+          error: 'Bad Request',
+        });
+      });
+    });
+
+    describe('You can register an account for an organisation', () => {
+      it('should create an account for an organisation based on email domain and return access token', async () => {
+        const { status: organisationStatus, body: organisationBody } = await request(app.getHttpServer())
+          .post('/organisations')
+          .send(organisation);
+        expect(organisationStatus).toBe(201);
+        expect(organisationBody).toEqual({
+          id: expect.any(Number),
+          domainName: organisation.domainName,
+          name: organisation.name,
         });
 
-      expect(registerStatus).toBe(201);
-      expect(registerBody).toEqual({});
-    });
+        const { status: registerStatus, body: registerBody } = await request(app.getHttpServer())
+          .post('/auth/register')
+          .send(user);
 
-    it('should create an account if there is another account with the same first and last name', async () => {
-      const { status: organisationStatus, body: organisationBody } = await request(app.getHttpServer())
-        .post('/organisations')
-        .send(organisation);
-      expect(organisationStatus).toBe(201);
-      expect(organisationBody).toEqual({
-        id: expect.any(Number),
-        domainName: organisation.domainName,
-        name: organisation.name,
+        expect(registerStatus).toBe(201);
+        expect(registerBody).toEqual({});
       });
 
-      const { status: registerStatus, body: registerBody } = await request(app.getHttpServer())
-        .post('/auth/register')
-        .send(user);
-
-      expect(registerStatus).toBe(201);
-      expect(registerBody).toEqual({});
-
-      const { status: registerStatus2, body: registerBody2 } = await request(app.getHttpServer())
-        .post('/auth/register')
-        .send({
-          username: 'user2@exampledomain.com',
-          password: 'examplePassword',
-          firstName: user.firstName,
-          lastName: user.lastName,
+      it('should create an account if the email domain is not case sensitive', async () => {
+        const { status: organisationStatus, body: organisationBody } = await request(app.getHttpServer())
+          .post('/organisations')
+          .send({
+            domainName: 'EXAMPLEDOMAIN.COM',
+            name: 'Example organisation',
+          });
+        expect(organisationStatus).toBe(201);
+        expect(organisationBody).toEqual({
+          id: expect.any(Number),
+          domainName: 'exampledomain.com',
+          name: 'Example organisation',
         });
 
-      expect(registerStatus2).toBe(201);
-      expect(registerBody2).toEqual({});
+        const { status: registerStatus, body: registerBody } = await request(app.getHttpServer())
+          .post('/auth/register')
+          .send({
+            username: 'mail@exampleDOMAIN.Com',
+            password: 'examplePassword',
+            firstName: 'exampleFirstName',
+            lastName: 'exampleLastName',
+          });
 
-      const count = await prisma.user.count({ where: { firstName: user.firstName, lastName: user.lastName } });
-      expect(count).toBe(2);
-    });
-
-    it('should not create an account if there are no organisations', async () => {
-      const { status: registerStatus, body: registerBody } = await request(app.getHttpServer())
-        .post('/auth/register')
-        .send(user);
-
-      expect(registerStatus).toBe(404);
-      expect(registerBody).toEqual({
-        statusCode: 404,
-        message: 'Organisation not found',
-        error: 'Not Found',
+        expect(registerStatus).toBe(201);
+        expect(registerBody).toEqual({});
       });
-    });
 
-    it('should not create an account if there are no organisations with this email domain', async () => {
-      await request(app.getHttpServer()).post('/organisations').send(organisation);
-
-      await request(app.getHttpServer())
-        .post('/organisations')
-        .send({ domainName: 'exampledomain2.com', name: 'Example organisation 2' });
-
-      const { status: registerStatus, body: registerBody } = await request(app.getHttpServer())
-        .post('/auth/register')
-        .send({
-          username: 'email@nonexisting.domain',
-          password: 'examplePassword',
-          firstName: 'exampleFirstName',
-          lastName: 'exampleLastName',
+      it('should create an account if there is another account with the same first and last name', async () => {
+        const { status: organisationStatus, body: organisationBody } = await request(app.getHttpServer())
+          .post('/organisations')
+          .send(organisation);
+        expect(organisationStatus).toBe(201);
+        expect(organisationBody).toEqual({
+          id: expect.any(Number),
+          domainName: organisation.domainName,
+          name: organisation.name,
         });
 
-      expect(registerStatus).toBe(404);
-      expect(registerBody).toEqual({
-        statusCode: 404,
-        message: 'Organisation not found',
-        error: 'Not Found',
+        const { status: registerStatus, body: registerBody } = await request(app.getHttpServer())
+          .post('/auth/register')
+          .send(user);
+
+        expect(registerStatus).toBe(201);
+        expect(registerBody).toEqual({});
+
+        const { status: registerStatus2, body: registerBody2 } = await request(app.getHttpServer())
+          .post('/auth/register')
+          .send({
+            username: 'user2@exampledomain.com',
+            password: 'examplePassword',
+            firstName: user.firstName,
+            lastName: user.lastName,
+          });
+
+        expect(registerStatus2).toBe(201);
+        expect(registerBody2).toEqual({});
+
+        const count = await prisma.user.count({ where: { firstName: user.firstName, lastName: user.lastName } });
+        expect(count).toBe(2);
+      });
+
+      it('should not create an account if there are no organisations', async () => {
+        const { status: registerStatus, body: registerBody } = await request(app.getHttpServer())
+          .post('/auth/register')
+          .send(user);
+
+        expect(registerStatus).toBe(404);
+        expect(registerBody).toEqual({
+          statusCode: 404,
+          message: 'Organisation not found',
+          error: 'Not Found',
+        });
+      });
+
+      it('should not create an account if there are no organisations with this email domain', async () => {
+        await request(app.getHttpServer()).post('/organisations').send(organisation);
+
+        await request(app.getHttpServer())
+          .post('/organisations')
+          .send({ domainName: 'exampledomain2.com', name: 'Example organisation 2' });
+
+        const { status: registerStatus, body: registerBody } = await request(app.getHttpServer())
+          .post('/auth/register')
+          .send({
+            username: 'email@nonexisting.domain',
+            password: 'examplePassword',
+            firstName: 'exampleFirstName',
+            lastName: 'exampleLastName',
+          });
+
+        expect(registerStatus).toBe(404);
+        expect(registerBody).toEqual({
+          statusCode: 404,
+          message: 'Organisation not found',
+          error: 'Not Found',
+        });
+      });
+
+      it('should not create an account if the email is already taken', async () => {
+        await request(app.getHttpServer()).post('/organisations').send(organisation);
+
+        await request(app.getHttpServer()).post('/auth/register').send(user);
+
+        const { status: registerStatus2, body: registerBody2 } = await request(app.getHttpServer())
+          .post('/auth/register')
+          .send(user);
+
+        expect(registerStatus2).toBe(400);
+        expect(registerBody2).toEqual({
+          statusCode: 400,
+          message: 'email is already in use',
+          error: 'Bad Request',
+        });
+      });
+
+      it('should create an account for an organisation based on email domain and login with this account', async () => {
+        const { status: organisationStatus, body: organisationBody } = await request(app.getHttpServer())
+          .post('/organisations')
+          .send(organisation);
+        expect(organisationStatus).toBe(201);
+        expect(organisationBody).toEqual({
+          id: expect.any(Number),
+          domainName: organisation.domainName,
+          name: organisation.name,
+        });
+
+        const { status: registerStatus, body: registerBody } = await request(app.getHttpServer())
+          .post('/auth/register')
+          .send(user);
+
+        expect(registerStatus).toBe(201);
+        expect(registerBody).toEqual({});
+
+        await prisma.user.update({
+          where: { email: user.username },
+          data: { isActive: true },
+        });
+
+        const { status: loginStatus, body: loginBody } = await request(app.getHttpServer()).post('/auth/login').send({
+          username: user.username,
+          password: user.password,
+        });
+
+        expect(loginStatus).toBe(201);
+        expect(loginBody).toEqual({
+          access_token: expect.any(String),
+        });
       });
     });
 
-    it('should not create an account if the email is already taken', async () => {
-      await request(app.getHttpServer()).post('/organisations').send(organisation);
+    describe('Your account needs to be verified before it can be used', () => {
+      it('should give a deactivated account if a user has not verified their email and a verificationrequest should be persisted', async () => {
+        await request(app.getHttpServer()).post('/organisations').send(organisation);
 
-      await request(app.getHttpServer()).post('/auth/register').send(user);
+        const { status: registerStatus, body: registerBody } = await request(app.getHttpServer())
+          .post('/auth/register')
+          .send(user);
 
-      const { status: registerStatus2, body: registerBody2 } = await request(app.getHttpServer())
-        .post('/auth/register')
-        .send(user);
+        expect(registerStatus).toBe(201);
+        expect(registerBody).toEqual({});
+        const userFromDb = await prisma.user.findUnique({ where: { email: user.username } });
+        expect(userFromDb?.isActive).toBe(false);
 
-      expect(registerStatus2).toBe(400);
-      expect(registerBody2).toEqual({
-        statusCode: 400,
-        message: 'email is already in use',
-        error: 'Bad Request',
+        const verificationRequest = await prisma.verificationRequest.findUnique({
+          where: { email: user.username },
+        });
+        expect(verificationRequest).toEqual({
+          id: expect.any(Number),
+          email: user.username,
+          token: expect.any(String),
+          expires: expect.any(Date),
+        });
+      });
+
+      it('should give an activated account if a user has verified their email using the token from the verification request', async () => {
+        await request(app.getHttpServer()).post('/organisations').send(organisation);
+
+        const { status: registerStatus, body: registerBody } = await request(app.getHttpServer())
+          .post('/auth/register')
+          .send(user);
+
+        expect(registerStatus).toBe(201);
+        expect(registerBody).toEqual({});
+
+        const verificationRequest = await prisma.verificationRequest.findUnique({
+          where: { email: user.username },
+        });
+
+        const { status: verifyStatus, body: verifyBody } = await request(app.getHttpServer()).patch(
+          `/auth/verify/${verificationRequest?.token}`,
+        );
+
+        expect(verifyStatus).toBe(200);
+        expect(verifyBody).toHaveProperty('message', 'Account verified');
+
+        const userFromDb = await prisma.user.findUnique({ where: { email: user.username } });
+        expect(userFromDb?.isActive).toBe(true);
+      });
+
+      it('should login successfully if the user has verified their email', async () => {
+        await request(app.getHttpServer()).post('/organisations').send(organisation);
+
+        const { status: registerStatus, body: registerBody } = await request(app.getHttpServer())
+          .post('/auth/register')
+          .send(user);
+
+        expect(registerStatus).toBe(201);
+        expect(registerBody).toEqual({});
+
+        const verificationRequest = await prisma.verificationRequest.findUnique({
+          where: { email: user.username },
+        });
+
+        await request(app.getHttpServer()).patch(`/auth/verify/${verificationRequest?.token}`);
+
+        const { status: loginStatus, body: loginBody } = await request(app.getHttpServer()).post('/auth/login').send({
+          username: user.username,
+          password: user.password,
+        });
+
+        expect(loginStatus).toBe(201);
+        expect(loginBody).toEqual({
+          access_token: expect.any(String),
+        });
       });
     });
 
-    it('should create an account for an organisation based on email domain and login with this account', async () => {
-      const { status: organisationStatus, body: organisationBody } = await request(app.getHttpServer())
-        .post('/organisations')
-        .send(organisation);
-      expect(organisationStatus).toBe(201);
-      expect(organisationBody).toEqual({
-        id: expect.any(Number),
-        domainName: organisation.domainName,
-        name: organisation.name,
+    describe('You can reset your password', () => {
+      it('should send a password reset email if the user exists', async () => {
+        await request(app.getHttpServer()).post('/organisations').send(organisation);
+
+        const { status: registerStatus, body: registerBody } = await request(app.getHttpServer())
+          .post('/auth/register')
+          .send(user);
+
+        expect(registerStatus).toBe(201);
+        expect(registerBody).toEqual({});
+
+        const { status: resetStatus, body: resetBody } = await request(app.getHttpServer())
+          .post('/auth/reset-password')
+          .send({ email: user.username });
+
+        expect(resetStatus).toBe(201);
+        expect(resetBody).toHaveProperty('message', 'Mail sent');
       });
 
-      const { status: registerStatus, body: registerBody } = await request(app.getHttpServer())
-        .post('/auth/register')
-        .send(user);
+      it('should not send a password reset email if the user does not exist', async () => {
+        await request(app.getHttpServer()).post('/organisations').send(organisation);
 
-      expect(registerStatus).toBe(201);
-      expect(registerBody).toEqual({});
+        const { status: registerStatus, body: registerBody } = await request(app.getHttpServer())
+          .post('/auth/register')
+          .send(user);
 
-      await prisma.user.update({
-        where: { email: user.username },
-        data: { isActive: true },
+        expect(registerStatus).toBe(201);
+        expect(registerBody).toEqual({});
+
+        await prisma.user.update({
+          where: { email: user.username },
+          data: { isActive: true },
+        });
+
+        const { status: resetStatus, body: resetBody } = await request(app.getHttpServer())
+          .post('/auth/reset-password')
+          .send({ email: 'nonexistent@mail.com' });
+
+        expect(resetStatus).toBe(400);
+        expect(resetBody).toHaveProperty('message', 'Something went wrong');
       });
 
-      const { status: loginStatus, body: loginBody } = await request(app.getHttpServer()).post('/auth/login').send({
-        username: user.username,
-        password: user.password,
+      it('should reset the password if the token is valid', async () => {
+        await request(app.getHttpServer()).post('/organisations').send(organisation);
+
+        const { status: registerStatus, body: registerBody } = await request(app.getHttpServer())
+          .post('/auth/register')
+          .send(user);
+
+        expect(registerStatus).toBe(201);
+        expect(registerBody).toEqual({});
+
+        await prisma.user.update({
+          where: { email: user.username },
+          data: { isActive: true },
+        });
+
+        const { status: resetStatus, body: resetBody } = await request(app.getHttpServer())
+          .post('/auth/reset-password')
+          .send({ email: user.username });
+
+        expect(resetStatus).toBe(201);
+        expect(resetBody).toHaveProperty('message', 'Mail sent');
+
+        const passwordResetRequest = await prisma.resetPasswordRequest.findUnique({
+          where: { email: user.username },
+        });
+
+        const { status: resetPasswordStatus, body: resetPasswordBody } = await request(app.getHttpServer())
+          .post(`/auth/reset-password/${passwordResetRequest?.token}`)
+          .send({ password: 'newPassword' });
+
+        expect(resetPasswordStatus).toBe(201);
+        expect(resetPasswordBody).toHaveProperty('message', 'Password changed');
+
+        const { status: loginStatus, body: loginBody } = await request(app.getHttpServer()).post('/auth/login').send({
+          username: user.username,
+          password: 'newPassword',
+        });
+
+        expect(loginStatus).toBe(201);
+        expect(loginBody).toEqual({
+          access_token: expect.any(String),
+        });
       });
 
-      expect(loginStatus).toBe(201);
-      expect(loginBody).toEqual({
-        access_token: expect.any(String),
+      it('should not reset the password if the token is invalid', async () => {
+        await request(app.getHttpServer()).post('/organisations').send(organisation);
+
+        const { status: registerStatus, body: registerBody } = await request(app.getHttpServer())
+          .post('/auth/register')
+          .send(user);
+
+        expect(registerStatus).toBe(201);
+        expect(registerBody).toEqual({});
+
+        await prisma.user.update({
+          where: { email: user.username },
+          data: { isActive: true },
+        });
+
+        const { status: resetStatus, body: resetBody } = await request(app.getHttpServer())
+          .post('/auth/reset-password')
+          .send({ email: user.username });
+
+        expect(resetStatus).toBe(201);
+        expect(resetBody).toHaveProperty('message', 'Mail sent');
+
+        const { status: resetPasswordStatus, body: resetPasswordBody } = await request(app.getHttpServer())
+          .patch(`/auth/reset-password/invalidToken`)
+          .send({ password: 'newPassword' });
+
+        expect(resetPasswordStatus).toBe(404);
+        expect(resetPasswordBody).toHaveProperty('error', 'Not Found');
+        expect(resetPasswordBody).toHaveProperty('message', 'Cannot PATCH /auth/reset-password/invalidToken');
+      });
+    });
+
+    describe('You can activate and deactivate other users of the same organisation', () => {
+      let organisation: Organisation;
+      let otherOrganisation: Organisation;
+      let user: User;
+      let access_token: string;
+      let activatedUser: User;
+      let deactivatedUser: User;
+      let userOfOtherOrganisation: User;
+      let access_tokenOfOtherOrganisation: string;
+      const password = 'password';
+
+      beforeEach(async () => {
+        organisation = await prisma.organisation.create({
+          data: {
+            name: 'Test Organisation',
+            domainName: 'testorganisation.com',
+          },
+        });
+
+        otherOrganisation = await prisma.organisation.create({
+          data: {
+            name: 'Other Organisation',
+            domainName: 'otherorganisation.com',
+          },
+        });
+
+        user = await prisma.user.create({
+          data: {
+            email: 'firsturser@testorganisation.com ',
+            firstName: 'First',
+            lastName: 'User',
+            password: await argon2.hash(password),
+            organisation: {
+              connect: {
+                domainName: organisation.domainName,
+              },
+            },
+            isActive: true,
+          },
+        });
+
+        activatedUser = await prisma.user.create({
+          data: {
+            email: 'activeduser@testorganisation.com',
+            firstName: 'Actived',
+            lastName: 'User',
+            password: await argon2.hash(password),
+            organisation: {
+              connect: {
+                domainName: organisation.domainName,
+              },
+            },
+            isActive: true,
+          },
+        });
+
+        deactivatedUser = await prisma.user.create({
+          data: {
+            email: 'deactivateduser@testorganisation.com',
+            firstName: 'Deactivated',
+            lastName: 'User',
+            password: await argon2.hash(password),
+            organisation: {
+              connect: {
+                domainName: organisation.domainName,
+              },
+            },
+            isActive: false,
+          },
+        });
+
+        userOfOtherOrganisation = await prisma.user.create({
+          data: {
+            email: 'user@otherorganisation.com',
+            firstName: 'Other',
+            lastName: 'User',
+            password: await argon2.hash(password),
+            organisation: {
+              connect: {
+                domainName: otherOrganisation.domainName,
+              },
+            },
+            isActive: true,
+          },
+        });
+
+        const { body: loginBody } = await request(app.getHttpServer()).post('/auth/login').send({
+          username: user.email,
+          password,
+        });
+        access_token = loginBody.access_token;
+
+        const { body: loginBodyOfOtherOrganisation } = await request(app.getHttpServer()).post('/auth/login').send({
+          username: userOfOtherOrganisation.email,
+          password,
+        });
+        access_tokenOfOtherOrganisation = loginBodyOfOtherOrganisation.access_token;
+      });
+
+      it('should deactivate a user from the same organisation', async () => {
+        const { status: deactivateStatus, body: deactivateBody } = await request(app.getHttpServer())
+          .patch(`/users/setInactive/${activatedUser.id}`)
+          .set('Authorization', `Bearer ${access_token}`);
+
+        expect(deactivateStatus).toBe(200);
+        expect(deactivateBody).toHaveProperty('message', 'Set inactive');
+      });
+
+      it('should activate a user from the same organisation', async () => {
+        const { status: activateStatus, body: activateBody } = await request(app.getHttpServer())
+          .patch(`/users/setActive/${deactivatedUser.id}`)
+          .set('Authorization', `Bearer ${access_token}`);
+
+        expect(activateStatus).toBe(200);
+        expect(activateBody).toHaveProperty('message', 'Set active');
+      });
+
+      it('should not deactivate a user from another organisation', async () => {
+        const { status: deactivateStatus, body: deactivateBody } = await request(app.getHttpServer())
+          .patch(`/users/setInactive/${activatedUser.id}`)
+          .set('Authorization', `Bearer ${access_tokenOfOtherOrganisation}`);
+
+        expect(deactivateStatus).toBe(403);
+        expect(deactivateBody).toHaveProperty('error', 'Forbidden');
+      });
+
+      it('should not activate a user from another organisation', async () => {
+        const { status: activateStatus, body: activateBody } = await request(app.getHttpServer())
+          .patch(`/users/setActive/${deactivatedUser.id}`)
+          .set('Authorization', `Bearer ${access_tokenOfOtherOrganisation}`);
+
+        expect(activateStatus).toBe(403);
+        expect(activateBody).toHaveProperty('message', 'Forbidden');
+      });
+    });
+
+    describe('You can retrieve all users of your organisation', () => {
+      let organisation: Organisation;
+      let otherOrganisation: Organisation;
+      let user: User;
+      let access_token: string;
+      const password = 'password';
+
+      beforeEach(async () => {
+        organisation = await prisma.organisation.create({
+          data: {
+            name: 'Test Organisation',
+            domainName: 'testorganisation.com',
+          },
+        });
+
+        otherOrganisation = await prisma.organisation.create({
+          data: {
+            name: 'Other Organisation',
+            domainName: 'otherorganisation.com',
+          },
+        });
+
+        user = await prisma.user.create({
+          data: {
+            email: `user@${organisation.domainName}`,
+            firstName: 'Example',
+            lastName: 'User',
+            password: await argon2.hash(password),
+            organisation: {
+              connect: {
+                domainName: organisation.domainName,
+              },
+            },
+            isActive: true,
+          },
+        });
+
+        await prisma.user.create({
+          data: {
+            email: `user2@${organisation.domainName}`,
+            firstName: 'User',
+            lastName: 'Two',
+            password: await argon2.hash(password),
+            organisation: {
+              connect: {
+                domainName: organisation.domainName,
+              },
+            },
+            isActive: false,
+          },
+        });
+
+        await prisma.user.create({
+          data: {
+            email: `user3@${organisation.domainName}`,
+            firstName: 'User',
+            lastName: 'Three',
+            password: await argon2.hash(password),
+            organisation: {
+              connect: {
+                domainName: organisation.domainName,
+              },
+            },
+            isActive: true,
+          },
+        });
+
+        await prisma.user.create({
+          data: {
+            email: `user@${otherOrganisation.domainName}`,
+            firstName: 'Other',
+            lastName: 'User',
+            password: await argon2.hash(password),
+            organisation: {
+              connect: {
+                domainName: otherOrganisation.domainName,
+              },
+            },
+            isActive: true,
+          },
+        });
+
+        const { body: loginBody } = await request(app.getHttpServer()).post('/auth/login').send({
+          username: user.email,
+          password,
+        });
+        access_token = loginBody.access_token;
+      });
+
+      it('should return all users of the organisation excluding yourself', async () => {
+        const { status, body } = await request(app.getHttpServer())
+          .get('/users')
+          .set('Authorization', `Bearer ${access_token}`);
+
+        expect(status).toBe(200);
+        expect(body).toHaveLength(2);
+        expect(body[0]).toHaveProperty('email', `user2@${organisation.domainName}`);
+        expect(body[1]).toHaveProperty('email', `user3@${organisation.domainName}`);
+      });
+
+      it('should not return any users if you are not authenticated', async () => {
+        const { status, body } = await request(app.getHttpServer()).get('/users');
+
+        expect(status).toBe(401);
+        expect(body).toEqual(expect.objectContaining({ message: 'Unauthorized', statusCode: 401 }));
       });
     });
   });
 
-  describe('A user can add, edit and archive events for their organisation', () => {
+  describe('You can add, edit and archive events for your organisation', () => {
     let organisation: Organisation;
     let otherOrganisation: Organisation;
     const password = 'examplePassword';
@@ -398,7 +829,7 @@ describe('AppController (e2e)', () => {
       });
     });
 
-    describe('A user can create an event', () => {
+    describe('You can create an event', () => {
       it('should not be able to add an event if the user is not logged in', async () => {
         const { status: eventStatus, body: eventBody } = await request(app.getHttpServer())
           .post('/events')
@@ -433,7 +864,6 @@ describe('AppController (e2e)', () => {
           });
 
         expect(eventStatus).toBe(201);
-        // expect(eventBody).toEqual(eventShape);
         expect(eventBody).toHaveProperty('id');
         expect(eventBody).toHaveProperty('title', 'Example event 2');
         expect(eventBody).toHaveProperty('description', 'Example description');
@@ -457,7 +887,6 @@ describe('AppController (e2e)', () => {
           });
 
         expect(eventStatus).toBe(201);
-        // expect(eventBody).toEqual(eventShape);
         expect(eventBody).toHaveProperty('id');
         expect(eventBody).toHaveProperty('title', eventOtherOrganisation.title);
         expect(eventBody).toHaveProperty('description', 'Example description');
@@ -581,7 +1010,7 @@ describe('AppController (e2e)', () => {
       });
     });
 
-    describe('A user can edit and archive events of their organisation', () => {
+    describe('You can edit and archive events of your organisation', () => {
       let id: number;
       let access_token: string;
 
@@ -820,7 +1249,7 @@ describe('AppController (e2e)', () => {
     });
   });
 
-  describe('A user can only retrieve events of their organisation and this result can be filtered', () => {
+  describe('You can only retrieve events of your organisation and this result can be filtered', () => {
     let organisation: Organisation;
     let otherOrganisation: Organisation;
     let user: User;
@@ -1041,414 +1470,418 @@ describe('AppController (e2e)', () => {
       userOfOtherOrganisationToken = loginBody2.access_token;
     });
 
-    it('should return the events of your organisation', async () => {
-      const { status, body } = await request(app.getHttpServer())
-        .get('/events')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(status).toBe(200);
-      expect(body).toHaveLength(5);
-      body.forEach((event: Event) => {
-        expect(event.organisationId).toBe(organisation.id);
+    describe('You can get events of your organisation and filter by date', () => {
+      it('should return the events of your organisation', async () => {
+        const { status, body } = await request(app.getHttpServer())
+          .get('/events')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(status).toBe(200);
+        expect(body).toHaveLength(5);
+        body.forEach((event: Event) => {
+          expect(event.organisationId).toBe(organisation.id);
+        });
+
+        const { status: status2, body: body2 } = await request(app.getHttpServer())
+          .get('/events')
+          .set('Authorization', `Bearer ${userOfOtherOrganisationToken}`);
+        expect(status2).toBe(200);
+        expect(body2).toHaveLength(3);
+        body2.forEach((event: Event) => {
+          expect(event.organisationId).toBe(otherOrganisation.id);
+        });
       });
 
-      const { status: status2, body: body2 } = await request(app.getHttpServer())
-        .get('/events')
-        .set('Authorization', `Bearer ${userOfOtherOrganisationToken}`);
-      expect(status2).toBe(200);
-      expect(body2).toHaveLength(3);
-      body2.forEach((event: Event) => {
-        expect(event.organisationId).toBe(otherOrganisation.id);
+      it('should not return any events if there are no events in your organisation', async () => {
+        await prisma.event.deleteMany();
+        const { status, body } = await request(app.getHttpServer())
+          .get('/events')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(status).toBe(200);
+        expect(body).toHaveLength(0);
+      });
+
+      it('should return the events of your organisation by date descending', async () => {
+        const { status, body } = await request(app.getHttpServer())
+          .get('/events')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(status).toBe(200);
+        expect(body).toHaveLength(5);
+
+        eventArray.sort((a, b) => b.dateOfEvent.getTime() - a.dateOfEvent.getTime());
+        body.forEach((event: Event, index: number) => {
+          expect(event.id).toBe(eventArray[index].id);
+          expect(event.organisationId).toBe(organisation.id);
+        });
+
+        const { status: status2, body: body2 } = await request(app.getHttpServer())
+          .get('/events')
+          .set('Authorization', `Bearer ${userOfOtherOrganisationToken}`);
+        expect(status2).toBe(200);
+        expect(body2).toHaveLength(3);
+
+        eventArrayOtherOrganisation.sort((a, b) => b.dateOfEvent.getTime() - a.dateOfEvent.getTime());
+        body2.forEach((event: Event, index: number) => {
+          expect(event.id).toBe(eventArrayOtherOrganisation[index].id);
+          expect(event.organisationId).toBe(otherOrganisation.id);
+        });
+      });
+
+      it('should return the events of your organisation by date ascending', async () => {
+        const { status, body } = await request(app.getHttpServer())
+          .get('/events?order=asc')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(status).toBe(200);
+        expect(body).toHaveLength(5);
+
+        eventArray.sort((a, b) => a.dateOfEvent.getTime() - b.dateOfEvent.getTime());
+        body.forEach((event: Event, index: number) => {
+          expect(event.id).toBe(eventArray[index].id);
+          expect(event.organisationId).toBe(organisation.id);
+        });
+      });
+
+      it('should return the events of your organisation by date ascending and skip 2', async () => {
+        const { status, body } = await request(app.getHttpServer())
+          .get('/events?order=asc&min=2')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(status).toBe(200);
+        expect(body).toHaveLength(3);
+
+        eventArray.sort((a, b) => a.dateOfEvent.getTime() - b.dateOfEvent.getTime());
+        body.forEach((event: Event, index: number) => {
+          expect(event.id).toBe(eventArray[index + 2].id);
+          expect(event.organisationId).toBe(organisation.id);
+        });
+      });
+
+      it('should return the events of your organisation by date ascending, skip 1 and take 2', async () => {
+        const { status, body } = await request(app.getHttpServer())
+          .get('/events?order=asc&min=1&max=3')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(status).toBe(200);
+        expect(body).toHaveLength(2);
+
+        eventArray.sort((a, b) => a.dateOfEvent.getTime() - b.dateOfEvent.getTime());
+        body.forEach((event: Event, index: number) => {
+          expect(event.id).toBe(eventArray[index + 1].id);
+          expect(event.organisationId).toBe(organisation.id);
+        });
+      });
+
+      it('should return the events of your organisation by date descending and return max 10 events', async () => {
+        await prisma.event.createMany({
+          data: [
+            {
+              title: 'Event 6',
+              description: 'Event 6',
+              dateOfEvent: new Date('2021-01-01'),
+              organisationId: organisation.id,
+            },
+            {
+              title: 'Event 7',
+              description: 'Event 7',
+              dateOfEvent: new Date('2021-01-01'),
+              organisationId: organisation.id,
+            },
+            {
+              title: 'Event 8',
+              description: 'Event 8',
+              dateOfEvent: new Date('2021-01-01'),
+              organisationId: organisation.id,
+            },
+            {
+              title: 'Event 9',
+              description: 'Event 9',
+              dateOfEvent: new Date('2021-01-01'),
+              organisationId: organisation.id,
+            },
+            {
+              title: 'Event 10',
+              description: 'Event 10',
+              dateOfEvent: new Date('2021-01-01'),
+              organisationId: organisation.id,
+            },
+            {
+              title: 'Event 11',
+              description: 'Event 11',
+              dateOfEvent: new Date('2021-01-01'),
+              organisationId: organisation.id,
+            },
+            {
+              title: 'Event 12',
+              description: 'Event 12',
+              dateOfEvent: new Date('2021-01-01'),
+              organisationId: organisation.id,
+            },
+          ],
+        });
+        const { status, body } = await request(app.getHttpServer())
+          .get('/events')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(status).toBe(200);
+        expect(body).toHaveLength(10);
+
+        const { status: status2, body: body2 } = await request(app.getHttpServer())
+          .get('/events?min=6')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(status2).toBe(200);
+        expect(body2).toHaveLength(4);
       });
     });
 
-    it('should not return any events if there are no events in your organisation', async () => {
-      await prisma.event.deleteMany();
-      const { status, body } = await request(app.getHttpServer())
-        .get('/events')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(status).toBe(200);
-      expect(body).toHaveLength(0);
-    });
+    describe('You can search events by title, description or tags', () => {
+      it('should return events where the title, description or the tags contain the search string', async () => {
+        const { body: newEvent } = await request(app.getHttpServer())
+          .post('/events')
+          .set('Authorization', `Bearer ${user1Token}`)
+          .send({
+            title: 'a word in the title',
+            description: 'a different word in the description',
+            dateOfEvent: new Date('2022-01-01'),
+            tags: [{ subject: 'tagName1' }, { subject: 'tagName2' }],
+          });
 
-    it('should return the events of your organisation by date descending', async () => {
-      const { status, body } = await request(app.getHttpServer())
-        .get('/events')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(status).toBe(200);
-      expect(body).toHaveLength(5);
+        const { body: all } = await request(app.getHttpServer())
+          .get('/events?searchQuery=')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(all).toHaveLength(6);
 
-      const sortedEvents = eventArray.sort((a, b) => b.dateOfEvent.getTime() - a.dateOfEvent.getTime());
-      body.forEach((event: Event, index: number) => {
-        expect(event.id).toBe(sortedEvents[index].id);
-        expect(event.organisationId).toBe(organisation.id);
-      });
+        const { body } = await request(app.getHttpServer())
+          .get('/events?searchQuery=title')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(body).toHaveLength(1);
+        expect(body[0].id).toBe(newEvent.id);
 
-      const { status: status2, body: body2 } = await request(app.getHttpServer())
-        .get('/events')
-        .set('Authorization', `Bearer ${userOfOtherOrganisationToken}`);
-      expect(status2).toBe(200);
-      expect(body2).toHaveLength(3);
+        const { body: body2 } = await request(app.getHttpServer())
+          .get('/events?searchQuery=tle')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(body2).toHaveLength(1);
+        expect(body2[0].id).toBe(newEvent.id);
 
-      const sortedEvents2 = eventArrayOtherOrganisation.sort(
-        (a, b) => b.dateOfEvent.getTime() - a.dateOfEvent.getTime(),
-      );
-      body2.forEach((event: Event, index: number) => {
-        expect(event.id).toBe(sortedEvents2[index].id);
-        expect(event.organisationId).toBe(otherOrganisation.id);
-      });
-    });
+        const { body: body3 } = await request(app.getHttpServer())
+          .get('/events?searchQuery=tagName1')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(body3).toHaveLength(1);
+        expect(body3[0].id).toBe(newEvent.id);
 
-    it('should return the events of your organisation by date ascending', async () => {
-      const { status, body } = await request(app.getHttpServer())
-        .get('/events?order=asc')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(status).toBe(200);
-      expect(body).toHaveLength(5);
+        const { body: body4 } = await request(app.getHttpServer())
+          .get('/events?searchQuery=different')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(body4).toHaveLength(1);
+        expect(body4[0].id).toBe(newEvent.id);
 
-      const sortedEvents = eventArray.sort((a, b) => a.dateOfEvent.getTime() - b.dateOfEvent.getTime());
-      body.forEach((event: Event, index: number) => {
-        expect(event.id).toBe(sortedEvents[index].id);
-        expect(event.organisationId).toBe(organisation.id);
-      });
-    });
-
-    it('should return the events of your organisation by date ascending and skip 2', async () => {
-      const { status, body } = await request(app.getHttpServer())
-        .get('/events?order=asc&min=2')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(status).toBe(200);
-      expect(body).toHaveLength(3);
-
-      const sortedEvents = eventArray.sort((a, b) => a.dateOfEvent.getTime() - b.dateOfEvent.getTime());
-      body.forEach((event: Event, index: number) => {
-        expect(event.id).toBe(sortedEvents[index + 2].id);
-        expect(event.organisationId).toBe(organisation.id);
-      });
-    });
-
-    it('should return the events of your organisation by date ascending, skip 1 and take 2', async () => {
-      const { status, body } = await request(app.getHttpServer())
-        .get('/events?order=asc&min=1&max=3')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(status).toBe(200);
-      expect(body).toHaveLength(2);
-
-      const sortedEvents = eventArray.sort((a, b) => a.dateOfEvent.getTime() - b.dateOfEvent.getTime());
-      body.forEach((event: Event, index: number) => {
-        expect(event.id).toBe(sortedEvents[index + 1].id);
-        expect(event.organisationId).toBe(organisation.id);
-      });
-    });
-
-    it('should return the events of your organisation by date descending and return max 10 events', async () => {
-      await prisma.event.createMany({
-        data: [
-          {
-            title: 'Event 6',
-            description: 'Event 6',
+        const { body: newEvent2 } = await request(app.getHttpServer())
+          .post('/events')
+          .set('Authorization', `Bearer ${user1Token}`)
+          .send({
+            title: 'another word in the title',
+            description: 'another different word in the description',
             dateOfEvent: new Date('2021-01-01'),
-            organisationId: organisation.id,
-          },
-          {
-            title: 'Event 7',
-            description: 'Event 7',
-            dateOfEvent: new Date('2021-01-01'),
-            organisationId: organisation.id,
-          },
-          {
-            title: 'Event 8',
-            description: 'Event 8',
-            dateOfEvent: new Date('2021-01-01'),
-            organisationId: organisation.id,
-          },
-          {
-            title: 'Event 9',
-            description: 'Event 9',
-            dateOfEvent: new Date('2021-01-01'),
-            organisationId: organisation.id,
-          },
-          {
-            title: 'Event 10',
-            description: 'Event 10',
-            dateOfEvent: new Date('2021-01-01'),
-            organisationId: organisation.id,
-          },
-          {
-            title: 'Event 11',
-            description: 'Event 11',
-            dateOfEvent: new Date('2021-01-01'),
-            organisationId: organisation.id,
-          },
-          {
-            title: 'Event 12',
-            description: 'Event 12',
-            dateOfEvent: new Date('2021-01-01'),
-            organisationId: organisation.id,
-          },
-        ],
+            tags: [{ subject: 'tagName1' }, { subject: 'tagName2' }, { subject: 'Tag for event2' }],
+          });
+
+        const { body: body5 } = await request(app.getHttpServer())
+          .get('/events?searchQuery=different')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(body5).toHaveLength(2);
+        expect(body5[0].id).toBe(newEvent.id);
+        expect(body5[1].id).toBe(newEvent2.id);
+
+        const { body: body6 } = await request(app.getHttpServer())
+          .get('/events?searchQuery=tagName1')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(body6).toHaveLength(2);
+        expect(body6[0].id).toBe(newEvent.id);
+        expect(body6[1].id).toBe(newEvent2.id);
+
+        const { body: body7 } = await request(app.getHttpServer())
+          .get('/events?searchQuery=tag for event2')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(body7).toHaveLength(1);
+        expect(body7[0].id).toBe(newEvent2.id);
       });
-      const { status, body } = await request(app.getHttpServer())
-        .get('/events')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(status).toBe(200);
-      expect(body).toHaveLength(10);
 
-      const { status: status2, body: body2 } = await request(app.getHttpServer())
-        .get('/events?min=6')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(status2).toBe(200);
-      expect(body2).toHaveLength(4);
+      it('should return all events if the searchstring is empty', async () => {
+        const { body } = await request(app.getHttpServer())
+          .get('/events?searchQuery=')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(body).toHaveLength(5);
+      });
+
+      it('should only return events where the tagname contains the full search string', async () => {
+        const { body: newEvent } = await request(app.getHttpServer())
+          .post('/events')
+          .set('Authorization', `Bearer ${user1Token}`)
+          .send({
+            title: 'title',
+            description: 'description',
+            dateOfEvent: new Date('2022-01-01'),
+            tags: [{ subject: 'tagName1' }, { subject: 'tagName2' }],
+          });
+
+        const { body } = await request(app.getHttpServer())
+          .get('/events?searchQuery=tagName1')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(body).toHaveLength(1);
+        expect(body[0].id).toBe(newEvent.id);
+
+        const { body: body2 } = await request(app.getHttpServer())
+          .get('/events?searchQuery=Name1')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(body2).toHaveLength(0);
+      });
+
+      it('should not return an event where the tagname does not contain the full search string', async () => {
+        await request(app.getHttpServer())
+          .post('/events')
+          .set('Authorization', `Bearer ${user1Token}`)
+          .send({
+            title: 'title',
+            description: 'description',
+            dateOfEvent: new Date('2022-01-01'),
+            tags: [{ subject: 'tagName1' }, { subject: 'tagName2' }],
+          });
+
+        const { body } = await request(app.getHttpServer())
+          .get('/events?searchQuery=Name1')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(body).toHaveLength(0);
+      });
     });
 
-    it('should return events where the title, description or the tags contain the search string', async () => {
-      const { body: newEvent } = await request(app.getHttpServer())
-        .post('/events')
-        .set('Authorization', `Bearer ${user1Token}`)
-        .send({
-          title: 'a word in the title',
-          description: 'a different word in the description',
-          dateOfEvent: new Date('2022-01-01'),
-          tags: [{ subject: 'tagName1' }, { subject: 'tagName2' }],
-        });
+    describe('You can choose whether to include archived events in your search', () => {
+      it('should only return events that are not archived', async () => {
+        const { body: newEvent } = await request(app.getHttpServer())
+          .post('/events')
+          .set('Authorization', `Bearer ${user1Token}`)
+          .send({
+            title: 'a unique title for archiving test',
+            description: 'description',
+            dateOfEvent: new Date('2022-01-01'),
+            tags: [{ subject: 'tagName1' }, { subject: 'tagName2' }],
+          });
 
-      const { body: all } = await request(app.getHttpServer())
-        .get('/events?searchQuery=')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(all).toHaveLength(6);
+        const { body: unarchived } = await request(app.getHttpServer())
+          .get('/events?searchQuery=archiving')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(unarchived).toHaveLength(1);
 
-      const { body } = await request(app.getHttpServer())
-        .get('/events?searchQuery=title')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(body).toHaveLength(1);
-      expect(body[0].id).toBe(newEvent.id);
+        await request(app.getHttpServer())
+          .patch(`/events/${newEvent.id}/archive`)
+          .set('Authorization', `Bearer ${user1Token}`);
 
-      const { body: body2 } = await request(app.getHttpServer())
-        .get('/events?searchQuery=tle')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(body2).toHaveLength(1);
-      expect(body2[0].id).toBe(newEvent.id);
+        const { body } = await request(app.getHttpServer())
+          .get('/events?searchQuery=archiving')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(body).toHaveLength(0);
+      });
 
-      const { body: body3 } = await request(app.getHttpServer())
-        .get('/events?searchQuery=tagName1')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(body3).toHaveLength(1);
-      expect(body3[0].id).toBe(newEvent.id);
+      it('should return both archived and unarchived events if the archived query parameter is set to true', async () => {
+        const { body: newEvent } = await request(app.getHttpServer())
+          .post('/events')
+          .set('Authorization', `Bearer ${user1Token}`)
+          .send({
+            title: 'a unique title for archiving test',
+            description: 'description',
+            dateOfEvent: new Date('2022-01-01'),
+            tags: [{ subject: 'tagName1' }, { subject: 'tagName2' }],
+          });
 
-      const { body: body4 } = await request(app.getHttpServer())
-        .get('/events?searchQuery=different')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(body4).toHaveLength(1);
-      expect(body4[0].id).toBe(newEvent.id);
+        const { body: unarchived } = await request(app.getHttpServer())
+          .get('/events?searchQuery=archiving')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(unarchived).toHaveLength(1);
 
-      const { body: newEvent2 } = await request(app.getHttpServer())
-        .post('/events')
-        .set('Authorization', `Bearer ${user1Token}`)
-        .send({
-          title: 'another word in the title',
-          description: 'another different word in the description',
-          dateOfEvent: new Date('2021-01-01'),
-          tags: [{ subject: 'tagName1' }, { subject: 'tagName2' }, { subject: 'Tag for event2' }],
-        });
+        await request(app.getHttpServer())
+          .patch(`/events/${newEvent.id}/archive`)
+          .set('Authorization', `Bearer ${user1Token}`);
 
-      const { body: body5 } = await request(app.getHttpServer())
-        .get('/events?searchQuery=different')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(body5).toHaveLength(2);
-      expect(body5[0].id).toBe(newEvent.id);
-      expect(body5[1].id).toBe(newEvent2.id);
+        const { body } = await request(app.getHttpServer())
+          .get('/events?searchQuery=archiving&getArchivedItems=true')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(body).toHaveLength(1);
+      });
 
-      const { body: body6 } = await request(app.getHttpServer())
-        .get('/events?searchQuery=tagName1')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(body6).toHaveLength(2);
-      expect(body6[0].id).toBe(newEvent.id);
-      expect(body6[1].id).toBe(newEvent2.id);
+      it('should return all events if the archived query parameter is set to true and the searchstring is empty', async () => {
+        const { body: newEvent } = await request(app.getHttpServer())
+          .post('/events')
+          .set('Authorization', `Bearer ${user1Token}`)
+          .send({
+            title: 'a unique title for archiving test',
+            description: 'description',
+            dateOfEvent: new Date('2022-01-01'),
+            tags: [{ subject: 'tagName1' }, { subject: 'tagName2' }],
+          });
 
-      const { body: body7 } = await request(app.getHttpServer())
-        .get('/events?searchQuery=tag for event2')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(body7).toHaveLength(1);
-      expect(body7[0].id).toBe(newEvent2.id);
-    });
+        const { body: unarchived } = await request(app.getHttpServer())
+          .get('/events?searchQuery=')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(unarchived).toHaveLength(6);
 
-    it('should return all events if the searchstring is empty', async () => {
-      const { body } = await request(app.getHttpServer())
-        .get('/events?searchQuery=')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(body).toHaveLength(5);
-    });
+        await request(app.getHttpServer())
+          .patch(`/events/${newEvent.id}/archive`)
+          .set('Authorization', `Bearer ${user1Token}`);
 
-    it('should only return events where the tagname contains the full search string', async () => {
-      const { body: newEvent } = await request(app.getHttpServer())
-        .post('/events')
-        .set('Authorization', `Bearer ${user1Token}`)
-        .send({
-          title: 'title',
-          description: 'description',
-          dateOfEvent: new Date('2022-01-01'),
-          tags: [{ subject: 'tagName1' }, { subject: 'tagName2' }],
-        });
+        const { body: archived } = await request(app.getHttpServer())
+          .get('/events?searchQuery=')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(archived).toHaveLength(5);
 
-      const { body } = await request(app.getHttpServer())
-        .get('/events?searchQuery=tagName1')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(body).toHaveLength(1);
-      expect(body[0].id).toBe(newEvent.id);
+        const { body } = await request(app.getHttpServer())
+          .get('/events?searchQuery=&getArchivedItems=true')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(body).toHaveLength(6);
+      });
 
-      const { body: body2 } = await request(app.getHttpServer())
-        .get('/events?searchQuery=Name1')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(body2).toHaveLength(0);
-    });
+      it('should return all archived and unarchived events by date ascending, skip 2 and take 3', async () => {
+        const { body: newEvent } = await request(app.getHttpServer())
+          .post('/events')
+          .set('Authorization', `Bearer ${user1Token}`)
+          .send({
+            title: 'a unique title for archiving test',
+            description: 'description',
+            dateOfEvent: new Date('2022-01-01'),
+            tags: [{ subject: 'tagName1' }, { subject: 'tagName2' }],
+            isArchived: true,
+          });
 
-    it('should not return an event where the tagname does not contain the full search string', async () => {
-      await request(app.getHttpServer())
-        .post('/events')
-        .set('Authorization', `Bearer ${user1Token}`)
-        .send({
-          title: 'title',
-          description: 'description',
-          dateOfEvent: new Date('2022-01-01'),
-          tags: [{ subject: 'tagName1' }, { subject: 'tagName2' }],
-        });
+        const { body: newEvent2 } = await request(app.getHttpServer())
+          .post('/events')
+          .set('Authorization', `Bearer ${user1Token}`)
+          .send({
+            title: 'a unique title for archiving test 2',
+            description: 'description',
+            dateOfEvent: new Date('2022-01-02'),
+            tags: [{ subject: 'tagName1' }, { subject: 'tagName2' }],
+            isArchived: true,
+          });
 
-      const { body } = await request(app.getHttpServer())
-        .get('/events?searchQuery=Name1')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(body).toHaveLength(0);
-    });
+        const { body: searchResult } = await request(app.getHttpServer())
+          .get('/events?order=asc&getArchivedItems=false&min=2&max=5')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(searchResult).toHaveLength(3);
+        eventArray.sort((a, b) => a.dateOfEvent.getTime() - b.dateOfEvent.getTime());
+        expect(searchResult[0].id).toEqual(eventArray[2].id);
+        expect(searchResult[1].id).toEqual(eventArray[3].id);
+        expect(searchResult[2].id).toEqual(eventArray[4].id);
 
-    it('should only return events that are not archived', async () => {
-      const { body: newEvent } = await request(app.getHttpServer())
-        .post('/events')
-        .set('Authorization', `Bearer ${user1Token}`)
-        .send({
-          title: 'a unique title for archiving test',
-          description: 'description',
-          dateOfEvent: new Date('2022-01-01'),
-          tags: [{ subject: 'tagName1' }, { subject: 'tagName2' }],
-        });
-
-      const { body: unarchived } = await request(app.getHttpServer())
-        .get('/events?searchQuery=archiving')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(unarchived).toHaveLength(1);
-
-      await request(app.getHttpServer())
-        .patch(`/events/${newEvent.id}/archive`)
-        .set('Authorization', `Bearer ${user1Token}`);
-
-      const { body } = await request(app.getHttpServer())
-        .get('/events?searchQuery=archiving')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(body).toHaveLength(0);
-    });
-
-    it('should return both archived and unarchived events if the archived query parameter is set to true', async () => {
-      const { body: newEvent } = await request(app.getHttpServer())
-        .post('/events')
-        .set('Authorization', `Bearer ${user1Token}`)
-        .send({
-          title: 'a unique title for archiving test',
-          description: 'description',
-          dateOfEvent: new Date('2022-01-01'),
-          tags: [{ subject: 'tagName1' }, { subject: 'tagName2' }],
-        });
-
-      const { body: unarchived } = await request(app.getHttpServer())
-        .get('/events?searchQuery=archiving')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(unarchived).toHaveLength(1);
-
-      await request(app.getHttpServer())
-        .patch(`/events/${newEvent.id}/archive`)
-        .set('Authorization', `Bearer ${user1Token}`);
-
-      const { body } = await request(app.getHttpServer())
-        .get('/events?searchQuery=archiving&getArchivedItems=true')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(body).toHaveLength(1);
-    });
-
-    it('should return all events if the archived query parameter is set to true and the searchstring is empty', async () => {
-      const { body: newEvent } = await request(app.getHttpServer())
-        .post('/events')
-        .set('Authorization', `Bearer ${user1Token}`)
-        .send({
-          title: 'a unique title for archiving test',
-          description: 'description',
-          dateOfEvent: new Date('2022-01-01'),
-          tags: [{ subject: 'tagName1' }, { subject: 'tagName2' }],
-        });
-
-      const { body: unarchived } = await request(app.getHttpServer())
-        .get('/events?searchQuery=')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(unarchived).toHaveLength(6);
-
-      await request(app.getHttpServer())
-        .patch(`/events/${newEvent.id}/archive`)
-        .set('Authorization', `Bearer ${user1Token}`);
-
-      const { body: archived } = await request(app.getHttpServer())
-        .get('/events?searchQuery=')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(archived).toHaveLength(5);
-
-      const { body } = await request(app.getHttpServer())
-        .get('/events?searchQuery=&getArchivedItems=true')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(body).toHaveLength(6);
-    });
-
-    it('should return all archived and unarchived events by date ascending, skip 2 and take 3', async () => {
-      const { body: newEvent } = await request(app.getHttpServer())
-        .post('/events')
-        .set('Authorization', `Bearer ${user1Token}`)
-        .send({
-          title: 'a unique title for archiving test',
-          description: 'description',
-          dateOfEvent: new Date('2022-01-01'),
-          tags: [{ subject: 'tagName1' }, { subject: 'tagName2' }],
-          isArchived: true,
-        });
-
-      const { body: newEvent2 } = await request(app.getHttpServer())
-        .post('/events')
-        .set('Authorization', `Bearer ${user1Token}`)
-        .send({
-          title: 'a unique title for archiving test 2',
-          description: 'description',
-          dateOfEvent: new Date('2022-01-02'),
-          tags: [{ subject: 'tagName1' }, { subject: 'tagName2' }],
-          isArchived: true,
-        });
-
-      const { body: searchResult } = await request(app.getHttpServer())
-        .get('/events?order=asc&getArchivedItems=false&min=2&max=5')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(searchResult).toHaveLength(3);
-      const sortedEvents = eventArray.sort((a, b) => a.dateOfEvent.getTime() - b.dateOfEvent.getTime());
-      expect(searchResult[0].id).toEqual(sortedEvents[2].id);
-      expect(searchResult[1].id).toEqual(sortedEvents[3].id);
-      expect(searchResult[2].id).toEqual(sortedEvents[4].id);
-
-      const { body: searchResult2 } = await request(app.getHttpServer())
-        .get('/events?order=asc&getArchivedItems=true&min=2&max=5')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(searchResult2).toHaveLength(3);
-      newEvent.dateOfEvent = new Date(newEvent.dateOfEvent);
-      newEvent2.dateOfEvent = new Date(newEvent2.dateOfEvent);
-      const sortedEvents2 = [...eventArray, newEvent, newEvent2].sort(
-        (a, b) => a.dateOfEvent.getTime() - b.dateOfEvent.getTime(),
-      );
-      expect(searchResult2[0].id).toEqual(sortedEvents2[2].id);
-      expect(searchResult2[1].id).toEqual(sortedEvents2[3].id);
-      expect(searchResult2[2].id).toEqual(sortedEvents2[4].id);
+        const { body: searchResult2 } = await request(app.getHttpServer())
+          .get('/events?order=asc&getArchivedItems=true&min=2&max=5')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(searchResult2).toHaveLength(3);
+        newEvent.dateOfEvent = new Date(newEvent.dateOfEvent);
+        newEvent2.dateOfEvent = new Date(newEvent2.dateOfEvent);
+        const sortedEvents2 = [...eventArray, newEvent, newEvent2].sort(
+          (a, b) => a.dateOfEvent.getTime() - b.dateOfEvent.getTime(),
+        );
+        expect(searchResult2[0].id).toEqual(sortedEvents2[2].id);
+        expect(searchResult2[1].id).toEqual(sortedEvents2[3].id);
+        expect(searchResult2[2].id).toEqual(sortedEvents2[4].id);
+      });
     });
   });
 
-  describe('A user can add tags to an event and create new tags if they do not exist yet for their organisation', () => {
+  describe('You can add tags to an event and create new tags if they do not exist yet for your organisation', () => {
     let user1Token: string;
     let userOfOtherOrganisationToken: string;
 

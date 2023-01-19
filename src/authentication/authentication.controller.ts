@@ -4,8 +4,8 @@ import { SignUpDto } from './dto/signUpDto';
 import { LocalAuthGuard } from './guards/local-auth-guard';
 import { MailService } from '../mail/mail.service';
 import { AuthenticationService } from './authentication.service';
-import { emailDto } from './dto/emailDto';
-import { resetPasswordDto } from './dto/resetPasswordDto';
+import { EmailDto } from './dto/emailDto';
+import { ResetPasswordDto } from './dto/resetPasswordDto';
 
 @Controller('auth')
 export class AuthenticationController {
@@ -21,12 +21,7 @@ export class AuthenticationController {
   @Post('register')
   @Public()
   async register(@Body() signUpDto: SignUpDto) {
-    try {
-      return await this.authenticationService.generateUser(signUpDto);
-      // return this.authenticationService.login(user);
-    } catch (error) {
-      throw error;
-    }
+    return await this.authenticationService.generateUser(signUpDto);
   }
 
   @Patch('verify/:token')
@@ -44,21 +39,13 @@ export class AuthenticationController {
 
   @Post('reset-password')
   @Public()
-  async resetPassword(@Body() dto: emailDto) {
-    try {
-      return await this.authenticationService.resetPasswordSendMail(dto.email);
-    } catch (error) {
-      throw error;
-    }
+  async resetPassword(@Body() dto: EmailDto) {
+    return await this.authenticationService.resetPasswordSendMail(dto.email);
   }
 
   @Post('reset-password/:token')
   @Public()
-  async resetPasswordWithToken(@Param() token: { token: string }, @Body() dto: resetPasswordDto) {
-    try {
-      return await this.authenticationService.resetPassword(token.token, dto.password);
-    } catch (error) {
-      throw error;
-    }
+  async resetPasswordWithToken(@Param() token: { token: string }, @Body() dto: ResetPasswordDto) {
+    return await this.authenticationService.resetPassword(token.token, dto.password);
   }
 }

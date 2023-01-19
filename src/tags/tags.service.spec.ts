@@ -2,11 +2,12 @@ import { Test } from '@nestjs/testing';
 import { TagsService } from './tags.service';
 import { PrismaClientService } from '../prisma-client/prisma-client.service';
 
+const organisationId = 1;
 const tagArray = [
   {
     id: 1,
     subject: 'Changing team sizes',
-    organisationId: null,
+    organisationId: organisationId,
     _count: {
       Events: 2,
     },
@@ -14,7 +15,7 @@ const tagArray = [
   {
     id: 2,
     subject: 'Relocation',
-    organisationId: null,
+    organisationId: organisationId,
     _count: {
       Events: 0,
     },
@@ -22,7 +23,7 @@ const tagArray = [
   {
     id: 3,
     subject: 'Infrastructure',
-    organisationId: null,
+    organisationId: organisationId,
     _count: {
       Events: 3,
     },
@@ -30,7 +31,7 @@ const tagArray = [
   {
     id: 4,
     subject: 'Changing team sizes',
-    organisationId: null,
+    organisationId: organisationId,
     _count: {
       Events: 2,
     },
@@ -38,7 +39,7 @@ const tagArray = [
   {
     id: 5,
     subject: 'Work culture',
-    organisationId: null,
+    organisationId: organisationId,
     _count: {
       Events: 1,
     },
@@ -46,7 +47,7 @@ const tagArray = [
 ];
 
 const db = {
-  tags: {
+  tag: {
     findMany: jest.fn().mockResolvedValue(tagArray),
   },
 };
@@ -75,10 +76,14 @@ describe('TagsService', () => {
     expect(prisma).toBeDefined();
   });
 
-  // describe('getAll', () => {
-  //   it('should return an array of tags', async () => {
-  //     const tags = await service.findAll();
-  //     expect(tags).toEqual(tagArray);
-  //   });
-  // });
+  it('should return a list of tags', async () => {
+    const tags = await service.findAll(organisationId);
+    expect(tags).toEqual(
+      tagArray.map((tag) => ({
+        id: tag.id,
+        subject: tag.subject,
+        count: tag._count.Events,
+      })),
+    );
+  });
 });

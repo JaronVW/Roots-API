@@ -11,13 +11,10 @@ import { join } from 'path';
 import { MailService } from 'src/mail/mail.service';
 
 describe('AppController (e2e)', () => {
-  // delete local testdb, then run locally using npm run test:prisma:deploy && npm run test:e2e:local
+  // run database server (e.g. Apache and MySQL using Xampp), delete local testdb if it exists, then run locally using npm run test:prisma:deploy && npm run test:e2e:local
   let app: INestApplication;
   let prisma: PrismaClientService;
   let mailService: MailService;
-
-  // TODO: rewrite tests with verification needed (create or update user manually (set to active), can verification email be tested?) ;-;
-  // TODO: testing activating and deactivating users
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -631,7 +628,6 @@ describe('AppController (e2e)', () => {
       let otherOrganisation: Organisation;
       let user: User;
       let access_token: string;
-      let userOfOtherOrganisation: User;
       const password = 'password';
 
       beforeEach(async () => {
@@ -694,7 +690,7 @@ describe('AppController (e2e)', () => {
           },
         });
 
-        userOfOtherOrganisation = await prisma.user.create({
+        await prisma.user.create({
           data: {
             email: `user@${otherOrganisation.domainName}`,
             firstName: 'Other',
@@ -868,7 +864,6 @@ describe('AppController (e2e)', () => {
           });
 
         expect(eventStatus).toBe(201);
-        // expect(eventBody).toEqual(eventShape);
         expect(eventBody).toHaveProperty('id');
         expect(eventBody).toHaveProperty('title', 'Example event 2');
         expect(eventBody).toHaveProperty('description', 'Example description');
@@ -892,7 +887,6 @@ describe('AppController (e2e)', () => {
           });
 
         expect(eventStatus).toBe(201);
-        // expect(eventBody).toEqual(eventShape);
         expect(eventBody).toHaveProperty('id');
         expect(eventBody).toHaveProperty('title', eventOtherOrganisation.title);
         expect(eventBody).toHaveProperty('description', 'Example description');
@@ -1513,9 +1507,9 @@ describe('AppController (e2e)', () => {
         expect(status).toBe(200);
         expect(body).toHaveLength(5);
 
-        const sortedEvents = eventArray.sort((a, b) => b.dateOfEvent.getTime() - a.dateOfEvent.getTime());
+        eventArray.sort((a, b) => b.dateOfEvent.getTime() - a.dateOfEvent.getTime());
         body.forEach((event: Event, index: number) => {
-          expect(event.id).toBe(sortedEvents[index].id);
+          expect(event.id).toBe(eventArray[index].id);
           expect(event.organisationId).toBe(organisation.id);
         });
 
@@ -1525,11 +1519,9 @@ describe('AppController (e2e)', () => {
         expect(status2).toBe(200);
         expect(body2).toHaveLength(3);
 
-        const sortedEvents2 = eventArrayOtherOrganisation.sort(
-          (a, b) => b.dateOfEvent.getTime() - a.dateOfEvent.getTime(),
-        );
+        eventArrayOtherOrganisation.sort((a, b) => b.dateOfEvent.getTime() - a.dateOfEvent.getTime());
         body2.forEach((event: Event, index: number) => {
-          expect(event.id).toBe(sortedEvents2[index].id);
+          expect(event.id).toBe(eventArrayOtherOrganisation[index].id);
           expect(event.organisationId).toBe(otherOrganisation.id);
         });
       });
@@ -1541,9 +1533,9 @@ describe('AppController (e2e)', () => {
         expect(status).toBe(200);
         expect(body).toHaveLength(5);
 
-        const sortedEvents = eventArray.sort((a, b) => a.dateOfEvent.getTime() - b.dateOfEvent.getTime());
+        eventArray.sort((a, b) => a.dateOfEvent.getTime() - b.dateOfEvent.getTime());
         body.forEach((event: Event, index: number) => {
-          expect(event.id).toBe(sortedEvents[index].id);
+          expect(event.id).toBe(eventArray[index].id);
           expect(event.organisationId).toBe(organisation.id);
         });
       });
@@ -1555,9 +1547,9 @@ describe('AppController (e2e)', () => {
         expect(status).toBe(200);
         expect(body).toHaveLength(3);
 
-        const sortedEvents = eventArray.sort((a, b) => a.dateOfEvent.getTime() - b.dateOfEvent.getTime());
+        eventArray.sort((a, b) => a.dateOfEvent.getTime() - b.dateOfEvent.getTime());
         body.forEach((event: Event, index: number) => {
-          expect(event.id).toBe(sortedEvents[index + 2].id);
+          expect(event.id).toBe(eventArray[index + 2].id);
           expect(event.organisationId).toBe(organisation.id);
         });
       });
@@ -1569,9 +1561,9 @@ describe('AppController (e2e)', () => {
         expect(status).toBe(200);
         expect(body).toHaveLength(2);
 
-        const sortedEvents = eventArray.sort((a, b) => a.dateOfEvent.getTime() - b.dateOfEvent.getTime());
+        eventArray.sort((a, b) => a.dateOfEvent.getTime() - b.dateOfEvent.getTime());
         body.forEach((event: Event, index: number) => {
-          expect(event.id).toBe(sortedEvents[index + 1].id);
+          expect(event.id).toBe(eventArray[index + 1].id);
           expect(event.organisationId).toBe(organisation.id);
         });
       });
@@ -1868,10 +1860,10 @@ describe('AppController (e2e)', () => {
           .get('/events?order=asc&getArchivedItems=false&min=2&max=5')
           .set('Authorization', `Bearer ${user1Token}`);
         expect(searchResult).toHaveLength(3);
-        const sortedEvents = eventArray.sort((a, b) => a.dateOfEvent.getTime() - b.dateOfEvent.getTime());
-        expect(searchResult[0].id).toEqual(sortedEvents[2].id);
-        expect(searchResult[1].id).toEqual(sortedEvents[3].id);
-        expect(searchResult[2].id).toEqual(sortedEvents[4].id);
+        eventArray.sort((a, b) => a.dateOfEvent.getTime() - b.dateOfEvent.getTime());
+        expect(searchResult[0].id).toEqual(eventArray[2].id);
+        expect(searchResult[1].id).toEqual(eventArray[3].id);
+        expect(searchResult[2].id).toEqual(eventArray[4].id);
 
         const { body: searchResult2 } = await request(app.getHttpServer())
           .get('/events?order=asc&getArchivedItems=true&min=2&max=5')

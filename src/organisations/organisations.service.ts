@@ -32,9 +32,9 @@ export class OrganisationsService {
     } catch (error) {
       let errorMessage = 'error already exists';
       if (error.meta != undefined) {
-        if ((error.meta.target = 'organisation_domain_name_key'))
+        if (error.meta.target.toLowerCase() == 'organisation_name_key')
           errorMessage = 'Organisation with that name already exists';
-        if ((error.meta.target = 'organisation_name_key'))
+        if (error.meta.target.toLowerCase() == 'organisation_domainname_key')
           errorMessage = 'An organisation is already using that domain name';
       }
       if (error.code == 'P2002') throw new BadRequestException(errorMessage);
@@ -52,9 +52,9 @@ export class OrganisationsService {
         if (error.code == 'P2025' || error.status == 404) throw new NotFoundException("Can't find organisation");
         let errorMessage = 'error already exists';
         if (error.meta != undefined) {
-          if ((error.meta.target = 'organisation_domain_name_key'))
-            errorMessage = 'Organisation with that domain name already exists';
-          if ((error.meta.target = 'organisation_name_key'))
+          if (error.meta.target.toLowerCase() == 'organisation_domainname_key')
+            errorMessage = 'An organisation is already using that domain name';
+          if (error.meta.target.toLowerCase() == 'organisation_name_key')
             errorMessage = 'Organisation with that name already exists';
         }
         if (error.code == 'P2002') throw new BadRequestException(errorMessage);

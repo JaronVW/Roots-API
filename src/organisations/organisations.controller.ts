@@ -17,9 +17,9 @@ export class OrganisationsController {
   @Patch(':id')
   async updateDomainName(
     @Param('id') id: number,
-    @Body() UpdateDomainNameDto: UpdateDomainNameDto,
+    @Body() updateDomainNameDto: UpdateDomainNameDto,
   ): Promise<Organisation> {
-    return await this.organisationsService.updateDomainName(id, UpdateDomainNameDto);
+    return await this.organisationsService.updateDomainName(id, updateDomainNameDto);
   }
 
   @Get(':id')

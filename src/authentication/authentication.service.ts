@@ -61,7 +61,6 @@ export class AuthenticationService {
         });
       }
     } catch (error) {
-      // console.log(error);
       if (error.code == 'P2002') throw new BadRequestException('email is already in use');
       if (error instanceof NotFoundException) throw error;
       throw new BadRequestException('Something went wrong');
@@ -82,12 +81,10 @@ export class AuthenticationService {
         if (data == null) throw new NotFoundException('Verification token not found');
         if (data.expires < new Date()) throw new BadRequestException('Verification token expired');
         if (this.userService.update(data.email)) {
-          this.verificationRequestService.deleteRequest(data.email).then;
-          return;
+          this.verificationRequestService.deleteRequest(data.email);
         }
       })
       .catch((error) => {
-        console.log(error);
         if (error instanceof NotFoundException) throw error;
         throw new BadRequestException(error.message);
       });

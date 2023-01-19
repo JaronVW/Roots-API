@@ -625,6 +625,115 @@ describe('AppController (e2e)', () => {
         expect(activateBody).toHaveProperty('message', 'Forbidden');
       });
     });
+
+    describe('You can retrieve all users of your organisation', () => {
+      let organisation: Organisation;
+      let otherOrganisation: Organisation;
+      let user: User;
+      let access_token: string;
+      let userOfOtherOrganisation: User;
+      const password = 'password';
+
+      beforeEach(async () => {
+        organisation = await prisma.organisation.create({
+          data: {
+            name: 'Test Organisation',
+            domainName: 'testorganisation.com',
+          },
+        });
+
+        otherOrganisation = await prisma.organisation.create({
+          data: {
+            name: 'Other Organisation',
+            domainName: 'otherorganisation.com',
+          },
+        });
+
+        user = await prisma.user.create({
+          data: {
+            email: `user@${organisation.domainName}`,
+            firstName: 'Example',
+            lastName: 'User',
+            password: await argon2.hash(password),
+            organisation: {
+              connect: {
+                domainName: organisation.domainName,
+              },
+            },
+            isActive: true,
+          },
+        });
+
+        await prisma.user.create({
+          data: {
+            email: `user2@${organisation.domainName}`,
+            firstName: 'User',
+            lastName: 'Two',
+            password: await argon2.hash(password),
+            organisation: {
+              connect: {
+                domainName: organisation.domainName,
+              },
+            },
+            isActive: false,
+          },
+        });
+
+        await prisma.user.create({
+          data: {
+            email: `user3@${organisation.domainName}`,
+            firstName: 'User',
+            lastName: 'Three',
+            password: await argon2.hash(password),
+            organisation: {
+              connect: {
+                domainName: organisation.domainName,
+              },
+            },
+            isActive: true,
+          },
+        });
+
+        userOfOtherOrganisation = await prisma.user.create({
+          data: {
+            email: `user@${otherOrganisation.domainName}`,
+            firstName: 'Other',
+            lastName: 'User',
+            password: await argon2.hash(password),
+            organisation: {
+              connect: {
+                domainName: otherOrganisation.domainName,
+              },
+            },
+            isActive: true,
+          },
+        });
+
+        const { body: loginBody } = await request(app.getHttpServer()).post('/auth/login').send({
+          username: user.email,
+          password,
+        });
+        access_token = loginBody.access_token;
+      });
+
+      it('should return all users of the organisation excluding yourself', async () => {
+        const { status, body } = await request(app.getHttpServer())
+          .get('/users')
+          .set('Authorization', `Bearer ${access_token}`);
+
+        expect(status).toBe(200);
+        expect(body).toHaveLength(2);
+        expect(body[0]).toHaveProperty('email', `user2@${organisation.domainName}`);
+        expect(body[1]).toHaveProperty('email', `user3@${organisation.domainName}`);
+      });
+
+      it('should not return any users if you are not authenticated', async () => {
+        const { status, body } = await request(app.getHttpServer()).get('/users');
+
+        expect(status).toBe(401);
+        expect(body).toEqual(expect.objectContaining({ message: 'Unauthorized', statusCode: 401 }));
+      });
+    });
   });
 
   describe('You can add, edit and archive events for your organisation', () => {
@@ -1367,410 +1476,416 @@ describe('AppController (e2e)', () => {
       userOfOtherOrganisationToken = loginBody2.access_token;
     });
 
-    it('should return the events of your organisation', async () => {
-      const { status, body } = await request(app.getHttpServer())
-        .get('/events')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(status).toBe(200);
-      expect(body).toHaveLength(5);
-      body.forEach((event: Event) => {
-        expect(event.organisationId).toBe(organisation.id);
+    describe('You can get events of your organisation and filter by date', () => {
+      it('should return the events of your organisation', async () => {
+        const { status, body } = await request(app.getHttpServer())
+          .get('/events')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(status).toBe(200);
+        expect(body).toHaveLength(5);
+        body.forEach((event: Event) => {
+          expect(event.organisationId).toBe(organisation.id);
+        });
+
+        const { status: status2, body: body2 } = await request(app.getHttpServer())
+          .get('/events')
+          .set('Authorization', `Bearer ${userOfOtherOrganisationToken}`);
+        expect(status2).toBe(200);
+        expect(body2).toHaveLength(3);
+        body2.forEach((event: Event) => {
+          expect(event.organisationId).toBe(otherOrganisation.id);
+        });
       });
 
-      const { status: status2, body: body2 } = await request(app.getHttpServer())
-        .get('/events')
-        .set('Authorization', `Bearer ${userOfOtherOrganisationToken}`);
-      expect(status2).toBe(200);
-      expect(body2).toHaveLength(3);
-      body2.forEach((event: Event) => {
-        expect(event.organisationId).toBe(otherOrganisation.id);
+      it('should not return any events if there are no events in your organisation', async () => {
+        await prisma.event.deleteMany();
+        const { status, body } = await request(app.getHttpServer())
+          .get('/events')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(status).toBe(200);
+        expect(body).toHaveLength(0);
+      });
+
+      it('should return the events of your organisation by date descending', async () => {
+        const { status, body } = await request(app.getHttpServer())
+          .get('/events')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(status).toBe(200);
+        expect(body).toHaveLength(5);
+
+        const sortedEvents = eventArray.sort((a, b) => b.dateOfEvent.getTime() - a.dateOfEvent.getTime());
+        body.forEach((event: Event, index: number) => {
+          expect(event.id).toBe(sortedEvents[index].id);
+          expect(event.organisationId).toBe(organisation.id);
+        });
+
+        const { status: status2, body: body2 } = await request(app.getHttpServer())
+          .get('/events')
+          .set('Authorization', `Bearer ${userOfOtherOrganisationToken}`);
+        expect(status2).toBe(200);
+        expect(body2).toHaveLength(3);
+
+        const sortedEvents2 = eventArrayOtherOrganisation.sort(
+          (a, b) => b.dateOfEvent.getTime() - a.dateOfEvent.getTime(),
+        );
+        body2.forEach((event: Event, index: number) => {
+          expect(event.id).toBe(sortedEvents2[index].id);
+          expect(event.organisationId).toBe(otherOrganisation.id);
+        });
+      });
+
+      it('should return the events of your organisation by date ascending', async () => {
+        const { status, body } = await request(app.getHttpServer())
+          .get('/events?order=asc')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(status).toBe(200);
+        expect(body).toHaveLength(5);
+
+        const sortedEvents = eventArray.sort((a, b) => a.dateOfEvent.getTime() - b.dateOfEvent.getTime());
+        body.forEach((event: Event, index: number) => {
+          expect(event.id).toBe(sortedEvents[index].id);
+          expect(event.organisationId).toBe(organisation.id);
+        });
+      });
+
+      it('should return the events of your organisation by date ascending and skip 2', async () => {
+        const { status, body } = await request(app.getHttpServer())
+          .get('/events?order=asc&min=2')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(status).toBe(200);
+        expect(body).toHaveLength(3);
+
+        const sortedEvents = eventArray.sort((a, b) => a.dateOfEvent.getTime() - b.dateOfEvent.getTime());
+        body.forEach((event: Event, index: number) => {
+          expect(event.id).toBe(sortedEvents[index + 2].id);
+          expect(event.organisationId).toBe(organisation.id);
+        });
+      });
+
+      it('should return the events of your organisation by date ascending, skip 1 and take 2', async () => {
+        const { status, body } = await request(app.getHttpServer())
+          .get('/events?order=asc&min=1&max=3')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(status).toBe(200);
+        expect(body).toHaveLength(2);
+
+        const sortedEvents = eventArray.sort((a, b) => a.dateOfEvent.getTime() - b.dateOfEvent.getTime());
+        body.forEach((event: Event, index: number) => {
+          expect(event.id).toBe(sortedEvents[index + 1].id);
+          expect(event.organisationId).toBe(organisation.id);
+        });
+      });
+
+      it('should return the events of your organisation by date descending and return max 10 events', async () => {
+        await prisma.event.createMany({
+          data: [
+            {
+              title: 'Event 6',
+              description: 'Event 6',
+              dateOfEvent: new Date('2021-01-01'),
+              organisationId: organisation.id,
+            },
+            {
+              title: 'Event 7',
+              description: 'Event 7',
+              dateOfEvent: new Date('2021-01-01'),
+              organisationId: organisation.id,
+            },
+            {
+              title: 'Event 8',
+              description: 'Event 8',
+              dateOfEvent: new Date('2021-01-01'),
+              organisationId: organisation.id,
+            },
+            {
+              title: 'Event 9',
+              description: 'Event 9',
+              dateOfEvent: new Date('2021-01-01'),
+              organisationId: organisation.id,
+            },
+            {
+              title: 'Event 10',
+              description: 'Event 10',
+              dateOfEvent: new Date('2021-01-01'),
+              organisationId: organisation.id,
+            },
+            {
+              title: 'Event 11',
+              description: 'Event 11',
+              dateOfEvent: new Date('2021-01-01'),
+              organisationId: organisation.id,
+            },
+            {
+              title: 'Event 12',
+              description: 'Event 12',
+              dateOfEvent: new Date('2021-01-01'),
+              organisationId: organisation.id,
+            },
+          ],
+        });
+        const { status, body } = await request(app.getHttpServer())
+          .get('/events')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(status).toBe(200);
+        expect(body).toHaveLength(10);
+
+        const { status: status2, body: body2 } = await request(app.getHttpServer())
+          .get('/events?min=6')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(status2).toBe(200);
+        expect(body2).toHaveLength(4);
       });
     });
 
-    it('should not return any events if there are no events in your organisation', async () => {
-      await prisma.event.deleteMany();
-      const { status, body } = await request(app.getHttpServer())
-        .get('/events')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(status).toBe(200);
-      expect(body).toHaveLength(0);
-    });
+    describe('You can search events by title, description or tags', () => {
+      it('should return events where the title, description or the tags contain the search string', async () => {
+        const { body: newEvent } = await request(app.getHttpServer())
+          .post('/events')
+          .set('Authorization', `Bearer ${user1Token}`)
+          .send({
+            title: 'a word in the title',
+            description: 'a different word in the description',
+            dateOfEvent: new Date('2022-01-01'),
+            tags: [{ subject: 'tagName1' }, { subject: 'tagName2' }],
+          });
 
-    it('should return the events of your organisation by date descending', async () => {
-      const { status, body } = await request(app.getHttpServer())
-        .get('/events')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(status).toBe(200);
-      expect(body).toHaveLength(5);
+        const { body: all } = await request(app.getHttpServer())
+          .get('/events?searchQuery=')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(all).toHaveLength(6);
 
-      const sortedEvents = eventArray.sort((a, b) => b.dateOfEvent.getTime() - a.dateOfEvent.getTime());
-      body.forEach((event: Event, index: number) => {
-        expect(event.id).toBe(sortedEvents[index].id);
-        expect(event.organisationId).toBe(organisation.id);
-      });
+        const { body } = await request(app.getHttpServer())
+          .get('/events?searchQuery=title')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(body).toHaveLength(1);
+        expect(body[0].id).toBe(newEvent.id);
 
-      const { status: status2, body: body2 } = await request(app.getHttpServer())
-        .get('/events')
-        .set('Authorization', `Bearer ${userOfOtherOrganisationToken}`);
-      expect(status2).toBe(200);
-      expect(body2).toHaveLength(3);
+        const { body: body2 } = await request(app.getHttpServer())
+          .get('/events?searchQuery=tle')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(body2).toHaveLength(1);
+        expect(body2[0].id).toBe(newEvent.id);
 
-      const sortedEvents2 = eventArrayOtherOrganisation.sort(
-        (a, b) => b.dateOfEvent.getTime() - a.dateOfEvent.getTime(),
-      );
-      body2.forEach((event: Event, index: number) => {
-        expect(event.id).toBe(sortedEvents2[index].id);
-        expect(event.organisationId).toBe(otherOrganisation.id);
-      });
-    });
+        const { body: body3 } = await request(app.getHttpServer())
+          .get('/events?searchQuery=tagName1')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(body3).toHaveLength(1);
+        expect(body3[0].id).toBe(newEvent.id);
 
-    it('should return the events of your organisation by date ascending', async () => {
-      const { status, body } = await request(app.getHttpServer())
-        .get('/events?order=asc')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(status).toBe(200);
-      expect(body).toHaveLength(5);
+        const { body: body4 } = await request(app.getHttpServer())
+          .get('/events?searchQuery=different')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(body4).toHaveLength(1);
+        expect(body4[0].id).toBe(newEvent.id);
 
-      const sortedEvents = eventArray.sort((a, b) => a.dateOfEvent.getTime() - b.dateOfEvent.getTime());
-      body.forEach((event: Event, index: number) => {
-        expect(event.id).toBe(sortedEvents[index].id);
-        expect(event.organisationId).toBe(organisation.id);
-      });
-    });
-
-    it('should return the events of your organisation by date ascending and skip 2', async () => {
-      const { status, body } = await request(app.getHttpServer())
-        .get('/events?order=asc&min=2')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(status).toBe(200);
-      expect(body).toHaveLength(3);
-
-      const sortedEvents = eventArray.sort((a, b) => a.dateOfEvent.getTime() - b.dateOfEvent.getTime());
-      body.forEach((event: Event, index: number) => {
-        expect(event.id).toBe(sortedEvents[index + 2].id);
-        expect(event.organisationId).toBe(organisation.id);
-      });
-    });
-
-    it('should return the events of your organisation by date ascending, skip 1 and take 2', async () => {
-      const { status, body } = await request(app.getHttpServer())
-        .get('/events?order=asc&min=1&max=3')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(status).toBe(200);
-      expect(body).toHaveLength(2);
-
-      const sortedEvents = eventArray.sort((a, b) => a.dateOfEvent.getTime() - b.dateOfEvent.getTime());
-      body.forEach((event: Event, index: number) => {
-        expect(event.id).toBe(sortedEvents[index + 1].id);
-        expect(event.organisationId).toBe(organisation.id);
-      });
-    });
-
-    it('should return the events of your organisation by date descending and return max 10 events', async () => {
-      await prisma.event.createMany({
-        data: [
-          {
-            title: 'Event 6',
-            description: 'Event 6',
+        const { body: newEvent2 } = await request(app.getHttpServer())
+          .post('/events')
+          .set('Authorization', `Bearer ${user1Token}`)
+          .send({
+            title: 'another word in the title',
+            description: 'another different word in the description',
             dateOfEvent: new Date('2021-01-01'),
-            organisationId: organisation.id,
-          },
-          {
-            title: 'Event 7',
-            description: 'Event 7',
-            dateOfEvent: new Date('2021-01-01'),
-            organisationId: organisation.id,
-          },
-          {
-            title: 'Event 8',
-            description: 'Event 8',
-            dateOfEvent: new Date('2021-01-01'),
-            organisationId: organisation.id,
-          },
-          {
-            title: 'Event 9',
-            description: 'Event 9',
-            dateOfEvent: new Date('2021-01-01'),
-            organisationId: organisation.id,
-          },
-          {
-            title: 'Event 10',
-            description: 'Event 10',
-            dateOfEvent: new Date('2021-01-01'),
-            organisationId: organisation.id,
-          },
-          {
-            title: 'Event 11',
-            description: 'Event 11',
-            dateOfEvent: new Date('2021-01-01'),
-            organisationId: organisation.id,
-          },
-          {
-            title: 'Event 12',
-            description: 'Event 12',
-            dateOfEvent: new Date('2021-01-01'),
-            organisationId: organisation.id,
-          },
-        ],
+            tags: [{ subject: 'tagName1' }, { subject: 'tagName2' }, { subject: 'Tag for event2' }],
+          });
+
+        const { body: body5 } = await request(app.getHttpServer())
+          .get('/events?searchQuery=different')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(body5).toHaveLength(2);
+        expect(body5[0].id).toBe(newEvent.id);
+        expect(body5[1].id).toBe(newEvent2.id);
+
+        const { body: body6 } = await request(app.getHttpServer())
+          .get('/events?searchQuery=tagName1')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(body6).toHaveLength(2);
+        expect(body6[0].id).toBe(newEvent.id);
+        expect(body6[1].id).toBe(newEvent2.id);
+
+        const { body: body7 } = await request(app.getHttpServer())
+          .get('/events?searchQuery=tag for event2')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(body7).toHaveLength(1);
+        expect(body7[0].id).toBe(newEvent2.id);
       });
-      const { status, body } = await request(app.getHttpServer())
-        .get('/events')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(status).toBe(200);
-      expect(body).toHaveLength(10);
 
-      const { status: status2, body: body2 } = await request(app.getHttpServer())
-        .get('/events?min=6')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(status2).toBe(200);
-      expect(body2).toHaveLength(4);
+      it('should return all events if the searchstring is empty', async () => {
+        const { body } = await request(app.getHttpServer())
+          .get('/events?searchQuery=')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(body).toHaveLength(5);
+      });
+
+      it('should only return events where the tagname contains the full search string', async () => {
+        const { body: newEvent } = await request(app.getHttpServer())
+          .post('/events')
+          .set('Authorization', `Bearer ${user1Token}`)
+          .send({
+            title: 'title',
+            description: 'description',
+            dateOfEvent: new Date('2022-01-01'),
+            tags: [{ subject: 'tagName1' }, { subject: 'tagName2' }],
+          });
+
+        const { body } = await request(app.getHttpServer())
+          .get('/events?searchQuery=tagName1')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(body).toHaveLength(1);
+        expect(body[0].id).toBe(newEvent.id);
+
+        const { body: body2 } = await request(app.getHttpServer())
+          .get('/events?searchQuery=Name1')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(body2).toHaveLength(0);
+      });
+
+      it('should not return an event where the tagname does not contain the full search string', async () => {
+        await request(app.getHttpServer())
+          .post('/events')
+          .set('Authorization', `Bearer ${user1Token}`)
+          .send({
+            title: 'title',
+            description: 'description',
+            dateOfEvent: new Date('2022-01-01'),
+            tags: [{ subject: 'tagName1' }, { subject: 'tagName2' }],
+          });
+
+        const { body } = await request(app.getHttpServer())
+          .get('/events?searchQuery=Name1')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(body).toHaveLength(0);
+      });
     });
 
-    it('should return events where the title, description or the tags contain the search string', async () => {
-      const { body: newEvent } = await request(app.getHttpServer())
-        .post('/events')
-        .set('Authorization', `Bearer ${user1Token}`)
-        .send({
-          title: 'a word in the title',
-          description: 'a different word in the description',
-          dateOfEvent: new Date('2022-01-01'),
-          tags: [{ subject: 'tagName1' }, { subject: 'tagName2' }],
-        });
+    describe('You can choose whether to include archived events in your search', () => {
+      it('should only return events that are not archived', async () => {
+        const { body: newEvent } = await request(app.getHttpServer())
+          .post('/events')
+          .set('Authorization', `Bearer ${user1Token}`)
+          .send({
+            title: 'a unique title for archiving test',
+            description: 'description',
+            dateOfEvent: new Date('2022-01-01'),
+            tags: [{ subject: 'tagName1' }, { subject: 'tagName2' }],
+          });
 
-      const { body: all } = await request(app.getHttpServer())
-        .get('/events?searchQuery=')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(all).toHaveLength(6);
+        const { body: unarchived } = await request(app.getHttpServer())
+          .get('/events?searchQuery=archiving')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(unarchived).toHaveLength(1);
 
-      const { body } = await request(app.getHttpServer())
-        .get('/events?searchQuery=title')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(body).toHaveLength(1);
-      expect(body[0].id).toBe(newEvent.id);
+        await request(app.getHttpServer())
+          .patch(`/events/${newEvent.id}/archive`)
+          .set('Authorization', `Bearer ${user1Token}`);
 
-      const { body: body2 } = await request(app.getHttpServer())
-        .get('/events?searchQuery=tle')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(body2).toHaveLength(1);
-      expect(body2[0].id).toBe(newEvent.id);
+        const { body } = await request(app.getHttpServer())
+          .get('/events?searchQuery=archiving')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(body).toHaveLength(0);
+      });
 
-      const { body: body3 } = await request(app.getHttpServer())
-        .get('/events?searchQuery=tagName1')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(body3).toHaveLength(1);
-      expect(body3[0].id).toBe(newEvent.id);
+      it('should return both archived and unarchived events if the archived query parameter is set to true', async () => {
+        const { body: newEvent } = await request(app.getHttpServer())
+          .post('/events')
+          .set('Authorization', `Bearer ${user1Token}`)
+          .send({
+            title: 'a unique title for archiving test',
+            description: 'description',
+            dateOfEvent: new Date('2022-01-01'),
+            tags: [{ subject: 'tagName1' }, { subject: 'tagName2' }],
+          });
 
-      const { body: body4 } = await request(app.getHttpServer())
-        .get('/events?searchQuery=different')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(body4).toHaveLength(1);
-      expect(body4[0].id).toBe(newEvent.id);
+        const { body: unarchived } = await request(app.getHttpServer())
+          .get('/events?searchQuery=archiving')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(unarchived).toHaveLength(1);
 
-      const { body: newEvent2 } = await request(app.getHttpServer())
-        .post('/events')
-        .set('Authorization', `Bearer ${user1Token}`)
-        .send({
-          title: 'another word in the title',
-          description: 'another different word in the description',
-          dateOfEvent: new Date('2021-01-01'),
-          tags: [{ subject: 'tagName1' }, { subject: 'tagName2' }, { subject: 'Tag for event2' }],
-        });
+        await request(app.getHttpServer())
+          .patch(`/events/${newEvent.id}/archive`)
+          .set('Authorization', `Bearer ${user1Token}`);
 
-      const { body: body5 } = await request(app.getHttpServer())
-        .get('/events?searchQuery=different')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(body5).toHaveLength(2);
-      expect(body5[0].id).toBe(newEvent.id);
-      expect(body5[1].id).toBe(newEvent2.id);
+        const { body } = await request(app.getHttpServer())
+          .get('/events?searchQuery=archiving&getArchivedItems=true')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(body).toHaveLength(1);
+      });
 
-      const { body: body6 } = await request(app.getHttpServer())
-        .get('/events?searchQuery=tagName1')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(body6).toHaveLength(2);
-      expect(body6[0].id).toBe(newEvent.id);
-      expect(body6[1].id).toBe(newEvent2.id);
+      it('should return all events if the archived query parameter is set to true and the searchstring is empty', async () => {
+        const { body: newEvent } = await request(app.getHttpServer())
+          .post('/events')
+          .set('Authorization', `Bearer ${user1Token}`)
+          .send({
+            title: 'a unique title for archiving test',
+            description: 'description',
+            dateOfEvent: new Date('2022-01-01'),
+            tags: [{ subject: 'tagName1' }, { subject: 'tagName2' }],
+          });
 
-      const { body: body7 } = await request(app.getHttpServer())
-        .get('/events?searchQuery=tag for event2')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(body7).toHaveLength(1);
-      expect(body7[0].id).toBe(newEvent2.id);
-    });
+        const { body: unarchived } = await request(app.getHttpServer())
+          .get('/events?searchQuery=')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(unarchived).toHaveLength(6);
 
-    it('should return all events if the searchstring is empty', async () => {
-      const { body } = await request(app.getHttpServer())
-        .get('/events?searchQuery=')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(body).toHaveLength(5);
-    });
+        await request(app.getHttpServer())
+          .patch(`/events/${newEvent.id}/archive`)
+          .set('Authorization', `Bearer ${user1Token}`);
 
-    it('should only return events where the tagname contains the full search string', async () => {
-      const { body: newEvent } = await request(app.getHttpServer())
-        .post('/events')
-        .set('Authorization', `Bearer ${user1Token}`)
-        .send({
-          title: 'title',
-          description: 'description',
-          dateOfEvent: new Date('2022-01-01'),
-          tags: [{ subject: 'tagName1' }, { subject: 'tagName2' }],
-        });
+        const { body: archived } = await request(app.getHttpServer())
+          .get('/events?searchQuery=')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(archived).toHaveLength(5);
 
-      const { body } = await request(app.getHttpServer())
-        .get('/events?searchQuery=tagName1')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(body).toHaveLength(1);
-      expect(body[0].id).toBe(newEvent.id);
+        const { body } = await request(app.getHttpServer())
+          .get('/events?searchQuery=&getArchivedItems=true')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(body).toHaveLength(6);
+      });
 
-      const { body: body2 } = await request(app.getHttpServer())
-        .get('/events?searchQuery=Name1')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(body2).toHaveLength(0);
-    });
+      it('should return all archived and unarchived events by date ascending, skip 2 and take 3', async () => {
+        const { body: newEvent } = await request(app.getHttpServer())
+          .post('/events')
+          .set('Authorization', `Bearer ${user1Token}`)
+          .send({
+            title: 'a unique title for archiving test',
+            description: 'description',
+            dateOfEvent: new Date('2022-01-01'),
+            tags: [{ subject: 'tagName1' }, { subject: 'tagName2' }],
+            isArchived: true,
+          });
 
-    it('should not return an event where the tagname does not contain the full search string', async () => {
-      await request(app.getHttpServer())
-        .post('/events')
-        .set('Authorization', `Bearer ${user1Token}`)
-        .send({
-          title: 'title',
-          description: 'description',
-          dateOfEvent: new Date('2022-01-01'),
-          tags: [{ subject: 'tagName1' }, { subject: 'tagName2' }],
-        });
+        const { body: newEvent2 } = await request(app.getHttpServer())
+          .post('/events')
+          .set('Authorization', `Bearer ${user1Token}`)
+          .send({
+            title: 'a unique title for archiving test 2',
+            description: 'description',
+            dateOfEvent: new Date('2022-01-02'),
+            tags: [{ subject: 'tagName1' }, { subject: 'tagName2' }],
+            isArchived: true,
+          });
 
-      const { body } = await request(app.getHttpServer())
-        .get('/events?searchQuery=Name1')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(body).toHaveLength(0);
-    });
+        const { body: searchResult } = await request(app.getHttpServer())
+          .get('/events?order=asc&getArchivedItems=false&min=2&max=5')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(searchResult).toHaveLength(3);
+        const sortedEvents = eventArray.sort((a, b) => a.dateOfEvent.getTime() - b.dateOfEvent.getTime());
+        expect(searchResult[0].id).toEqual(sortedEvents[2].id);
+        expect(searchResult[1].id).toEqual(sortedEvents[3].id);
+        expect(searchResult[2].id).toEqual(sortedEvents[4].id);
 
-    it('should only return events that are not archived', async () => {
-      const { body: newEvent } = await request(app.getHttpServer())
-        .post('/events')
-        .set('Authorization', `Bearer ${user1Token}`)
-        .send({
-          title: 'a unique title for archiving test',
-          description: 'description',
-          dateOfEvent: new Date('2022-01-01'),
-          tags: [{ subject: 'tagName1' }, { subject: 'tagName2' }],
-        });
-
-      const { body: unarchived } = await request(app.getHttpServer())
-        .get('/events?searchQuery=archiving')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(unarchived).toHaveLength(1);
-
-      await request(app.getHttpServer())
-        .patch(`/events/${newEvent.id}/archive`)
-        .set('Authorization', `Bearer ${user1Token}`);
-
-      const { body } = await request(app.getHttpServer())
-        .get('/events?searchQuery=archiving')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(body).toHaveLength(0);
-    });
-
-    it('should return both archived and unarchived events if the archived query parameter is set to true', async () => {
-      const { body: newEvent } = await request(app.getHttpServer())
-        .post('/events')
-        .set('Authorization', `Bearer ${user1Token}`)
-        .send({
-          title: 'a unique title for archiving test',
-          description: 'description',
-          dateOfEvent: new Date('2022-01-01'),
-          tags: [{ subject: 'tagName1' }, { subject: 'tagName2' }],
-        });
-
-      const { body: unarchived } = await request(app.getHttpServer())
-        .get('/events?searchQuery=archiving')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(unarchived).toHaveLength(1);
-
-      await request(app.getHttpServer())
-        .patch(`/events/${newEvent.id}/archive`)
-        .set('Authorization', `Bearer ${user1Token}`);
-
-      const { body } = await request(app.getHttpServer())
-        .get('/events?searchQuery=archiving&getArchivedItems=true')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(body).toHaveLength(1);
-    });
-
-    it('should return all events if the archived query parameter is set to true and the searchstring is empty', async () => {
-      const { body: newEvent } = await request(app.getHttpServer())
-        .post('/events')
-        .set('Authorization', `Bearer ${user1Token}`)
-        .send({
-          title: 'a unique title for archiving test',
-          description: 'description',
-          dateOfEvent: new Date('2022-01-01'),
-          tags: [{ subject: 'tagName1' }, { subject: 'tagName2' }],
-        });
-
-      const { body: unarchived } = await request(app.getHttpServer())
-        .get('/events?searchQuery=')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(unarchived).toHaveLength(6);
-
-      await request(app.getHttpServer())
-        .patch(`/events/${newEvent.id}/archive`)
-        .set('Authorization', `Bearer ${user1Token}`);
-
-      const { body: archived } = await request(app.getHttpServer())
-        .get('/events?searchQuery=')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(archived).toHaveLength(5);
-
-      const { body } = await request(app.getHttpServer())
-        .get('/events?searchQuery=&getArchivedItems=true')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(body).toHaveLength(6);
-    });
-
-    it('should return all archived and unarchived events by date ascending, skip 2 and take 3', async () => {
-      const { body: newEvent } = await request(app.getHttpServer())
-        .post('/events')
-        .set('Authorization', `Bearer ${user1Token}`)
-        .send({
-          title: 'a unique title for archiving test',
-          description: 'description',
-          dateOfEvent: new Date('2022-01-01'),
-          tags: [{ subject: 'tagName1' }, { subject: 'tagName2' }],
-          isArchived: true,
-        });
-
-      const { body: newEvent2 } = await request(app.getHttpServer())
-        .post('/events')
-        .set('Authorization', `Bearer ${user1Token}`)
-        .send({
-          title: 'a unique title for archiving test 2',
-          description: 'description',
-          dateOfEvent: new Date('2022-01-02'),
-          tags: [{ subject: 'tagName1' }, { subject: 'tagName2' }],
-          isArchived: true,
-        });
-
-      const { body: searchResult } = await request(app.getHttpServer())
-        .get('/events?order=asc&getArchivedItems=false&min=2&max=5')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(searchResult).toHaveLength(3);
-      const sortedEvents = eventArray.sort((a, b) => a.dateOfEvent.getTime() - b.dateOfEvent.getTime());
-      expect(searchResult[0].id).toEqual(sortedEvents[2].id);
-      expect(searchResult[1].id).toEqual(sortedEvents[3].id);
-      expect(searchResult[2].id).toEqual(sortedEvents[4].id);
-
-      const { body: searchResult2 } = await request(app.getHttpServer())
-        .get('/events?order=asc&getArchivedItems=true&min=2&max=5')
-        .set('Authorization', `Bearer ${user1Token}`);
-      expect(searchResult2).toHaveLength(3);
-      newEvent.dateOfEvent = new Date(newEvent.dateOfEvent);
-      newEvent2.dateOfEvent = new Date(newEvent2.dateOfEvent);
-      const sortedEvents2 = [...eventArray, newEvent, newEvent2].sort(
-        (a, b) => a.dateOfEvent.getTime() - b.dateOfEvent.getTime(),
-      );
-      expect(searchResult2[0].id).toEqual(sortedEvents2[2].id);
-      expect(searchResult2[1].id).toEqual(sortedEvents2[3].id);
-      expect(searchResult2[2].id).toEqual(sortedEvents2[4].id);
+        const { body: searchResult2 } = await request(app.getHttpServer())
+          .get('/events?order=asc&getArchivedItems=true&min=2&max=5')
+          .set('Authorization', `Bearer ${user1Token}`);
+        expect(searchResult2).toHaveLength(3);
+        newEvent.dateOfEvent = new Date(newEvent.dateOfEvent);
+        newEvent2.dateOfEvent = new Date(newEvent2.dateOfEvent);
+        const sortedEvents2 = [...eventArray, newEvent, newEvent2].sort(
+          (a, b) => a.dateOfEvent.getTime() - b.dateOfEvent.getTime(),
+        );
+        expect(searchResult2[0].id).toEqual(sortedEvents2[2].id);
+        expect(searchResult2[1].id).toEqual(sortedEvents2[3].id);
+        expect(searchResult2[2].id).toEqual(sortedEvents2[4].id);
+      });
     });
   });
 

@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, Request } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, Request } from '@nestjs/common';
 import { Prisma, User } from '@prisma/client';
 import { PrismaClientService } from '../prisma-client/prisma-client.service';
 
@@ -24,25 +24,37 @@ export class UsersService {
     return await this.prisma.user.create({ data: user });
   }
 
-  async setInactive(userId: number): Promise<any> {
+  async setInactive(userId: number, organisationId: number): Promise<any> {
     try {
-      await this.prisma.user.update({ where: { id: userId }, data: { isActive: false } });
-      return { statusCode: 200, message: 'set inactive' };
+      const user = await this.prisma.user.findUnique({ where: { id: userId } });
+      if (user.organisationId == organisationId) {
+        await this.prisma.user.update({ where: { id: userId }, data: { isActive: false } });
+        return { statusCode: 200, message: 'Set inactive' };
+      } else {
+        throw new ForbiddenException('Forbidden');
+      }
     } catch (e) {
+      if (e instanceof ForbiddenException) throw e;
       throw new BadRequestException("Can't set user inactive");
     }
   }
 
-  async setActive(userId: number): Promise<any> {
+  async setActive(userId: number, organisationId: number): Promise<any> {
     try {
-      await this.prisma.user.update({ where: { id: userId }, data: { isActive: true } });
-      return { statusCode: 200, message: 'set active' };
+      const user = await this.prisma.user.findUnique({ where: { id: userId } });
+      if (user.organisationId == organisationId) {
+        await this.prisma.user.update({ where: { id: userId }, data: { isActive: true } });
+        return { statusCode: 200, message: 'Set active' };
+      } else {
+        throw new ForbiddenException('Forbidden');
+      }
     } catch (e) {
-      throw new BadRequestException("Can't set user admin");
+      if (e instanceof ForbiddenException) throw e;
+      throw new BadRequestException("Can't set user active");
     }
   }
 
-  async getOranisationUsers(
+  async getOrganisationUsers(
     @Request() req,
   ): Promise<{ id: number; email: string; firstName: string; lastName: string }[]> {
     const user = req.user;

@@ -102,7 +102,7 @@ export class AuthenticationService {
         DateTime.now().plus({ minutes: 30 }).toJSDate(),
       );
       await this.mailService.sendPasswordResetMail({ to: email, verificationCode: token });
-      return { statucCode: 200, message: 'Mail sent' };
+      return { statusCode: 200, message: 'Mail sent' };
     } catch (error) {
       throw new BadRequestException('Something went wrong');
     }

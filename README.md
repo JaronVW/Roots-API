@@ -1,4 +1,4 @@
-# RootsClient
+# Roots-API
 
 This project was created as a schoolproject for Avans Hogeschool Breda commissioned by ihomer.
 The target of the project is an archive system where different organizations can store their history.
